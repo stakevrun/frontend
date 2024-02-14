@@ -81,7 +81,7 @@ const Home: NextPage = () => {
             </div>
 
 
-            <div className="mx-auto -mt-12 h-[25rem] w-full rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-[40rem] lg:max-w-5xl">
+          {/*  <div className="mx-auto -mt-12 h-[25rem] w-full rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-[40rem] lg:max-w-5xl">
               <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-gray-100">
                 <div className={styles.grid}>
                   <a className={styles.card} href="https://rainbowkit.com">
@@ -126,7 +126,7 @@ const Home: NextPage = () => {
                   </a>
                 </div>
               </div>
-            </div>
+            </div>*/}
 
 
 
@@ -138,7 +138,7 @@ const Home: NextPage = () => {
 
 
       </section>
-      <div className='w-full flex items-center justify-center '>
+   {/*   <div className='w-full flex items-center justify-center '>
 
         <div className="max-w-screen-xl w-full  px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
           <div className="max-w-xl">
@@ -268,7 +268,7 @@ const Home: NextPage = () => {
           </div>
         </div>
 
-      </div>
+  </div> */}
 
       {/*<div className="bg-blue-500 md:bg-green-500 lg:bg-red-500 xl:bg-yellow-500">
         This div will have different background colors based on screen size.
