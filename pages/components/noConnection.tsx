@@ -2,7 +2,7 @@ import React from 'react'
 import { MdNoAccounts } from "react-icons/md";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-export const NoConnection = () => {
+const NoConnection = () => {
     return (
         <div className='w-full py-50 h-auto flex flex-col items-center justify-center '>
 
@@ -28,3 +28,6 @@ export const NoConnection = () => {
         </div>
     )
 }
+
+
+export default NoConnection;

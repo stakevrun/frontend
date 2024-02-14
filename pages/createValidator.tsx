@@ -3,7 +3,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Navbar from './components/navbar';
 import type { NextPage } from 'next';
 import { useAccount } from 'wagmi';
-import { NoConnection } from './components/noConnection';
+import  NoConnection  from './components/noConnection';
 import { ethers } from 'ethers';
 import NoRegistration from './components/noRegistration';
 import { mainnet } from 'viem/chains';
@@ -105,7 +105,7 @@ const CreateValidator: NextPage = () => {
   }
 
 
-  const handleFakestETH = async () => {
+  /*const handleFakestETH = async () => {
 
 
 
@@ -114,7 +114,7 @@ const CreateValidator: NextPage = () => {
       to: address,
       value: parseEther('2')
     })
-  }
+  } */
 
 
 
@@ -612,10 +612,6 @@ const CreateValidator: NextPage = () => {
       ) : (<NoConnection />)}
 
 
-
-      <button onClick={connect}>Connect Wallet</button>
-      <button onClick={getFoundry}>CONNECT FOUNDRY</button>
-      <button onClick={handleFakestETH}>Fund Test Account</button>
 
 
 
