@@ -270,15 +270,15 @@ const Home: NextPage = () => {
 
       </div>
 
-      <div className="bg-blue-500 md:bg-green-500 lg:bg-red-500 xl:bg-yellow-500">
+      {/*<div className="bg-blue-500 md:bg-green-500 lg:bg-red-500 xl:bg-yellow-500">
         This div will have different background colors based on screen size.
-      </div>
+  </div> */}
 
-      <footer className={styles.footer}>
+      {/*<footer className={styles.footer}>
         <a href="https://rainbow.me" rel="noopener noreferrer" target="_blank">
           Made with ❤️ by your frens at 🌈
         </a>
-      </footer>
+  </footer> */}
     </div>
   );
 };
