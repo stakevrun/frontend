@@ -105,7 +105,7 @@ const CreateValidator: NextPage = () => {
   }
 
 
-  const handleFakestETH = async () => {
+ {/* const handleFakestETH = async () => {
 
 
 
@@ -114,7 +114,7 @@ const CreateValidator: NextPage = () => {
       to: address,
       value: parseEther('2')
     })
-  } 
+  } */}
 
 
 
@@ -671,11 +671,11 @@ const CreateValidator: NextPage = () => {
       ) : (<NoConnection />)}
 
 
-
+{/*   
 <button onClick={connect}>Connect Wallet</button>
       <button onClick={getFoundry}>CONNECT FOUNDRY</button>
       <button onClick={handleFakestETH}>Fund Test Account</button>
-
+*/}
 
     </div>
   )
