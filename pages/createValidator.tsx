@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Navbar from './components/navbar';
 import type { NextPage } from 'next';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId } from 'wagmi';
 import  NoConnection  from './components/noConnection';
 import { ethers } from 'ethers';
 import NoRegistration from './components/noRegistration';
@@ -105,7 +105,7 @@ const CreateValidator: NextPage = () => {
   }
 
 
-  /*const handleFakestETH = async () => {
+  const handleFakestETH = async () => {
 
 
 
@@ -114,7 +114,7 @@ const CreateValidator: NextPage = () => {
       to: address,
       value: parseEther('2')
     })
-  } */
+  } 
 
 
 
@@ -188,12 +188,17 @@ const CreateValidator: NextPage = () => {
 
       try {
 
+
+        const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
-        const storageContract = new ethers.Contract("rocketstorage.eth", storageABI, signer);
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
         console.log("Storage Contract:" + storageContract)
 
-        const rocketNodeManager = await new ethers.Contract("0x89F478E6Cc24f052103628f36598D4C14Da3D287", managerABI, signer)
+        const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+        const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
         console.log("Rocket Node Manager:" + rocketNodeManager)
         const bool = await rocketNodeManager.getNodeExists(add)
 
@@ -242,9 +247,24 @@ const CreateValidator: NextPage = () => {
         }
       }
     }
-
-
   })
+
+
+  const currentChain = useChainId();
+
+
+  useEffect(() => {
+
+    console.log(currentChain)
+
+    if(address !== undefined ) {
+      handleCheckRPL(address);
+      fetchData();
+
+    }
+    
+
+  }, [currentChain])
 
 
 
@@ -265,9 +285,7 @@ const CreateValidator: NextPage = () => {
   }, [address])
 
 
-  useEffect(() => {
 
-  }, [])
 
 
 
@@ -283,11 +301,24 @@ const CreateValidator: NextPage = () => {
 
       try {
 
+
+
+        const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+
+       
+          
+
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
-        const rocketNodeStaking = await new ethers.Contract("0x0d8D8f8541B12A0e1194B7CC4b6D954b90AB82ec", stakingABI, signer)
+        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+
+
+
+        const rocketNodeStaking = await new ethers.Contract(NodeStakingAddress, stakingABI, signer)
 
         const amount = await rocketNodeStaking.getNodeRPLStake(add)
 
@@ -334,10 +365,19 @@ const CreateValidator: NextPage = () => {
 
       try {
 
+        const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+
+       
+          
+
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const rocketNodeStaking = await new ethers.Contract("0x0d8D8f8541B12A0e1194B7CC4b6D954b90AB82ec", stakingABI, signer)
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+        const rocketNodeStaking = await new ethers.Contract(NodeStakingAddress, stakingABI, signer)
 
         const tx = await rocketNodeStaking.setStakeRPLForAllowed(address, true);
 
@@ -372,17 +412,31 @@ const CreateValidator: NextPage = () => {
   const handleStakeRPL = async () => {
     if (typeof (window as any).ethereum !== undefined) {
       try {
+
+        const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+
+       
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
+
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+
+        const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
+
+       
   
         const rocketNodeStaking = new ethers.Contract(
-          "0x0d8D8f8541B12A0e1194B7CC4b6D954b90AB82ec", // Replace with your staking contract address
+          NodeStakingAddress, // Replace with your staking contract address
           stakingABI, // Replace with your staking contract ABI
           signer
         );
   
         // Get the ERC20 token contract address and RPL input value from your UI or elsewhere
-        const tokenAddress = "0xD33526068D116cE69F19A9ee46F0bd304F21A51f"; // Replace with your ERC20 token address
+    // Replace with your ERC20 token address
         const tokenABI = [{"inputs":[{"internalType":"contract RocketStorageInterface","name":"_rocketStorageAddress","type":"address"},{"internalType":"contract IERC20","name":"_rocketTokenRPLFixedSupplyAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
         {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},
         {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"RPLFixedSupplyBurn","type":"event"},
@@ -400,14 +454,14 @@ const CreateValidator: NextPage = () => {
         const val = parseEther(RPLinput);
   
         // Approve the staking contract to spend RPL tokens on behalf of the signer
-        const approvalTx = await tokenContract.approve("0x0d8D8f8541B12A0e1194B7CC4b6D954b90AB82ec", val);
+        const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
         console.log("Approval transaction:", approvalTx.hash);
   
         // Wait for the approval transaction to be mined
         await approvalTx.wait();
   
         // Stake RPL tokens
-        const tx = await  tokenContract.transfer("0x0d8D8f8541B12A0e1194B7CC4b6D954b90AB82ec", val);
+        const tx = await  tokenContract.transfer(NodeStakingAddress, val);
         console.log("Stake transaction:", tx.hash);
   
         // Wait for the stake transaction to be mined
@@ -487,7 +541,12 @@ const CreateValidator: NextPage = () => {
 
 
 
-      {address !== undefined ? (<>{isRegistered ? (
+      {address !== undefined ? (
+      
+      
+      <>
+      
+      {isRegistered ? (
 
 
 
@@ -523,14 +582,14 @@ const CreateValidator: NextPage = () => {
                   <div className='w-3/5 flex gap-2 items-center justify-center'>
 
 
-                  {RPLApproved &&    (<button onClick={handleStakeRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                  <button onClick={handleStakeRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                       Stake RPL
-                    </button>)}
+                    </button>
 
 
-                    {!RPLApproved &&    (<button onClick={approveRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                    {/*!RPLApproved &&    (<button onClick={approveRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                       Approve RPL
-                    </button>)}
+      </button>)*/}
                   
 
 
@@ -613,6 +672,9 @@ const CreateValidator: NextPage = () => {
 
 
 
+<button onClick={connect}>Connect Wallet</button>
+      <button onClick={getFoundry}>CONNECT FOUNDRY</button>
+      <button onClick={handleFakestETH}>Fund Test Account</button>
 
 
     </div>

@@ -51,7 +51,7 @@ const Home: NextPage = () => {
 
       <section className="mx-auto w-full max-w-7xl items-center justify-center gap-x-12  py-12 text-center md:flex md:flex-col md:py-0 lg:py-16" >
 
-        <div className="relative flex h-[60rem] gap-y-5 items-center justify-center p-2 md:h-[80rem] lg:p-20">
+        <div className="relative flex h-[30rem] gap-y-5 items-center justify-center p-2 md:h-[40rem] lg:p-20">
           <div className="relative w-full py-20 md:py-40 ">
             <div className="mx-auto mb-44 max-w-5xl text-center">
               <div className="flex items-center flex-col justify-center gap-6">
