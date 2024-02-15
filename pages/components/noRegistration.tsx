@@ -11,6 +11,8 @@ const NoRegistration = ({ onRegistrationResult} : any) => {
 
   const [currentChain, setCurrentChain] = useState(useChainId());
 
+  const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+
 
   const storageABI = [{ "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
   { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "oldGuardian", "type": "address" }, { "indexed": false, "internalType": "address", "name": "newGuardian", "type": "address" }], "name": "GuardianChanged", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "node", "type": "address" }, { "indexed": true, "internalType": "address", "name": "withdrawalAddress", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "time", "type": "uint256" }], "name": "NodeWithdrawalAddressSet", "type": "event" }, { "inputs": [{ "internalType": "bytes32", "name": "_key", "type": "bytes32" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "addUint", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "confirmGuardian", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
@@ -41,7 +43,11 @@ const NoRegistration = ({ onRegistrationResult} : any) => {
     
     
     
+useEffect(() => {
 
+  console.log(currentChain)
+
+}, [currentChain])
 
 
 
@@ -58,7 +64,6 @@ const NoRegistration = ({ onRegistrationResult} : any) => {
   const handleRocketRegistration = async () => {
     if (typeof (window as any).ethereum !== "undefined") {
         try {
-          const storageAddress = currentChain === 17000? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
 
        
           
@@ -124,7 +129,7 @@ const alphaArray = alphabetizeArray(timezones)
       height={200}
       alt="Rocket Pool Logo" 
       src={"/images/rocketPlogo.png"}/>
-        <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">No RPL registration</h2>
+        <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Not Registered with Rocket Pool?</h2>
 
         <p className="mt-4 text-gray-500 sm:text-l">
           You must be registered with Rocket Pool to use the Vrün platform. 
