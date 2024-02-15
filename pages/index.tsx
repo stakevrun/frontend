@@ -59,7 +59,7 @@ const Home: NextPage = () => {
                   Welcome to Vrün!
                 </h1>
                 <div className="text-muted-foreground mx-auto max-w-lg pt-10 font-normal md:text-2xl" >
-                  Wanderer is an AI-powered tool that enables students and professionals to find their ideal career path.
+                Embrace True Ownership with Vrun: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
                 </div>
 
                 <Link href="/createValidator">
