@@ -576,7 +576,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-        <div className='flex w-full flex-col items-center justify-center'>
+        <div className='flex w-full mt-5 lg:mt-0 flex-col items-center justify-center'>
           <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8 py-10">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Connected User: </h2>
@@ -600,7 +600,7 @@ const CreateValidator: NextPage = () => {
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                   <p className="mt-4 text-gray-500 sm:text-l">
-                    You have <span> {Number(stakeRPL)}</span> ETH in your Wallet, you can make <span> {Math.floor(Number(stakeRPL) / 2.4)}</span> LEB8s (Minipools)
+                    You have <span> {Number(stakeRPL)}</span> RPL in your Wallet, you can make <span> {Math.floor(Number(stakeRPL) / 2.4)}</span> LEB8s (Minipools)
 
                   </p>
                   <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " type="text" onChange={handleRPLInputChange} />
