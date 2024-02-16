@@ -743,11 +743,11 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
                     You have <span className='text-yellow-500 font-bold'> {formatEther(RPL)}</span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> {formatEther(stakeRPL)}</span> staked RPL and you are able to create <span className="text-green-500 font-bold"> {Math.floor(Number(formatEther(stakeRPL)) / 2.4)}</span> LEB8s (Minipools)
 
                   </p>
-                  <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " type="text" onChange={handleRPLInputChange} />
+                  <input value={RPLinput} placeholder='RPL Value'  style={stakeButtonBool? {display : "block"} : {display: "none"}} className=" border border-black-200 " type="text" onChange={handleRPLInputChange} />
 
                   <div className='w-3/5 flex gap-2 items-center justify-center'>
 
-
+                  {!stakeButtonBool &&   <p>Continuing approval & stake in Wallet...</p>  }
         
 
                     <button onClick={handleStakeButtonClick} style={stakeButtonBool? {display : "block"} : {display: "none"}}  className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
@@ -769,8 +769,9 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
                 <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Generate Validator Keys</h2>
 
-                  <p className="mt-4 text-gray-500 sm:text-l">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Ratione dolore.
+                  <p className="my-4 w-[80%] text-gray-500 sm:text-l">
+       
+                    Don&apos;t have Validator keys? Use the in-house key generator, or continue to the next step with your own keys...
                   </p>
 
                   <div className='w-3/5 flex gap-2 items-center justify-center'>
