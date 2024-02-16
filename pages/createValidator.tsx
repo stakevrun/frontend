@@ -19,10 +19,12 @@ const CreateValidator: NextPage = () => {
   const [foundryAccount, setFoundryAccount] = useState("");
   const [account, setAccount] = useState("")
   const [wallet, setWallet] = useState({});
+  const [RPL, setRPL] = useState(BigInt(0));
   const [stakeRPL, setStakeRPL] = useState(BigInt(0));
   const [RPLinput, setRPLinput] = useState("")
-
+const [stakeButtonBool, setStakeButtonBool] = useState(true)
   const[RPLApproved, setRPLApproved] = useState(false)
+  const [NodeStakingAddress, setNodeStakingAddress] = useState("")
 
 
 
@@ -262,6 +264,7 @@ const CreateValidator: NextPage = () => {
     setIsRegistered(true);
     if(address !== undefined) {
       handleCheckRPL(address);
+      handleCheckStakeRPL(address)
 
     }
    
@@ -274,6 +277,7 @@ const CreateValidator: NextPage = () => {
 
     if(address !== undefined ) {
       handleCheckRPL(address);
+      handleCheckStakeRPL(address)
       fetchData();
 
     }
@@ -295,6 +299,7 @@ const CreateValidator: NextPage = () => {
 
     if (isRegistered && address !== undefined) {
       handleCheckRPL(address)
+      handleCheckStakeRPL(address)
     }
 
   }, [address])
@@ -345,6 +350,79 @@ console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
         console.log(typeof amount)
 
 
+        setRPL(amount);
+
+        console.log("Stake RPL amount:" + amount);
+
+
+        return amount;
+
+      } catch (error) {
+
+        console.log(error)
+
+        return false;
+
+      }
+
+
+
+    }
+    else {
+
+      console.log("Window not working")
+
+
+      return false;
+
+    }
+
+  }
+
+
+  const handleCheckStakeRPL = async (add: string) => {
+
+    if (typeof (window as any).ethereum !== "undefined") {
+
+      console.log("Reg Spot 1")
+
+      try {
+
+
+
+
+       
+          
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        
+
+
+     
+
+        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+        const rocketNodeStaking = new ethers.Contract(
+          NodeStakingAddress, // Replace with your staking contract address
+          stakingABI, // Replace with your staking contract ABI
+          signer
+        );
+
+       
+
+
+        
+
+        const amount = await rocketNodeStaking.getNodeRPLStake(add)
+
+
+        console.log(typeof amount)
+
+
         setStakeRPL(amount);
 
         console.log("Stake RPL amount:" + amount);
@@ -373,6 +451,7 @@ console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
     }
 
   }
+
 
 
 
@@ -427,70 +506,29 @@ console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
   } */}
 
 
-  const handleStakeRPL = async () => {
-    if (typeof (window as any).ethereum !== undefined) {
+ 
+
+  const handleApproveRPL = async () => {
+    if (typeof (window as any).ethereum !== "undefined") {
       try {
-
-
-       
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        let signer = await browserProvider.getSigner()
-
-
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+        let signer = await browserProvider.getSigner();
+  
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-
         const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
-
-
-        console.log("Node Staking Address:" + NodeStakingAddress )
-
-
-        const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
-
-       
+        console.log("Node Staking Address:" + NodeStakingAddress);
   
-        const rocketNodeStaking = new ethers.Contract(
-          NodeStakingAddress, // Replace with your staking contract address
-          stakingABI, // Replace with your staking contract ABI
-          signer
-        );
-  
-        // Get the ERC20 token contract address and RPL input value from your UI or elsewhere
-    // Replace with your ERC20 token address
-       
-        // Get the signer's address
+        const tokenAddress =  await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
         const address = await signer.getAddress();
-  
-        // Load the ERC20 token contract
         const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
   
-        // Parse RPL input to Ether
         const val = parseEther(RPLinput);
   
-        // Approve the staking contract to spend RPL tokens on behalf of the signer
         const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
         console.log("Approval transaction:", approvalTx.hash);
   
-        // Wait for the approval transaction to be mined
         await approvalTx.wait();
-  
-        // Stake RPL tokens
-        const tx = await  rocketNodeStaking.stakeRPL(val);
-        console.log("Stake transaction:", tx.hash);
-  
-        // Wait for the stake transaction to be mined
-        const receipt = await tx.wait();
-        console.log("Transaction confirmed:", receipt);
-  
-        // Check if transaction was successful
-        if (receipt.status === 1) {
-          // Transaction successful, update state
-          if (address !== undefined) {
-            handleCheckRPL(address);
-          }
-        } else {
-          // Handle failed transaction
-        }
+        return NodeStakingAddress;
       } catch (error) {
         console.log(error);
       }
@@ -498,6 +536,53 @@ console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
       console.log("Metamask not available");
     }
   };
+  
+  const handleStakeRPL = async (NodeStakingAddress:any) => {
+    try {
+      if (!NodeStakingAddress) return; // Ensure NodeStakingAddress is provided
+  
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+      let signer = await browserProvider.getSigner();
+  
+      const rocketNodeStaking = new ethers.Contract(NodeStakingAddress, stakingABI, signer);
+      const val = parseEther(RPLinput);
+  
+      const tx = await rocketNodeStaking.stakeRPL(val);
+      console.log("Stake transaction:", tx.hash);
+  
+      const receipt = await tx.wait();
+      console.log("Transaction confirmed:", receipt);
+  
+      if (receipt.status === 1) {
+        if (address !== undefined) {
+          handleCheckRPL(address);
+          handleCheckStakeRPL(address);
+        }
+      } else {
+        // Handle failed transaction
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+
+
+  const handleStakeButtonClick = async () => {
+    setStakeButtonBool(false)
+    const nodeAddress = await handleApproveRPL();
+    if (nodeAddress) {
+      setNodeStakingAddress(nodeAddress);
+      await handleStakeRPL(nodeAddress);
+      setRPLinput("");
+      setStakeButtonBool(true);
+    } else {
+      setRPLinput("");
+      setStakeButtonBool(true);
+
+    }
+  };
+
 
 
 
@@ -645,17 +730,17 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
 
 
 
-          <div className="flex items-center justify-center flex-col w-full pb-10">
+          <div className="flex items-center justify-center flex-col w-full pb-10 mb-10">
 
             <div className="mt-8 sm:mt-12 sm:w-2/5   w-3/5">
               <dl className="grid lg:grid-cols-1 gap-10 md:grid-cols-1 sm:grid-cols-1">
 
 
-                <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
+                <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
-                  <p className="mt-4 text-gray-500 sm:text-l">
-                    You have <span className='text-green-500 font-bold'> {formatEther(stakeRPL)}</span> RPL in your Wallet, you can make <span className="text-green-500 font-bold"> {Math.floor(Number(formatEther(stakeRPL)) / 2.4)}</span> LEB8s (Minipools)
+                  <p className="my-4 w-[80%] text-gray-500 sm:text-l">
+                    You have <span className='text-yellow-500 font-bold'> {formatEther(RPL)}</span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> {formatEther(stakeRPL)}</span> staked RPL and you are able to create <span className="text-green-500 font-bold"> {Math.floor(Number(formatEther(stakeRPL)) / 2.4)}</span> LEB8s (Minipools)
 
                   </p>
                   <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " type="text" onChange={handleRPLInputChange} />
@@ -663,9 +748,9 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
                   <div className='w-3/5 flex gap-2 items-center justify-center'>
 
 
-                  <button onClick={handleStakeRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                      Stake RPL
-                    </button>
+        
+
+                    <button onClick={handleStakeButtonClick} style={stakeButtonBool? {display : "block"} : {display: "none"}}  className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
 
 
                     {/*!RPLApproved &&    (<button onClick={approveRPL} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
@@ -678,23 +763,10 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
                 </div>
 
 
-                <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
-                  <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Do you have validator keys?</h2>
+              
 
 
-
-                  <div className='w-3/5 flex gap-2 items-center justify-center'>
-                    <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                      Yes
-                    </button>
-                    <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                      No, Generate Keys
-                    </button>
-                  </div>
-                </div>
-
-
-                <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
+                <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Generate Validator Keys</h2>
 
                   <p className="mt-4 text-gray-500 sm:text-l">
@@ -709,7 +781,7 @@ const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface",
                 </div>
 
 
-                <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
+                <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Make Minipool Deposit</h2>
 
                   <p className="mt-4 text-gray-500 sm:text-l">
