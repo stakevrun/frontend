@@ -330,11 +330,11 @@ const CreateValidator: NextPage = () => {
         
 
 
-        const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
+        const tokenAddress =  await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
 
        
-
-
+        console.log("THIS IS THE STORAGE ADDRESS:" + storageAddress)
+console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
 
 
         const rplTOKEN = await new ethers.Contract(tokenAddress, tokenABI, signer)
@@ -442,6 +442,9 @@ const CreateValidator: NextPage = () => {
         const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
 
 
+        console.log("Node Staking Address:" + NodeStakingAddress )
+
+
         const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
 
        
@@ -472,7 +475,7 @@ const CreateValidator: NextPage = () => {
         await approvalTx.wait();
   
         // Stake RPL tokens
-        const tx = await  tokenContract.transfer(NodeStakingAddress, val);
+        const tx = await  rocketNodeStaking.stakeRPL(val);
         console.log("Stake transaction:", tx.hash);
   
         // Wait for the stake transaction to be mined
@@ -494,6 +497,53 @@ const CreateValidator: NextPage = () => {
     } else {
       console.log("Metamask not available");
     }
+  };
+
+
+
+  const handleMiniPoolDepost = async() => {
+
+
+    try {
+
+      
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+
+
+    let signer = await browserProvider.getSigner()
+
+
+
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+
+
+    const NodeDepositAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDeposit"))
+
+
+    const depositContract = new ethers.Contract(NodeDepositAddress, depositABI, signer);
+
+
+    
+
+
+
+
+    } catch {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
   };
 
   const handleRPLInputChange = (e: any) => {
@@ -549,9 +599,14 @@ const CreateValidator: NextPage = () => {
         {"inputs":[{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"recipient","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"version","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}]
         
 
-
-
-
+const depositABI= [{"inputs":[{"internalType":"contract RocketStorageInterface","name":"_rocketStorageAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},
+{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"DepositReceived","type":"event"},
+{"inputs":[{"internalType":"uint256","name":"_bondAmount","type":"uint256"},{"internalType":"uint256","name":"_minimumNodeFee","type":"uint256"},{"internalType":"bytes","name":"_validatorPubkey","type":"bytes"},{"internalType":"uint256","name":"_salt","type":"uint256"},{"internalType":"address","name":"_expectedMinipoolAddress","type":"address"},{"internalType":"uint256","name":"_currentBalance","type":"uint256"}],"name":"createVacantMinipool","outputs":[],"stateMutability":"nonpayable","type":"function"},
+{"inputs":[{"internalType":"uint256","name":"_bondAmount","type":"uint256"},{"internalType":"uint256","name":"_minimumNodeFee","type":"uint256"},{"internalType":"bytes","name":"_validatorPubkey","type":"bytes"},{"internalType":"bytes","name":"_validatorSignature","type":"bytes"},{"internalType":"bytes32","name":"_depositDataRoot","type":"bytes32"},{"internalType":"uint256","name":"_salt","type":"uint256"},{"internalType":"address","name":"_expectedMinipoolAddress","type":"address"}],"name":"deposit","outputs":[],"stateMutability":"payable","type":"function"},
+{"inputs":[{"internalType":"uint256","name":"_bondAmount","type":"uint256"},{"internalType":"uint256","name":"_minimumNodeFee","type":"uint256"},{"internalType":"bytes","name":"_validatorPubkey","type":"bytes"},{"internalType":"bytes","name":"_validatorSignature","type":"bytes"},{"internalType":"bytes32","name":"_depositDataRoot","type":"bytes32"},{"internalType":"uint256","name":"_salt","type":"uint256"},{"internalType":"address","name":"_expectedMinipoolAddress","type":"address"}],"name":"depositWithCredit","outputs":[],"stateMutability":"payable","type":"function"},
+{"inputs":[],"name":"getDepositAmounts","outputs":[{"internalType":"uint256[]","name":"","type":"uint256[]"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeOperator","type":"address"}],"name":"getNodeDepositCredit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeOperator","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"increaseDepositCreditBalance","outputs":[],"stateMutability":"nonpayable","type":"function"},
+{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"increaseEthMatched","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"isValidDepositAmount","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"version","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},
+{"stateMutability":"payable","type":"receive"}]
   return (
     <div className="flex w-full flex-col items-center justify-center ">
 
@@ -593,14 +648,14 @@ const CreateValidator: NextPage = () => {
           <div className="flex items-center justify-center flex-col w-full pb-10">
 
             <div className="mt-8 sm:mt-12 sm:w-2/5   w-3/5">
-              <dl className="grid lg:grid-cols-2 gap-10 md:grid-cols-1 sm:grid-cols-1">
+              <dl className="grid lg:grid-cols-1 gap-10 md:grid-cols-1 sm:grid-cols-1">
 
 
                 <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                   <p className="mt-4 text-gray-500 sm:text-l">
-                    You have <span> {Number(stakeRPL)}</span> RPL in your Wallet, you can make <span> {Math.floor(Number(stakeRPL) / 2.4)}</span> LEB8s (Minipools)
+                    You have <span className='text-green-500 font-bold'> {formatEther(stakeRPL)}</span> RPL in your Wallet, you can make <span className="text-green-500 font-bold"> {Math.floor(Number(formatEther(stakeRPL)) / 2.4)}</span> LEB8s (Minipools)
 
                   </p>
                   <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " type="text" onChange={handleRPLInputChange} />
@@ -635,7 +690,6 @@ const CreateValidator: NextPage = () => {
                     <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                       No, Generate Keys
                     </button>
-
                   </div>
                 </div>
 
@@ -651,14 +705,12 @@ const CreateValidator: NextPage = () => {
                     <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                       Generate
                     </button>
-
-
                   </div>
                 </div>
 
 
                 <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center">
-                  <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Make rETH Deposit</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Make Minipool Deposit</h2>
 
                   <p className="mt-4 text-gray-500 sm:text-l">
                     Lorem ipsum dolor sit amet consectetur adipisicing elit. Ratione dolore.
