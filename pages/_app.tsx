@@ -10,16 +10,6 @@ import {
 
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { RainbowKitSiweNextAuthProvider } from '@rainbow-me/rainbowkit-siwe-next-auth';
-import { SessionProvider } from 'next-auth/react';
-import type { Session } from 'next-auth';
-
-import {
-  QueryClientProvider,
-  QueryClient,
-} from "@tanstack/react-query";
-
-
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -35,8 +25,8 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 );
 
 const { connectors } = getDefaultWallets({
-  appName: 'VrunStaking',
-  projectId: '64fa04740ab4284806bd0df2ea67c791',
+  appName: 'RainbowKit App',
+  projectId: 'YOUR_PROJECT_ID',
   chains,
 });
 
@@ -47,30 +37,16 @@ const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
-const queryClient = new QueryClient();
-
 
 //comment test
 
-function MyApp({ Component, pageProps }: AppProps<{
-  session: Session;
-}>) {
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-
-
-<WagmiConfig config={wagmiConfig}>
-{/*<SessionProvider refetchInterval={0} session={pageProps.session}>
-  <QueryClientProvider client={queryClient}>
-  <RainbowKitSiweNextAuthProvider> */}
+    <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
         <Component {...pageProps} />
       </RainbowKitProvider>
-
-      {/*
-    </RainbowKitSiweNextAuthProvider>
-  </QueryClientProvider>
-</SessionProvider> */}
-</WagmiConfig>
+    </WagmiConfig>
   );
 }
 

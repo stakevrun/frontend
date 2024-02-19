@@ -650,18 +650,22 @@ const CreateValidator: NextPage = () => {
   }
 
 
-  //CREATE VALIDATOR KEY
-
-
   const createValidatorKey = async() => {
+
+
 
 
     const EIP712Domain = {name: "vrün", version: "1", chainId: currentChain};
 
+
     const createKeyType = "struct CreateKey { uint256 index; }";
 
 
+
+
   let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+
+
 
 
   // The named list of all type definitions
@@ -677,6 +681,7 @@ const types = {
   ]
 };
 
+
 // The data to sign
 const value = {
   from: {
@@ -691,9 +696,14 @@ const value = {
 };
 
 
+
+
   let signer = await browserProvider.getSigner()
 
+
   let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
 
 
   await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
@@ -718,19 +728,11 @@ const value = {
 
 
 
+
+
+
+
   }
-
-  
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -798,12 +800,6 @@ const value = {
   { "inputs": [], "name": "getDepositAmounts", "outputs": [{ "internalType": "uint256[]", "name": "", "type": "uint256[]" }], "stateMutability": "pure", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }], "name": "getNodeDepositCredit", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseDepositCreditBalance", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   { "inputs": [{ "internalType": "address", "name": "_nodeAddress", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseEthMatched", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "isValidDepositAmount", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "pure", "type": "function" }, { "inputs": [], "name": "version", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" },
   { "stateMutability": "payable", "type": "receive" }]
-
-
-
-
-
-
   return (
     <div className="flex w-full flex-col items-center justify-center ">
 
@@ -887,11 +883,11 @@ const value = {
                       </p>
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button onClick={createValidatorKey} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                           Generate
                         </button>
                       </div>
-                    </div> 
+                    </div>
 
 
                     <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
