@@ -658,7 +658,7 @@ const CreateValidator: NextPage = () => {
     const EIP712Domain = {name: "vrün", version: "1", chainId: currentChain};
 
 
-    const createKeyType = "struct CreateKey { uint256 index; }";
+    const createKeyType = "CreateKey";
 
 
 
@@ -669,33 +669,8 @@ const CreateValidator: NextPage = () => {
 
 
   // The named list of all type definitions
-const types = {
-  Person: [
-      { name: 'name', type: 'string' },
-      { name: 'wallet', type: 'address' }
-  ],
-  Mail: [
-      { name: 'from', type: 'Person' },
-      { name: 'to', type: 'Person' },
-      { name: 'contents', type: 'string' }
-  ]
-};
-
-
-// The data to sign
-const value = {
-  from: {
-      name: 'Cow',
-      wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826'
-  },
-  to: {
-      name: 'Bob',
-      wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'
-  },
-  contents: 'Hello, Bob!'
-};
-
-
+  const types = {CreateKey: [{name: 'index', type: 'uint256'}]}
+  const value = {index: 0}
 
 
   let signer = await browserProvider.getSigner()
@@ -704,28 +679,33 @@ const value = {
   let signature = await signer.signTypedData(EIP712Domain, types, value);
 
 
+  console.log("This is the signature:" + signature)
+
 
 
   await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
-  method: "PUT",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    type: createKeyType,
-    data: {},
-    signature: signature
+    method: "PUT",
+ 
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      type: createKeyType,
+      data: value,
+      signature: signature
+    })
   })
-})
-.then(response => {
- console.log("Response" + response)
-})
-.catch(error => {
-  // Handle error here
-  console.log(error)
-});
+  .then(response => {
+    
+var jsonString = JSON.stringify(response)// Note: response will be opaque, won't contain data
 
-
+console.log(jsonString)
+  })
+  .catch(error => {
+    // Handle error here
+    console.log(error);
+  });
+  
 
 
 
@@ -883,7 +863,7 @@ const value = {
                       </p>
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        <button onClick={createValidatorKey}  className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                           Generate
                         </button>
                       </div>
@@ -898,7 +878,7 @@ const value = {
                       </p>
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button onClick={createValidatorKey} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        <button className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                           Go!
                         </button>
 
