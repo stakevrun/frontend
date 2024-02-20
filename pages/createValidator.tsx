@@ -9,6 +9,8 @@ import NoRegistration from './components/noRegistration';
 import { mainnet } from 'viem/chains';
 import { Address, createPublicClient, hexToNumber, http, publicActions, createWalletClient, decodeEventLog, walletActions, custom, decodeFunctionData, decodeFunctionResult, parseEther, formatEther, TransactionReceipt } from 'viem';
 import Head from 'next/head';
+import Number1 from './components/rollingNumber';
+import RollingNumber from './components/rollingNumber';
 
 //https://mainnet.infura.io/v3/713d3fd4fea04f0582ee78560e6c47e4
 
@@ -804,16 +806,8 @@ console.log(jsonString)
 
 
 
-            <div className='flex w-full mt-5 lg:mt-0 flex-col items-center justify-center'>
-              <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8 py-10">
-                <div className="mx-auto max-w-3xl text-center">
-                  <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Connected User: </h2>
-
-                  <p className="mt-4 text-gray-500 sm:text-xl">
-                    {address}
-                  </p>
-                </div>
-              </div>
+            <div className='flex w-full mt-10 lg:mt-0 flex-col items-center justify-center'>
+    
 
 
 
@@ -828,7 +822,7 @@ console.log(jsonString)
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'> {formatEther(RPL)}</span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> {formatEther(stakeRPL)}</span> staked RPL and you are able to create <span className="text-green-500 font-bold"> {Math.floor(Number(formatEther(stakeRPL)) / 2.4)}</span> LEB8s (Minipools)
+                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))}/> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))}/></span> staked RPL and you are able to create <span className="text-green-500 font-bold"> <RollingNumber n={Math.floor(Number(formatEther(stakeRPL)) / 2.4)}/></span> LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />

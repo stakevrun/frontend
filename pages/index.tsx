@@ -9,6 +9,8 @@ import Navbar from './components/navbar';
 import { useEffect } from 'react';
 
 
+
+
 const Home: NextPage = () => {
 
   const { address } = useAccount({
