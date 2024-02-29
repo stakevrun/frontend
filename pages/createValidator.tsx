@@ -953,7 +953,73 @@ const CreateValidator: NextPage = () => {
   const handleAddValidator = async () => {
 
 
+
+
+
+
     if (address !== undefined) {
+
+
+
+      let newNextIndex;
+
+
+
+//Get latest index
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+
+          var jsonString = await response.json()
+
+
+          console.log("Result of get next index" + jsonString)
+
+
+          newNextIndex = jsonString;
+
+        })
+        .catch(error => {
+
+          console.log(error);
+        });
+
+
+
+// Get acceptance sheet (currently not working)
+
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/acceptance`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+
+          var jsonString = await response.json()
+
+
+          console.log("Result of Acceptance GET" + jsonString)
+
+
+        })
+        .catch(error => {
+
+          console.log(error);
+        });
+
+
+
+
+
 
       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
       let signer = await browserProvider.getSigner()
@@ -986,7 +1052,7 @@ const CreateValidator: NextPage = () => {
       const value = {
 
         timestamp: date.toString(),
-        firstIndex: "0",
+        firstIndex: newNextIndex,
         amountGwei: parseEther("8").toString(),
         feeRecipient: feeRecipient.toLowerCase(),
         graffiti: grafittiInput,
@@ -999,7 +1065,7 @@ const CreateValidator: NextPage = () => {
       let signature = await signer.signTypedData(EIP712Domain, types, value);
 
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/0`, {
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/${newNextIndex}`, {
         method: "POST",
 
         headers: {
@@ -1027,10 +1093,14 @@ const CreateValidator: NextPage = () => {
         });
 
 
+
+
+
+
+
+
+
     }
-
-
-
   }
 
 
@@ -1217,7 +1287,7 @@ const CreateValidator: NextPage = () => {
 
                       <p className="my-4 w-[90%] text-gray-500 sm:text-l">
 
-                       Create your custom &quot;graffiti&quot;, and we will do the rest! 
+                        Create your custom &quot;graffiti&quot;, and we will do the rest!
                       </p>
 
 
@@ -1231,7 +1301,7 @@ const CreateValidator: NextPage = () => {
     // */}
 
                       <input value={grafittiInput} placeholder='Grafitti' className=" border border-black-200 " type="text" onChange={handleGrafittiInput} />
-                    
+
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
                         <button onClick={handleAddValidator} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
@@ -1241,7 +1311,7 @@ const CreateValidator: NextPage = () => {
                     </div>
 
 
-{/* 
+                    {/* 
 
 
                     <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
@@ -1265,7 +1335,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-                   {/* <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
+                    {/* <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Make Minipool Deposit</h2>
 
                       <p className="mt-4 text-gray-500 sm:text-l">
