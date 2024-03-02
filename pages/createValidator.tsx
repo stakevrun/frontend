@@ -1271,6 +1271,8 @@ const CreateValidator: NextPage = () => {
 
    
 
+      console.log("Deposit Data Root:" + depositDataRoot)
+      console.log("Pubkey" + generatedPubKey)
 
       const keccakedHash = ethers.keccak256(initHash)
       const keccakedSalt = ethers.keccak256(ethers.concat([address, defaultSalt]))
@@ -1282,8 +1284,11 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, keccakedSalt, keccakedHash]))
+      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, keccakedSalt, initHash]))
       const fixedNewMinipoolAddress = `0x${newMinipoolAddress.slice(-40)}`
+
+
+
 
       const truncatedNewMinipoolAddress = newMinipoolAddress.substring(0, 24)
 
