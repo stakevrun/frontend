@@ -436,7 +436,7 @@ const CreateValidator: NextPage = () => {
         const amount = await rocketNodeStaking.getNodeRPLStake(add)
 
 
-        console.log(typeof amount)
+        console.log("Amount" + amount)
 
 
         setStakeRPL(amount);
@@ -447,9 +447,11 @@ const CreateValidator: NextPage = () => {
         const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, signer)
 
         const rplPrice = await rocketNetworkContract.getRPLPrice()
-        const rplRequiredPerLEB8 = rplPrice * ethers.parseEther('2.4')
-        const LEB8sPossible = amount / rplRequiredPerLEB8
+        const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
 
+        console.log("rplRequiredPerLEB8: " + rplRequiredPerLEB8)
+        const LEB8sPossible = amount / rplRequiredPerLEB8
+        console.log(" LEB8sPossible: " +  LEB8sPossible);
         // getNodeActiveMinipoolCount
 
 
@@ -459,7 +461,7 @@ const CreateValidator: NextPage = () => {
         const activeMinipools = await MinipoolManager.getNodeActiveMinipoolCount(address);
          const possibleNewMinpools = LEB8sPossible - activeMinipools
 
-         console.log(possibleNewMinpools);
+         console.log("Possible new:" +activeMinipools);
 
          setNewMinipools(possibleNewMinpools)
 
@@ -561,7 +563,7 @@ const CreateValidator: NextPage = () => {
     const nodeAddress = await handleApproveRPL();
     if (nodeAddress) {
       setNodeStakingAddress(nodeAddress);
-      await handleStakeRPL(nodeAddress);
+     const newStake =  await handleStakeRPL(nodeAddress);
       setRPLinput("");
       setStakeButtonBool(true);
     } else {
@@ -909,6 +911,8 @@ const CreateValidator: NextPage = () => {
 
     let signer = await browserProvider.getSigner()
 
+   
+
 
     let signature = await signer.signTypedData(EIP712Domain, types, value);
 
@@ -1053,7 +1057,7 @@ const CreateValidator: NextPage = () => {
       const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
       let signer = await browserProvider.getSigner()
-
+      console.log("sIGNER ADDRESS:" + signer.address);
 
       const TermsOfServiceTypes = {
 
@@ -1265,10 +1269,11 @@ const CreateValidator: NextPage = () => {
       const factoryContract = new ethers.Contract(MinipoolFactoryAddress, factoryABI, signer);
 
 
-
+   
 
 
       const keccakedHash = ethers.keccak256(initHash)
+      const keccakedSalt = ethers.keccak256(ethers.concat([address, defaultSalt]))
 
       //const salt = await browserProvider.getTransactionCount(address)
 
@@ -1277,16 +1282,19 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, defaultSalt, keccakedHash]))
+      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, keccakedSalt, keccakedHash]))
       const fixedNewMinipoolAddress = `0x${newMinipoolAddress.slice(-40)}`
 
-      
+      const truncatedNewMinipoolAddress = newMinipoolAddress.substring(0, 24)
 
       console.log(generatedPubKey);
 
 
       console.log("Minipool" + newMinipoolAddress);
       console.log("fixed: " +fixedNewMinipoolAddress);
+
+      console.log("Base Address:" + baseAddress);
+      console.log(typeof newMinipoolAddress)
 
 
       const NodeDepositAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDeposit"))
@@ -1469,7 +1477,7 @@ const ManagerABI = [{"inputs":[{"internalType":"contract RocketStorageInterface"
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0? {color:"green" }: {color: "red"}}> <RollingNumber n={Math.floor(Number(newMinipools))} /></span> LEB8s (Minipools)
+                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0? {color:"green" }: {color: "red"}}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
