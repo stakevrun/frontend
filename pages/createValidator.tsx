@@ -9,13 +9,9 @@ import NoRegistration from './components/noRegistration';
 import { mainnet } from 'viem/chains';
 import { Address, createPublicClient, hexToNumber, http, publicActions, createWalletClient, decodeEventLog, walletActions, custom, decodeFunctionData, decodeFunctionResult, parseEther, formatEther, TransactionReceipt } from 'viem';
 import Head from 'next/head';
-import Number1 from './components/rollingNumber';
-import RollingNumber from './components/rollingNumber';
-import { getMinipoolExpectedAddress } from "./utils/depositdata"
 
-import { BytesLike, arrayify, hexlify, hexConcat, hexZeroPad } from '@ethersproject/bytes'
-import { PrivateKey } from "./utils/depositdata"
-import { DepositData } from "./utils/depositdata"
+import RollingNumber from './components/rollingNumber';
+
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 //https://mainnet.infura.io/v3/713d3fd4fea04f0582ee78560e6c47e4
@@ -576,87 +572,6 @@ const CreateValidator: NextPage = () => {
 
 
 
-  /* const handleMiniPoolDepost = async () => {
- 
- 
-     try {
- 
- 
- 
-       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
- 
- 
-       let signer = await browserProvider.getSigner()
- 
-       const EIP712Domain = {name: "vrün", version: "1", chainId: currentChain};
- 
- 
- 
-       const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
- 
-       const type = "GetDepositData";
- 
- 
- 
- 
- 
- 
- 
- 
- 
-       // The named list of all type definitions
-       const types = {CreateKey: [{name: 'index', type: 'uint256'}]}
-       const value = {index: 0}
-     
- 
- 
- 
-       const NodeDepositAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDeposit"))
- 
- 
-       const depositContract = new ethers.Contract(NodeDepositAddress, depositABI, signer);
- 
- 
- 
-       let signature = await signer.signTypedData(EIP712Domain, types, value);
- 
-     await fetch(`https://db.vrün.com/${currentChain}/${address}/${value}`, {
-       method: "POST",
-    
-       headers: {
-         "Content-Type": "application/json"
-       },
-       body: JSON.stringify({
-         type: type,
-         data: value,
-         signature: signature
-       })
-     })
-     .then(response => {
-       
-   var jsonString = JSON.stringify(response)// Note: response will be opaque, won't contain data
-   
-   console.log( "Get Deposit Data:" + jsonString)
-     })
-     .catch(error => {
-       // Handle error here
-       console.log("Get Deposit Error:" + error);
-     });
- 
- 
- 
-      /* const depositData = new DepositData({
-         validatorPrivateKey: validatorKey.toHex(),
-         withdrawalCredentials,
-         amount: 16000000000, // gwei
-         forkVersion: '0x00000000' // 0x00000000 mainnet, 0x00001020 goerli, 0x00000069 zhejiang
-       })*/
-
-  //const { signature, depositDataRoot } = depositData.sign()
-
-  //const contract = new Contract('0x', ['function deposit(uint256 minimumNodeFee, bytes validatorPubkey, bytes validatorSignature, bytes32 depositDataRoot, uint256 salt, address expectedMinipoolAddress) external payable'], provider)
-  //await contract.deposit(15%, validatorKey.getPublicKey(), signature, depositDataRoot, salt, minipoolAddress)
-  //  const tx = await depositContract["deposit(uint256, uint256, bytes, bytes, bytes32, uint256, address)"]( {_bondAmount: "", _minimumNodeFee: "",_validatorPubkey:"", _validatorSignature:"", _depositDataRoot:"", _salt: "", _expectedMinipoolAddress:""});
 
 
 
@@ -665,30 +580,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-
-  // console.log("Stake transaction:", tx.hash);
-
-  // const receipt = await tx.wait();
-  //  console.log("Transaction confirmed:", receipt);
-
-  /*  if (receipt.status === 1) {
-      if (address !== undefined) {
-
-      }
-    } else {
-      // Handle failed transaction
-    } 
-
-
-  } catch {
-
-  }
-
-}; */
-
-
-
-  const handleMiniPoolDeposit = async () => {
+ /* const handleMiniPoolDeposit = async () => {
 
 
     if (address !== undefined && currentPubKey !== "") {
@@ -742,7 +634,7 @@ const CreateValidator: NextPage = () => {
 
 
       const getMinipoolWithdrawalCredentials = (minipoolAddress: any) => {
-        let newAddress = ethers.concat(['0x01', hexZeroPad(minipoolAddress, 31)])
+       // let newAddress = ethers.concat(['0x01', hexZeroPad(minipoolAddress, 31)])
 
 
         return newAddress;
@@ -849,7 +741,7 @@ const CreateValidator: NextPage = () => {
 
 
   }
-
+*/
 
 
 
