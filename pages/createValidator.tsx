@@ -1178,16 +1178,21 @@ const CreateValidator: NextPage = () => {
         let resJSON = await response.json();
 
 
+       
+
+
         let entries = Object.entries(resJSON);
 
-        let entriesObject = entries[0][1];
+        let entriesObject:any = entries[0][1];
 
-        let data = Object.entries(entriesObject)
+        let data:any = Object.entries(entriesObject)
+
+      
 
 
         console.log("Entries:" + entries)
 
-        console.log("Data:" + data[1][1]);
+        console.log("Data:" + entriesObject);
 
 
         depositSignature = data[1][1]
@@ -1464,7 +1469,7 @@ const ManagerABI = [{"inputs":[{"internalType":"contract RocketStorageInterface"
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className="text-green-500 font-bold"> <RollingNumber n={Math.floor(Number(newMinipools))} /></span> LEB8s (Minipools)
+                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0? {color:"green" }: {color: "red"}}> <RollingNumber n={Math.floor(Number(newMinipools))} /></span> LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
