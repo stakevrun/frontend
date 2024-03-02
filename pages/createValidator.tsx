@@ -16,6 +16,7 @@ import { getMinipoolExpectedAddress } from "./utils/depositdata"
 import { BytesLike, arrayify, hexlify, hexConcat, hexZeroPad } from '@ethersproject/bytes'
 import { PrivateKey } from "./utils/depositdata"
 import { DepositData } from "./utils/depositdata"
+import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 //https://mainnet.infura.io/v3/713d3fd4fea04f0582ee78560e6c47e4
 
@@ -28,6 +29,7 @@ const CreateValidator: NextPage = () => {
   const [wallet, setWallet] = useState({});
   const [RPL, setRPL] = useState(BigInt(0));
   const [stakeRPL, setStakeRPL] = useState(BigInt(0));
+  const [newMinipools, setNewMinipools] = useState(BigInt(0))
   const [RPLinput, setRPLinput] = useState("")
   const [stakeButtonBool, setStakeButtonBool] = useState(true)
   const [RPLApproved, setRPLApproved] = useState(false)
@@ -362,6 +364,10 @@ const CreateValidator: NextPage = () => {
 
         setRPL(amount);
 
+       
+
+  
+
         console.log("Stake RPL amount:" + amount);
 
 
@@ -436,6 +442,26 @@ const CreateValidator: NextPage = () => {
         setStakeRPL(amount);
 
         console.log("Stake RPL amount:" + amount);
+
+        const rocketNetworkPrices = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNetworkPrices"));
+        const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, signer)
+
+        const rplPrice = await rocketNetworkContract.getRPLPrice()
+        const rplRequiredPerLEB8 = rplPrice * ethers.parseEther('2.4')
+        const LEB8sPossible = amount / rplRequiredPerLEB8
+
+        // getNodeActiveMinipoolCount
+
+
+        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+
+        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, ManagerABI, signer)
+        const activeMinipools = await MinipoolManager.getNodeActiveMinipoolCount(address);
+         const possibleNewMinpools = LEB8sPossible - activeMinipools
+
+         console.log(possibleNewMinpools);
+
+         setNewMinipools(possibleNewMinpools)
 
 
         return amount;
@@ -965,7 +991,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-//Get latest index
+      //Get latest index
 
       await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
         method: "GET",
@@ -992,7 +1018,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-// Get acceptance sheet (currently not working)
+      // Get acceptance sheet (currently not working)
 
 
       await fetch(`https://db.vrün.com/${currentChain}/${address}/acceptance`, {
@@ -1021,8 +1047,63 @@ const CreateValidator: NextPage = () => {
 
 
 
+
+
+
+      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
       let signer = await browserProvider.getSigner()
+
+
+      const TermsOfServiceTypes = {
+
+        "AcceptTermsOfService": [
+          { name: "declaration", type: "string" }
+        ]
+
+
+
+      }
+
+
+      const requiredDeclaration = 'I accept the terms of service specified at https://vrün.com/terms (with version identifier 20240229).';
+
+
+      const TermsOfServiceValue = {
+        declaration: requiredDeclaration
+      }
+
+
+      let TermsOfServiceSignature = await signer.signTypedData(EIP712Domain, TermsOfServiceTypes, TermsOfServiceValue);
+
+
+      try {
+        const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            type: "AcceptTermsOfService",
+            data: TermsOfServiceValue,
+            signature: TermsOfServiceSignature
+          })
+        });
+
+      } catch (error) {
+        console.log(error);
+      }
+
+
+
+
+
+
+
+
+
+
+
       const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
       const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
       const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
@@ -1033,7 +1114,13 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+
+
+
+      const randomName = uniqueNamesGenerator({
+        dictionaries: [colors, adjectives, animals],
+        style: 'capital'
+      });
 
 
 
@@ -1045,6 +1132,7 @@ const CreateValidator: NextPage = () => {
           { name: "feeRecipient", type: "address" },
           { name: "graffiti", type: "string" },
           { name: "withdrawalAddresses", type: "address[]" },
+          { name: "names", type: "string[]" }
         ]
       }
 
@@ -1056,7 +1144,8 @@ const CreateValidator: NextPage = () => {
         amountGwei: parseEther("8").toString(),
         feeRecipient: feeRecipient.toLowerCase(),
         graffiti: grafittiInput,
-        withdrawalAddresses: [address.toLowerCase()]
+        withdrawalAddresses: [address.toLowerCase()],
+        names: [randomName]
 
       }
 
@@ -1064,26 +1153,88 @@ const CreateValidator: NextPage = () => {
       const APIType = "AddValidators";
       let signature = await signer.signTypedData(EIP712Domain, types, value);
 
+      let depositDataRoot;
+      let depositSignature;
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/${newNextIndex}`, {
-        method: "POST",
+
+      try {
+        const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}/${newNextIndex}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            type: APIType,
+            data: value,
+            signature: signature
+          })
+        });
+
+
+
+
+
+
+        let resJSON = await response.json();
+
+
+        let entries = Object.entries(resJSON);
+
+        let entriesObject = entries[0][1];
+
+        let data = Object.entries(entriesObject)
+
+
+        console.log("Entries:" + entries)
+
+        console.log("Data:" + data[1][1]);
+
+
+        depositSignature = data[1][1]
+
+        depositDataRoot = data[0][1]
+
+
+
+
+
+
+
+
+
+
+
+
+      } catch (error) {
+        console.log(error);
+      }
+
+
+
+
+      let generatedPubKey;
+
+
+
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${newNextIndex}`, {
+        method: "GET",
 
         headers: {
           "Content-Type": "application/json"
         },
-
-        body: JSON.stringify({
-          type: APIType,
-          data: value,
-          signature: signature
-        })
       })
         .then(async response => {
 
           var jsonString = await response.json()
 
 
-          console.log("Result of AddValidators" + jsonString)
+          console.log("Result of pubkey GET" + jsonString)
+
+          generatedPubKey = jsonString;
+
+
+
 
 
         })
@@ -1094,17 +1245,68 @@ const CreateValidator: NextPage = () => {
 
 
 
+      const defaultSalt = ethers.randomBytes(32)
+
+
+      const baseAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolBase"))
+      const initHash = ethers.keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${baseAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
+
+
+
+
+      const MinipoolFactoryAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolFactory"))
+
+
+      const factoryContract = new ethers.Contract(MinipoolFactoryAddress, factoryABI, signer);
 
 
 
 
 
+      const keccakedHash = ethers.keccak256(initHash)
+
+      //const salt = await browserProvider.getTransactionCount(address)
+
+
+
+
+
+
+      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, defaultSalt, keccakedHash]))
+      const fixedNewMinipoolAddress = `0x${newMinipoolAddress.slice(-40)}`
+
+      
+
+      console.log(generatedPubKey);
+
+
+      console.log("Minipool" + newMinipoolAddress);
+      console.log("fixed: " +fixedNewMinipoolAddress);
+
+
+      const NodeDepositAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDeposit"))
+
+
+      const depositContract = new ethers.Contract(NodeDepositAddress, depositABI, signer);
+
+      let result = await depositContract.deposit(ethers.parseEther('8'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, {value: ethers.parseEther('8')});
+      console.log(result)
+
+
+
+
+
+
+
+
+
+
+      //await depositContract.deposit(validatorKey.getPublicKey(), signature, depositDataRoot, salt, minipoolAddress)
+      //  const contract = new contract('0x', ['function deposit(uint256 minimumNodeFee, bytes validatorPubkey, bytes validatorSignature, bytes32 depositDataRoot, uint256 salt, address expectedMinipoolAddress) external payable'], provider)
+      //  await contract.deposit(15%, validatorKey.getPublicKey(), signature, depositDataRoot, salt, minipoolAddress)
 
     }
   }
-
-
-
 
 
 
@@ -1116,7 +1318,8 @@ const CreateValidator: NextPage = () => {
 
   const storageABI = [{ "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
   { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "address", "name": "oldGuardian", "type": "address" }, { "indexed": false, "internalType": "address", "name": "newGuardian", "type": "address" }], "name": "GuardianChanged", "type": "event" },
-  { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "node", "type": "address" }, { "indexed": true, "internalType": "address", "name": "withdrawalAddress", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "time", "type": "uint256" }], "name": "NodeWithdrawalAddressSet", "type": "event" }, { "inputs": [{ "internalType": "bytes32", "name": "_key", "type": "bytes32" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "addUint", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "node", "type": "address" }, { "indexed": true, "internalType": "address", "name": "withdrawalAddress", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "time", "type": "uint256" }], "name": "NodeWithdrawalAddressSet", "type": "event" },
+  { "inputs": [{ "internalType": "bytes32", "name": "_key", "type": "bytes32" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "addUint", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   { "inputs": [], "name": "confirmGuardian", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   { "inputs": [{ "internalType": "address", "name": "_nodeAddress", "type": "address" }], "name": "confirmWithdrawalAddress", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   { "inputs": [{ "internalType": "bytes32", "name": "_key", "type": "bytes32" }], "name": "deleteAddress", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
@@ -1181,8 +1384,12 @@ const CreateValidator: NextPage = () => {
     ], "name": "deposit", "outputs": [], "stateMutability": "payable", "type": "function"
   },
   { "inputs": [{ "internalType": "uint256", "name": "_bondAmount", "type": "uint256" }, { "internalType": "uint256", "name": "_minimumNodeFee", "type": "uint256" }, { "internalType": "bytes", "name": "_validatorPubkey", "type": "bytes" }, { "internalType": "bytes", "name": "_validatorSignature", "type": "bytes" }, { "internalType": "bytes32", "name": "_depositDataRoot", "type": "bytes32" }, { "internalType": "uint256", "name": "_salt", "type": "uint256" }, { "internalType": "address", "name": "_expectedMinipoolAddress", "type": "address" }], "name": "depositWithCredit", "outputs": [], "stateMutability": "payable", "type": "function" },
-  { "inputs": [], "name": "getDepositAmounts", "outputs": [{ "internalType": "uint256[]", "name": "", "type": "uint256[]" }], "stateMutability": "pure", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }], "name": "getNodeDepositCredit", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseDepositCreditBalance", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-  { "inputs": [{ "internalType": "address", "name": "_nodeAddress", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseEthMatched", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "isValidDepositAmount", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "pure", "type": "function" }, { "inputs": [], "name": "version", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "getDepositAmounts", "outputs": [{ "internalType": "uint256[]", "name": "", "type": "uint256[]" }], "stateMutability": "pure", "type": "function" },
+  { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }], "name": "getNodeDepositCredit", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+  { "inputs": [{ "internalType": "address", "name": "_nodeOperator", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseDepositCreditBalance", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  { "inputs": [{ "internalType": "address", "name": "_nodeAddress", "type": "address" }, { "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "increaseEthMatched", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  { "inputs": [{ "internalType": "uint256", "name": "_amount", "type": "uint256" }], "name": "isValidDepositAmount", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "pure", "type": "function" },
+  { "inputs": [], "name": "version", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" },
   { "stateMutability": "payable", "type": "receive" }]
 
   const baseABI = [
@@ -1210,10 +1417,10 @@ const CreateValidator: NextPage = () => {
     { "inputs": [], "name": "version", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" }
   ]
 
+const NetworkABI = [{"inputs":[{"internalType":"contract RocketStorageInterface","name":"_rocketStorageAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"block","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"rplPrice","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"PricesSubmitted","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"block","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"rplPrice","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"PricesUpdated","type":"event"},{"inputs":[{"internalType":"uint256","name":"_block","type":"uint256"},{"internalType":"uint256","name":"_rplPrice","type":"uint256"}],"name":"executeUpdatePrices","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getLatestReportableBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getPricesBlock","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getRPLPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_block","type":"uint256"},{"internalType":"uint256","name":"_rplPrice","type":"uint256"}],"name":"submitPrices","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"version","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}]
 
 
-
-
+const ManagerABI = [{"inputs":[{"internalType":"contract RocketStorageInterface","name":"_rocketStorageAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"minipool","type":"address"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"BeginBondReduction","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"minipool","type":"address"},{"indexed":true,"internalType":"address","name":"member","type":"address"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"CancelReductionVoted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"minipool","type":"address"},{"indexed":true,"internalType":"address","name":"node","type":"address"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"MinipoolCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"minipool","type":"address"},{"indexed":true,"internalType":"address","name":"node","type":"address"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"MinipoolDestroyed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"minipool","type":"address"},{"indexed":false,"internalType":"uint256","name":"time","type":"uint256"}],"name":"ReductionCancelled","type":"event"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_salt","type":"uint256"}],"name":"createMinipool","outputs":[{"internalType":"contract RocketMinipoolInterface","name":"","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_salt","type":"uint256"},{"internalType":"bytes","name":"_validatorPubkey","type":"bytes"},{"internalType":"uint256","name":"_bondAmount","type":"uint256"},{"internalType":"uint256","name":"_currentBalance","type":"uint256"}],"name":"createVacantMinipool","outputs":[{"internalType":"contract RocketMinipoolInterface","name":"","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"decrementNodeStakingMinipoolCount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"destroyMinipool","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getActiveMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getFinalisedMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"getMinipoolAt","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes","name":"_pubkey","type":"bytes"}],"name":"getMinipoolByPubkey","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_offset","type":"uint256"},{"internalType":"uint256","name":"_limit","type":"uint256"}],"name":"getMinipoolCountPerStatus","outputs":[{"internalType":"uint256","name":"initialisedCount","type":"uint256"},{"internalType":"uint256","name":"prelaunchCount","type":"uint256"},{"internalType":"uint256","name":"stakingCount","type":"uint256"},{"internalType":"uint256","name":"withdrawableCount","type":"uint256"},{"internalType":"uint256","name":"dissolvedCount","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolDepositType","outputs":[{"internalType":"enum MinipoolDeposit","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolDestroyed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolExists","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolPubkey","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolRPLSlashed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_minipoolAddress","type":"address"}],"name":"getMinipoolWithdrawalCredentials","outputs":[{"internalType":"bytes","name":"","type":"bytes"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"getNodeActiveMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"getNodeFinalisedMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"getNodeMinipoolAt","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"getNodeMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"getNodeStakingMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_depositSize","type":"uint256"}],"name":"getNodeStakingMinipoolCountBySize","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"},{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"getNodeValidatingMinipoolAt","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"getNodeValidatingMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_offset","type":"uint256"},{"internalType":"uint256","name":"_limit","type":"uint256"}],"name":"getPrelaunchMinipools","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getStakingMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"getVacantMinipoolAt","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getVacantMinipoolCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"incrementNodeFinalisedMinipoolCount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_nodeAddress","type":"address"}],"name":"incrementNodeStakingMinipoolCount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"removeVacantMinipool","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes","name":"_pubkey","type":"bytes"}],"name":"setMinipoolPubkey","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_previousBond","type":"uint256"},{"internalType":"uint256","name":"_newBond","type":"uint256"},{"internalType":"uint256","name":"_previousFee","type":"uint256"},{"internalType":"uint256","name":"_newFee","type":"uint256"}],"name":"updateNodeStakingMinipoolCount","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"version","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"}]
 
 
 
@@ -1257,7 +1464,7 @@ const CreateValidator: NextPage = () => {
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className="text-green-500 font-bold"> <RollingNumber n={Math.floor(Number(formatEther(stakeRPL)) / 2.4)} /></span> LEB8s (Minipools)
+                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className="text-green-500 font-bold"> <RollingNumber n={Math.floor(Number(newMinipools))} /></span> LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
