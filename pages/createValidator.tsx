@@ -1033,14 +1033,46 @@ const CreateValidator: NextPage = () => {
       }
 
 
+      const defaultSalt = ethers.randomBytes(32)
+
+
+      const baseAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolBase"))
+      const initHash = ethers.keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${baseAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
+
+
+
+
+      const MinipoolFactoryAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolFactory"))
+
+
+      const factoryContract = new ethers.Contract(MinipoolFactoryAddress, factoryABI, signer);
+
+
+   
+
+
+      const keccakedHash = ethers.keccak256(initHash)
+      const keccakedSalt = ethers.keccak256(ethers.concat([address, defaultSalt]))
+
+      //const salt = await browserProvider.getTransactionCount(address)
+
+
+
+
+
+
+      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, keccakedSalt, initHash]))
+      const fixedNewMinipoolAddress = `0x${newMinipoolAddress.slice(-40)}`
+
+
       const value = {
 
         timestamp: date.toString(),
         firstIndex: newNextIndex,
-        amountGwei: parseEther("8").toString(),
+        amountGwei: (parseEther('1') / ethers.parseUnits('1', 'gwei')).toString(),
         feeRecipient: feeRecipient.toLowerCase(),
         graffiti: grafittiInput,
-        withdrawalAddresses: [address.toLowerCase()],
+        withdrawalAddresses: [fixedNewMinipoolAddress.toLowerCase()],
         names: [randomName]
 
       }
@@ -1071,32 +1103,19 @@ const CreateValidator: NextPage = () => {
 
 
 
-        let resJSON = await response.json();
+
+       
 
 
        
 
 
-        let entries = Object.entries(resJSON);
 
-        let entriesObject:any = entries[0][1];
+        const resJSON = await response.json();
+const firstPubkey = Object.keys(resJSON)[0];
+({depositDataRoot, signature: depositSignature} = resJSON[firstPubkey]);
 
-        let data:any = Object.entries(entriesObject)
-
-      
-
-
-        console.log("Entries:" + entries)
-
-        console.log("Data:" + entriesObject);
-
-
-        depositSignature = data[1][1]
-
-        depositDataRoot = data[0][1]
-
-
-
+console.log("First Pubkey:" + firstPubkey);
 
 
 
@@ -1114,6 +1133,9 @@ const CreateValidator: NextPage = () => {
 
 
       let generatedPubKey;
+
+
+      console.log("generatedKey:" + generatedPubKey);
 
 
 
@@ -1146,43 +1168,10 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const defaultSalt = ethers.randomBytes(32)
-
-
-      const baseAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolBase"))
-      const initHash = ethers.keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${baseAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
+    
 
 
 
-
-      const MinipoolFactoryAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolFactory"))
-
-
-      const factoryContract = new ethers.Contract(MinipoolFactoryAddress, factoryABI, signer);
-
-
-   
-
-      console.log("Deposit Data Root:" + depositDataRoot)
-      console.log("Pubkey" + generatedPubKey)
-
-      const keccakedHash = ethers.keccak256(initHash)
-      const keccakedSalt = ethers.keccak256(ethers.concat([address, defaultSalt]))
-
-      //const salt = await browserProvider.getTransactionCount(address)
-
-
-
-
-
-
-      const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, keccakedSalt, initHash]))
-      const fixedNewMinipoolAddress = `0x${newMinipoolAddress.slice(-40)}`
-
-
-
-
-      const truncatedNewMinipoolAddress = newMinipoolAddress.substring(0, 24)
 
       console.log(generatedPubKey);
 
@@ -1192,6 +1181,9 @@ const CreateValidator: NextPage = () => {
 
       console.log("Base Address:" + baseAddress);
       console.log(typeof newMinipoolAddress)
+
+      console.log(depositSignature);
+      console.log(depositDataRoot)
 
 
       const NodeDepositAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDeposit"))
@@ -1374,7 +1366,7 @@ const ManagerABI = [{"inputs":[{"internalType":"contract RocketStorageInterface"
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0? {color:"green" }: {color: "red"}}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> LEB8s (Minipools)
+                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0? {color:"rgb(34 197 94)" }: {color: "red"}}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
