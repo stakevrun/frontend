@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { JSXElementConstructor, useEffect, useState } from 'react'
 import { PieChart, LineChart } from '@mui/x-charts'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { NextPage } from 'next';
@@ -7,6 +7,8 @@ import { ethers } from 'ethers';
 import storageABI from "../json/storageABI.json"
 import miniManagerABI from "../json/miniManagerABI.json"
 import daoABI from "../json/daoABI.json"
+import CountdownComponent from './countdown.jsx';
+
 import Link
   from 'next/link';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
@@ -25,7 +27,58 @@ const AccountMain: NextPage = () => {
     Withdrawable,   
     Dissolved       
   ]
- */
+*/
+
+
+
+
+
+
+const startCountdown = (timeString: string): any=> {
+  // Parse time string into milliseconds
+  const parts = timeString.split(' ');
+  const hours = parseInt(parts[0]) * 3600000; // Convert hours to milliseconds
+  const minutes = parseInt(parts[2]) * 60000; // Convert minutes to milliseconds
+  const seconds = parseInt(parts[4]) * 1000; // Convert seconds to milliseconds
+  const totalTime = hours + minutes + seconds;
+
+  // Update countdown every second
+  const countdown = setInterval(function() {
+      // Calculate remaining time
+      const now = new Date().getTime();
+      const remainingTime = totalTime - now;
+
+      // If remaining time is less than or equal to 0, stop countdown
+      if (remainingTime <= 0) {
+          clearInterval(countdown);
+          console.log("Countdown finished!");
+          return;
+      }
+
+      // Convert remaining time to hours, minutes, and seconds
+      const hoursLeft = Math.floor(remainingTime / 3600000);
+      const minutesLeft = Math.floor((remainingTime % 3600000) / 60000);
+      const secondsLeft = Math.floor((remainingTime % 60000) / 1000);
+
+      // Format remaining time
+      const formattedTime: any = (<div>${hoursLeft} hours ${minutesLeft} minutes ${secondsLeft} seconds</div>);
+     
+
+     
+
+  }, 1000);
+
+
+
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -489,7 +542,7 @@ const AccountMain: NextPage = () => {
         const numScrub = Number(scrubPeriod) * 1000;
         console.log(numScrub);
 
-        const timeRemaining: any = numScrub - (Date.now() - numStatusTime)
+        const timeRemaining: number= numScrub - (Date.now() - numStatusTime)
 
 
         const string = formatTime(timeRemaining);
@@ -503,7 +556,7 @@ const AccountMain: NextPage = () => {
           address: minAddress,
           statusResult: currentStatus,
           statusTimeResult: statusTimeResult,
-          timeRemaining: string,
+          timeRemaining: (timeRemaining + 1709990080000).toString(),
           pubkey: pubkey
         })
 
@@ -518,6 +571,9 @@ const AccountMain: NextPage = () => {
 
 
   }
+
+
+
 
 
 
@@ -598,10 +654,11 @@ useEffect(() => {
           <table className="w-full">
             <thead>
               <tr className="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b border-gray-600">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Age</th>
+                <th className="px-4 py-3">Minipool Address</th>
+                <th className="px-4 py-3">Pubkey</th>
+                <th className="px-4 py-3">Time remaining</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -614,11 +671,20 @@ useEffect(() => {
         <div className="flex items-center text-sm">
           <div>
             <p className="font-semibold text-black">{data.address}</p>
+          
+          </div>
+        </div>
+      </td>
+
+      <td className="px-4 py-3 border">
+        <div className="flex items-center text-sm">
+          <div>
+           
             <p className="text-xs text-gray-600">{data.pubkey}</p>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 text-md font-semibold border">{data.timeRemaining}</td>
+      <td className="px-4 py-3 text-md font-semibold border"><CountdownComponent milliseconds={data.timeRemaining }/></td>
       <td className="px-4 py-3 text-xs border">
         <span className="px-2 py-1 font-semibold leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
       </td>
