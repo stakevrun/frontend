@@ -1,4 +1,4 @@
-import React, { JSXElementConstructor, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PieChart, LineChart } from '@mui/x-charts'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { NextPage } from 'next';
@@ -8,12 +8,20 @@ import storageABI from "../json/storageABI.json"
 import miniManagerABI from "../json/miniManagerABI.json"
 import daoABI from "../json/daoABI.json"
 import CountdownComponent from './countdown.jsx';
+import QuickNode from '@quicknode/sdk';
+import Modal from 'react-modal';
+
+
+import { AiOutlineClose } from 'react-icons/ai'
+
+
 
 import Link
   from 'next/link';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 
 const AccountMain: NextPage = () => {
+
 
 
 
@@ -34,25 +42,25 @@ const AccountMain: NextPage = () => {
 
 
 
-const startCountdown = (timeString: string): any=> {
-  // Parse time string into milliseconds
-  const parts = timeString.split(' ');
-  const hours = parseInt(parts[0]) * 3600000; // Convert hours to milliseconds
-  const minutes = parseInt(parts[2]) * 60000; // Convert minutes to milliseconds
-  const seconds = parseInt(parts[4]) * 1000; // Convert seconds to milliseconds
-  const totalTime = hours + minutes + seconds;
+  const startCountdown = (timeString: string): any => {
+    // Parse time string into milliseconds
+    const parts = timeString.split(' ');
+    const hours = parseInt(parts[0]) * 3600000; // Convert hours to milliseconds
+    const minutes = parseInt(parts[2]) * 60000; // Convert minutes to milliseconds
+    const seconds = parseInt(parts[4]) * 1000; // Convert seconds to milliseconds
+    const totalTime = hours + minutes + seconds;
 
-  // Update countdown every second
-  const countdown = setInterval(function() {
+    // Update countdown every second
+    const countdown = setInterval(function () {
       // Calculate remaining time
       const now = new Date().getTime();
       const remainingTime = totalTime - now;
 
       // If remaining time is less than or equal to 0, stop countdown
       if (remainingTime <= 0) {
-          clearInterval(countdown);
-          console.log("Countdown finished!");
-          return;
+        clearInterval(countdown);
+        console.log("Countdown finished!");
+        return;
       }
 
       // Convert remaining time to hours, minutes, and seconds
@@ -62,15 +70,15 @@ const startCountdown = (timeString: string): any=> {
 
       // Format remaining time
       const formattedTime: any = (<div>${hoursLeft} hours ${minutesLeft} minutes ${secondsLeft} seconds</div>);
-     
-
-     
-
-  }, 1000);
 
 
 
-}
+
+    }, 1000);
+
+
+
+  }
 
 
 
@@ -85,7 +93,7 @@ const startCountdown = (timeString: string): any=> {
   const currentChain = useChainId();
 
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
-
+  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 
   function formatTime(milliseconds: number) {
@@ -258,7 +266,7 @@ const startCountdown = (timeString: string): any=> {
       console.log(numStatusTime);
 
 
-      
+
 
 
 
@@ -372,12 +380,37 @@ const startCountdown = (timeString: string): any=> {
   const nullAddress = "0x0000000000000000000000000000000000000000";
 
 
+
+
+
+
   const getMinipoolData = async () => {
 
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
     let signer = await browserProvider.getSigner()
+
+    let username = "vrun"
+    
+    let password = "830b5000e7c2de8802a549cadc41db4148d247de0a706d6d"
+ 
+
+
+    const fr = new ethers.FetchRequest('https://xrchz.net/rpc/holesky/')
+fr.setCredentials(username, password)
+
+//const provider = new ethers.JsonRpcProvider(fr)
+
+   const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? "https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/"   : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/")
+
+
+    //https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/   https://xrchz.net/rpc/holesky
+
+
     const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+
+    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, provider)
 
 
     //Get latest index
@@ -414,7 +447,7 @@ const startCountdown = (timeString: string): any=> {
     let pubkeyArray: Array<string> = [];
 
 
-    for (let i = 0; i <= newNextIndex; i++) {
+    for (let i = 0; i < newNextIndex; i++) {
 
 
 
@@ -450,9 +483,7 @@ const startCountdown = (timeString: string): any=> {
 
 
 
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
     let attachedPubkeyArray: Array<Array<string>> = [];
@@ -469,13 +500,53 @@ const startCountdown = (timeString: string): any=> {
       }
 
       else {
-        attachedPubkeyArray.push([minipoolAddress,  key]);
+        attachedPubkeyArray.push([minipoolAddress, key]);
       }
 
 
       console.log("Get minipool result:" + minipoolAddress);
 
     }
+
+
+    {/* let logs:Array<object> = [];
+
+
+    for (const key of pubkeyArray) {
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/${key}/logs`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+
+          var jsonString = await response.json()
+
+
+          console.log("Result of pubkey logs" + jsonString)
+
+          logs.push(jsonString);
+
+
+
+
+
+        })
+        .catch(error => {
+
+
+        });
+
+    }
+
+
+  console.log(logs);*/}
+
+
+
 
 
     let minipoolObjects: Array<rowObject> = [];
@@ -491,19 +562,20 @@ const startCountdown = (timeString: string): any=> {
 
         minipoolObjects.push({
 
-          address: "",
-          statusResult: "",
+          address: "EMPTY",
+          statusResult: "Empty",
           statusTimeResult: "",
           timeRemaining: "",
-          pubkey: ""
-      
+          graffiti: "",
+          pubkey: pubkey
+
         });
 
 
       } else {
 
 
-        const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+        const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], provider)
 
 
         const statusResult = await minipool.getStatus();
@@ -519,35 +591,40 @@ const startCountdown = (timeString: string): any=> {
 
 
 
-        const MinipoolStatus =  [
-          "Initialised",    
-          "Prelaunch",     
-          "Staking",      
-          "Withdrawable",   
-          "Dissolved"  
+        const MinipoolStatus = [
+          "Initialised",
+          "Prelaunch",
+          "Staking",
+          "Withdrawable",
+          "Dissolved"
         ];
-  
-  
+
+
         const currentStatus = MinipoolStatus[statusResult];
 
 
-
+       
 
         const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
-        const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+        const DAOContract = new ethers.Contract(DAOAddress, daoABI, provider);
 
         const scrubPeriod: any = await DAOContract.getScrubPeriod();
 
         const numScrub = Number(scrubPeriod) * 1000;
         console.log(numScrub);
 
-        const timeRemaining: number= numScrub - (Date.now() - numStatusTime)
+        const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
 
 
         const string = formatTime(timeRemaining);
 
         console.log("Time Remaining:" + string);
+
+
+        const printGraff = await  getGraffiti(pubkey);
+
+        console.log(printGraff)
 
 
 
@@ -556,7 +633,8 @@ const startCountdown = (timeString: string): any=> {
           address: minAddress,
           statusResult: currentStatus,
           statusTimeResult: statusTimeResult,
-          timeRemaining: (timeRemaining + 1709990080000).toString(),
+          timeRemaining: (timeRemaining + 17099900800000).toString(),
+          graffiti: typeof printGraff === "string"? printGraff : "",
           pubkey: pubkey
         })
 
@@ -568,6 +646,77 @@ const startCountdown = (timeString: string): any=> {
 
 
     setCurrentRowData(minipoolObjects)
+    setShowForm(false)
+
+
+  }
+
+
+  
+
+
+
+  const setGraffiti = async (index: number, pubkey: string, newGrafitti: string) => {
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+
+    /*  struct SetFeeRecipient {
+  uint256 timestamp;
+  bytes pubkey;
+  address feeRecipient;
+} */
+
+
+const types = {
+  SetGraffiti: [
+    { name: 'timestamp', type: 'uint256' },
+    { name: 'pubkey', type: 'bytes' },
+    { name: 'graffiti', type: 'string' }
+  ]
+}
+
+
+const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+const APItype = "SetGraffiti"
+
+const date = Math.floor(Date.now() / 1000);
+
+const value = {timestamp: date, pubkey: pubkey,  graffiti: newGrafitti}
+
+
+let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+  method: "POST",
+
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    type: APItype,
+    data: value,
+    signature: signature
+  })
+})
+  .then(async response => {
+
+    var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+    console.log("Get Deposit Data response" + jsonString)
+  })
+  .catch(error => {
+    // Handle error here
+    console.log(error);
+  });
+
+
+  getMinipoolData();
+  
 
 
   }
@@ -575,6 +724,16 @@ const startCountdown = (timeString: string): any=> {
 
 
 
+
+
+
+  function truncateString(str: string) {
+    if (str.length <= 15) {
+      return str;
+    } else {
+      return str.slice(0, 15) + "...";
+    }
+  }
 
 
 
@@ -587,27 +746,152 @@ const startCountdown = (timeString: string): any=> {
     statusTimeResult: string,
     timeRemaining: string,
     pubkey: string
-};
+    graffiti: string
+  };
 
 
   const [currentRowData, setCurrentRowData] = useState<Array<rowObject>>([])
+  const [accountLogs, setAccountLogs] = useState<Array<Array<object>>>([])
+
+
+
+  useEffect(() => {
+
+
+    getMinipoolData();
+
+   
+
+
+
+
+
+  }, [])
+
+
+
+
+
+
+  const getGraffiti  = async(pubkey: string) => {
+
+
+    
+
+
+    const graffiti = await fetch(`https://db.vrün.com/17000/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+        console.log("GET Graffiti" + Object.entries(jsonString))
+
+
+        const entries = Object.entries(jsonString);
+
+
+        let currentGraffiti;
+
+      for (const [number, array] of entries ) {
+
+
+
+          console.log("GET Graffiti inner object" + Object.entries(array))
+
+
+         const arrayEntries =  Object.entries(array)
+
+
+         console.log(typeof arrayEntries)
+
+
+         const next = Object.entries(arrayEntries)
+
+
+
+
+       currentGraffiti =  next[2][1][1]
+
+   
+
+
+        }
+
+
+
+
+
+
+
+       
+
+
+        return currentGraffiti;
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+return graffiti;
+
+
+    
+  }
+
+
+
+
+
+  const [showForm, setShowForm] = useState(false)
+  const [currentEditGraffiti, setCurrentEditGraffiti] = useState("")
+  const [currentPubkey, setCurrentPubkey] = useState("")
+  const [currentPubkeyIndex, setCurrentPubkeyIndex] = useState(0)
+
+
+
+  const handleGraffitiChange = (e: any) => {
+
+
+    setCurrentEditGraffiti(e.target.value);
+
+  }
+
+
+ 
+
+
+const handleGraffitiModal  = ( index: number, pubkey:string, graff: string) => {
+  setShowForm(true);
+  setCurrentPubkey(pubkey)
+  setCurrentEditGraffiti(graff)
+  setCurrentPubkeyIndex(index)
+}
 
 
 
 useEffect(() => {
 
+  console.log(currentEditGraffiti)
 
-  getMinipoolData();
-
-  
-
+}, [currentEditGraffiti])
 
 
-}, [])
+const confirmGraffiti = () => {
 
+  setGraffiti(currentPubkeyIndex, currentPubkey, currentEditGraffiti)
+}
 
-
-  
 
 
 
@@ -654,10 +938,11 @@ useEffect(() => {
           <table className="w-full">
             <thead>
               <tr className="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b border-gray-600">
+                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Minipool Address</th>
                 <th className="px-4 py-3">Pubkey</th>
                 <th className="px-4 py-3">Time remaining</th>
-                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Grafitti</th>
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -666,42 +951,127 @@ useEffect(() => {
 
 
               {currentRowData.map((data: rowObject, index: number) => (
-    <tr key={index} className="text-gray-700">
-      <td className="px-4 py-3 border">
-        <div className="flex items-center text-sm">
-          <div>
-            <p className="font-semibold text-black">{data.address}</p>
-          
-          </div>
-        </div>
-      </td>
-
-      <td className="px-4 py-3 border">
-        <div className="flex items-center text-sm">
-          <div>
-           
-            <p className="text-xs text-gray-600">{data.pubkey}</p>
-          </div>
-        </div>
-      </td>
-      <td className="px-4 py-3 text-md font-semibold border"><CountdownComponent milliseconds={data.timeRemaining }/></td>
-      <td className="px-4 py-3 text-xs border">
-        <span className="px-2 py-1 font-semibold leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-      </td>
-      <td className="px-4 py-3 gap-2 text-sm border">
-        <button onClick={() => {closeMinipool(index)}} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
-        <button onClick={() => {stakeMinipool(index)}} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
-      </td>
-    </tr>
-  ))}
+                <tr key={index} className="text-gray-700">
+                  <td className="px-4 py-3 text-xs border">
 
 
+                    {data.statusResult === "Prelaunch" &&
+                      <span className="px-2 py-1 font-semibold leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+
+                    {data.statusResult === "Initialised" &&
+
+                      <span className="px-2 py-1 font-semibold leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+                    {data.statusResult === "Staking" &&
+
+                      <span className="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+
+                    {data.statusResult === "Withdrawable" &&
+
+                      <span className="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+
+                    {data.statusResult === "Dissolved" &&
+
+                      <span className="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+
+                    {data.statusResult === "Empty" &&
+
+                      <span className="px-2 py-1 font-semibold leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                    }
+
+
+
+
+                  </td>
+                  <td className="px-4 py-3 border">
+                    <div className="flex items-center text-sm">
+                      <div>
+                        <p className="font-semibold text-black">{truncateString(data.address)}</p>
+
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 border">
+                    <div className="flex items-center text-sm">
+                      <div>
+
+                        <p className="text-xs text-gray-600">{truncateString(data.pubkey)}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 text-sm font-semibold border"><CountdownComponent milliseconds={data.timeRemaining} /></td>
+                  <td className="px-4 py-3 text-md font-semibold border"> 
+
+
+              {data.graffiti}
+                  
+                  
+                  
+                  <button  className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(index, data.pubkey, data.graffiti)}}>
+                Change Graffiti
+              </button>
+               
+                  
+                  </td>
+{/*  
+                 <td className="px-4 py-3 text-md font-semibold border">
+              Graffiti placeholder: { /* Get graffiti 
+              <input 
+                type="text" 
+                value={graffitiValues[index] || ''} 
+                onChange={(e) => handleGraffitiChange(index, data.pubkey, e.target.value)} 
+              />
+              <button  className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => handleSetGraffiti(index, data.pubkey)}>
+                Set Graffiti
+              </button>
+            </td> */}
+
+                  <td className="px-4 py-3 gap-2 text-sm border">
+
+                    {data.statusResult !== "Empty" &&
+                      <button onClick={() => { closeMinipool(index) }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
+                    }
+                    {data.statusResult === "Prelaunch" &&
+
+                      <button onClick={() => { stakeMinipool(index) }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
+
+
+                    }
+
+                  </td>
+                </tr>
+              ))}
 
 
 
 
 
-              <tr className="text-gray-700">
+
+
+          {/*  <tr className="text-gray-700">
                 <td className="px-4 py-3 border">
                   <div className="flex items-center text-sm">
                     <div className="relative w-8 h-8 mr-3 rounded-full">
@@ -834,6 +1204,8 @@ useEffect(() => {
                 </td>
                 <td className="px-4 py-3 border text-sm">6/10/2020</td>
               </tr>
+
+              */}  
             </tbody>
           </table>
         </div>
@@ -871,6 +1243,56 @@ useEffect(() => {
           </dl>
         </div>
       </div>
+
+
+
+      <Modal
+                        isOpen={showForm}
+                        onRequestClose={() => setShowForm(false)}
+                        contentLabel="Delete User Modal"
+                        className="modal"
+                        style={{
+                            overlay: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: "999999999999999999999999999999999999",
+                            },
+                            content: {
+                                width: '50%',
+                                height: '200px',
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                color: 'black',
+                                backgroundColor: "#2d2c2c",
+                                border: "0",
+                                borderRadius: "20px",
+                                boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                overflow: "auto",
+                                WebkitOverflowScrolling: "touch", // For iOS Safari
+                                scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                            },
+                        }}
+                    >
+                        <div>
+                            <AiOutlineClose onClick={() => {
+                                setShowForm(false)
+                            }}  />
+                            <h2>Graffiti Update</h2>
+
+
+                            <input value={currentEditGraffiti} className=" border border-black-200 text-black-500"  type="text"  onChange={handleGraffitiChange}/>
+
+                            <div >
+                                <button onClick={confirmGraffiti}>Update</button>
+                                <button  onClick={() => setShowForm(false)}>Cancel</button>
+                            </div>
+                        </div>
+                    </Modal>
 
 
 

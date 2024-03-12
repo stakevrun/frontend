@@ -13,7 +13,9 @@ import miniManagerABI from "./json/miniManagerABI.json"
 
 import RollingNumber from './components/rollingNumber';
 
+
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
+
 
 //https://mainnet.infura.io/v3/713d3fd4fea04f0582ee78560e6c47e4
 
@@ -28,6 +30,7 @@ const CreateValidator: NextPage = () => {
   const [stakeRPL, setStakeRPL] = useState(BigInt(0));
   const [newMinipools, setNewMinipools] = useState(BigInt(0))
   const [RPLinput, setRPLinput] = useState("")
+  const [displayActiveMinipools, setDisplayActiveMinipools] = useState(0)
   const [stakeButtonBool, setStakeButtonBool] = useState(true)
   const [RPLApproved, setRPLApproved] = useState(false)
   const [NodeStakingAddress, setNodeStakingAddress] = useState("")
@@ -144,6 +147,10 @@ const CreateValidator: NextPage = () => {
   };
 
 
+
+  
+
+
   const fetchData = async () => {
 
     console.log("triggered")
@@ -207,6 +214,7 @@ const CreateValidator: NextPage = () => {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
+        const provider  = new ethers.JsonRpcProvider(currentRPC);
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
         console.log("Storage Contract:" + storageContract)
 
@@ -248,14 +256,24 @@ const CreateValidator: NextPage = () => {
   }
 
   const { address } = useAccount({
+
+    
     onConnect: async ({ address }) => {
 
 
       if (address !== undefined) {
         try {
+          checkIndex();
           const reg = await registrationCheck(address);
           setIsRegistered(reg);
-          checkIndex();
+          if(reg === true) {
+
+            await   handleCheckRPL(address);
+            await handleCheckStakeRPL(address)
+
+
+          }
+          
         } catch (error) {
           // Handle any errors that occur during registration check
           console.error("Error during registration check:", error);
@@ -269,55 +287,40 @@ const CreateValidator: NextPage = () => {
 
 
   const currentChain = useChainId();
+ 
+  
+
+
+  
 
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+  const currentRPC = currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 
-  useEffect(() => {
 
-    console.log("Current chain:" + currentChain)
-    setIsRegistered(true);
-    if (address !== undefined) {
-      handleCheckRPL(address);
-      handleCheckStakeRPL(address)
-
-    }
-
-    fetchData();
-  }, [currentChain])
 
   useEffect(() => {
 
     console.log(currentChain)
 
-    if (address !== undefined) {
+    if (isRegistered && address !== undefined) {
       handleCheckRPL(address);
       handleCheckStakeRPL(address)
-      fetchData();
+    
 
     }
-
-
-  }, [currentChain])
-
-
-
-  useEffect(() => {
 
     fetchData();
 
-  }, [address])
+
+  }, [currentChain, address])
 
 
 
-  useEffect(() => {
 
-    if (isRegistered && address !== undefined) {
-      handleCheckRPL(address)
-      handleCheckStakeRPL(address)
-    }
 
-  }, [address])
+
+
 
 
 
@@ -344,6 +347,8 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
+        const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
@@ -357,7 +362,7 @@ const CreateValidator: NextPage = () => {
         console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
 
 
-        const rplTOKEN = await new ethers.Contract(tokenAddress, tokenABI, signer)
+        const rplTOKEN = await new ethers.Contract(tokenAddress, tokenABI, provider)
 
         const amount = await rplTOKEN.balanceOf(add)
 
@@ -415,6 +420,8 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
+        const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
@@ -428,7 +435,7 @@ const CreateValidator: NextPage = () => {
         const rocketNodeStaking = new ethers.Contract(
           NodeStakingAddress, // Replace with your staking contract address
           stakingABI, // Replace with your staking contract ABI
-          signer
+          provider
         );
 
 
@@ -447,7 +454,7 @@ const CreateValidator: NextPage = () => {
         console.log("Stake RPL amount:" + amount);
 
         const rocketNetworkPrices = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNetworkPrices"));
-        const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, signer)
+        const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, provider)
 
         const rplPrice = await rocketNetworkContract.getRPLPrice()
         const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
@@ -461,10 +468,29 @@ const CreateValidator: NextPage = () => {
         const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
         const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, ManagerABI, signer)
-        const activeMinipools = await MinipoolManager.getNodeActiveMinipoolCount(address);
-        const possibleNewMinpools = LEB8sPossible - activeMinipools
 
-        console.log("Possible new:" + activeMinipools);
+
+
+
+
+        const activeMinipools = await MinipoolManager.getNodeMinipoolCount(address);
+
+
+
+
+
+
+
+
+
+        const possibleNewMinpools = LEB8sPossible  - parseEther(activeMinipools.toString());
+
+
+
+        setDisplayActiveMinipools(activeMinipools);
+
+        console.log("Possible new:" + LEB8sPossible);
+        console.log("Active minipools:" + activeMinipools)
 
         setNewMinipools(possibleNewMinpools)
 
@@ -615,7 +641,7 @@ const CreateValidator: NextPage = () => {
       const val = parseEther(RPLinput);
 
       console.log("Here is ok")
-      const tx = await rocketNodeStaking.withdrawRPL(RPLinput);
+      const tx = await rocketNodeStaking.withdrawRPL(val);
       console.log("Withdrawal transaction:", tx.hash);
 
       const receipt = await tx.wait();
@@ -853,6 +879,9 @@ const CreateValidator: NextPage = () => {
       const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
+      const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+   
+
     //Get latest index
 
     const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
@@ -887,7 +916,7 @@ const CreateValidator: NextPage = () => {
     let pubkeyArray: Array<string> = [];
 
 
-    for (let i = 0; i <= newNextIndex; i++) {
+    for (let i = 0; i < newNextIndex; i++) {
 
 
 
@@ -925,7 +954,7 @@ const CreateValidator: NextPage = () => {
 
     const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
+    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, provider)
 
 
    let attachedPubkeyArray: Array<Boolean> = [];
@@ -1529,7 +1558,14 @@ if (receipt.status === 1) {
                       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have <span className='text-yellow-500 font-bold'><RollingNumber n={Number(formatEther(RPL))} /> </span> unstaked RPL in your Wallet, <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /></span> staked RPL and you are able to create <span className={`text-green-500 font-bold`} style={newMinipools > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> LEB8s (Minipools)
+                        You have 
+                        <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(formatEther(RPL))} /> </span>
+                         unstaked RPL in your Wallet and 
+                         <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span> 
+                         staked RPL. 
+                         You have 
+                         <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span> 
+                           one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />

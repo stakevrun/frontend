@@ -26,8 +26,13 @@ const Navbar: NextPage = () => {
           <div className="flex h-14 items-center justify-between w-full rounded-lg md:px-3">
             <div className="mr-4 shrink-0">
               <Link className="flex flex-row items-center justify-center gap-2" href="/">
-                
-                <Image height={30} width={30} src={'/images/speha;rocket.png'} alt="Vrun logo" />
+              <Image
+  height={30}
+  width={30}
+  src={'/images/vrunlogo.png'}
+  alt="Vrun logo"
+  className="rounded-full"
+/>
                 <span className="text-lg xl:text-2xl font-bold">
                   VRÜN
                 </span>
