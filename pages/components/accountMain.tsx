@@ -24,6 +24,29 @@ const AccountMain: NextPage = () => {
 
 
 
+  /*(async () => {
+
+    const fr = new ethers.FetchRequest('https://xrchz.net/rpc/holesky/')
+
+    fr.setCredentials('vrun','830b5000e7c2de8802a549cadc41db4148d247de0a706d6d')
+   
+   
+    const provider = new ethers.JsonRpcProvider(fr)
+
+    const blockNum =  await provider.getBlockNumber()
+
+
+console.log("This is the block number" + blockNum)
+   
+  
+  })();*/
+
+
+
+
+
+
+
 
   /*
 
@@ -36,6 +59,162 @@ const AccountMain: NextPage = () => {
     Dissolved       
   ]
 */
+
+
+
+
+
+
+
+  const getPresignedExitMessage = async (pubkey: string, index: number) => {
+
+
+    /*struct GetPresignedExit {
+    bytes pubkey;
+    uint256 validatorIndex;
+    uint256 epoch;
+  }*/
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+    //https://beaconcha.in/api/v1/slot/1?apikey=<your_key>
+
+
+    const genesisTime = 1695902400 * 1000;
+
+
+    let epoch;
+
+
+
+    if (dateTime === "") {
+      const theTime = Date.now()
+
+      epoch = Math.ceil((theTime - genesisTime) / 12 / 32/1000)
+
+    }  else {
+
+      const dateTimeObject = new Date(dateTime);
+
+      // Convert the JavaScript Date object to a Unix timestamp (in milliseconds)
+      const timestampValue = dateTimeObject.getTime();
+
+      epoch = Math.ceil((timestampValue - genesisTime) / 12 / 32/1000);
+
+    }
+
+    console.log("EPOCH:" + epoch)
+
+
+
+
+
+
+    const valIndex = await fetch(`https://holesky.beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+
+        for (const object of jsonString.data) {
+          if (object.publickey === pubkey) {
+
+            return object.validatorindex
+
+
+          }
+        }
+        console.log("Result of Logs GET" + Object.entries(jsonString));
+        console.log(typeof jsonString);
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    const types = {
+      GetPresignedExit: [
+        { name: 'pubkey', type: 'bytes' },
+        { name: 'validatorIndex', type: 'uint256' },
+        { name: 'epoch', type: 'uint256' }
+      ]
+    }
+
+    console.log(valIndex)
+
+    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+    const APItype = "GetPresignedExit"
+
+
+
+
+
+
+
+    const value = { pubkey: pubkey, validatorIndex: valIndex, epoch: epoch }
+
+
+    let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+    await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+      method: "POST",
+    
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: APItype,
+        data: value,
+        signature: signature
+      })
+    })
+      .then(async response => {
+    
+        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+    
+        let newJSON = Object.entries(jsonString);
+    
+        console.log(newJSON);
+    
+    
+    
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+      }); 
+    
+    
+  
+
+  }
 
 
 
@@ -93,7 +272,7 @@ const AccountMain: NextPage = () => {
   const currentChain = useChainId();
 
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
-  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+
 
 
   function formatTime(milliseconds: number) {
@@ -390,18 +569,12 @@ const AccountMain: NextPage = () => {
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
     let signer = await browserProvider.getSigner()
 
-    let username = "vrun"
-    
-    let password = "830b5000e7c2de8802a549cadc41db4148d247de0a706d6d"
- 
 
 
-    const fr = new ethers.FetchRequest('https://xrchz.net/rpc/holesky/')
-fr.setCredentials(username, password)
 
-//const provider = new ethers.JsonRpcProvider(fr)
 
-   const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? "https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/"   : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/")
+
+    const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? "https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/" : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/")
 
 
     //https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/   https://xrchz.net/rpc/holesky
@@ -603,7 +776,7 @@ fr.setCredentials(username, password)
         const currentStatus = MinipoolStatus[statusResult];
 
 
-       
+
 
         const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
@@ -622,7 +795,7 @@ fr.setCredentials(username, password)
         console.log("Time Remaining:" + string);
 
 
-        const printGraff = await  getGraffiti(pubkey);
+        const printGraff = await getGraffiti(pubkey);
 
         console.log(printGraff)
 
@@ -634,7 +807,7 @@ fr.setCredentials(username, password)
           statusResult: currentStatus,
           statusTimeResult: statusTimeResult,
           timeRemaining: (timeRemaining + 17099900800000).toString(),
-          graffiti: typeof printGraff === "string"? printGraff : "",
+          graffiti: typeof printGraff === "string" ? printGraff : "",
           pubkey: pubkey
         })
 
@@ -652,7 +825,7 @@ fr.setCredentials(username, password)
   }
 
 
-  
+
 
 
 
@@ -669,54 +842,54 @@ fr.setCredentials(username, password)
 } */
 
 
-const types = {
-  SetGraffiti: [
-    { name: 'timestamp', type: 'uint256' },
-    { name: 'pubkey', type: 'bytes' },
-    { name: 'graffiti', type: 'string' }
-  ]
-}
+    const types = {
+      SetGraffiti: [
+        { name: 'timestamp', type: 'uint256' },
+        { name: 'pubkey', type: 'bytes' },
+        { name: 'graffiti', type: 'string' }
+      ]
+    }
 
 
-const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-const APItype = "SetGraffiti"
+    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+    const APItype = "SetGraffiti"
 
-const date = Math.floor(Date.now() / 1000);
+    const date = Math.floor(Date.now() / 1000);
 
-const value = {timestamp: date, pubkey: pubkey,  graffiti: newGrafitti}
-
-
-let signature = await signer.signTypedData(EIP712Domain, types, value);
+    const value = { timestamp: date, pubkey: pubkey, graffiti: newGrafitti }
 
 
+    let signature = await signer.signTypedData(EIP712Domain, types, value);
 
 
-await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
-  method: "POST",
-
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    type: APItype,
-    data: value,
-    signature: signature
-  })
-})
-  .then(async response => {
-
-    var jsonString = await response.json()// Note: response will be opaque, won't contain data
-
-    console.log("Get Deposit Data response" + jsonString)
-  })
-  .catch(error => {
-    // Handle error here
-    console.log(error);
-  });
 
 
-  getMinipoolData();
-  
+    await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: APItype,
+        data: value,
+        signature: signature
+      })
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+        console.log("Get Deposit Data response" + jsonString)
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+      });
+
+
+    getMinipoolData();
+
 
 
   }
@@ -760,7 +933,7 @@ await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
 
     getMinipoolData();
 
-   
+
 
 
 
@@ -773,10 +946,10 @@ await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
 
 
 
-  const getGraffiti  = async(pubkey: string) => {
+  const getGraffiti = async (pubkey: string) => {
 
 
-    
+
 
 
     const graffiti = await fetch(`https://db.vrün.com/17000/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
@@ -796,33 +969,17 @@ await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
 
         const entries = Object.entries(jsonString);
 
+        console.log("grafitti entries:" + entries)
+       const entriesOfEntries =  Object.entries(entries);
 
-        let currentGraffiti;
-
-      for (const [number, array] of entries ) {
-
-
-
-          console.log("GET Graffiti inner object" + Object.entries(array))
+      const newObject = Object(entriesOfEntries[0][1][1]);
 
 
-         const arrayEntries =  Object.entries(array)
+        let currentGraffiti = newObject.graffiti
 
+        console.log(currentGraffiti)
 
-         console.log(typeof arrayEntries)
-
-
-         const next = Object.entries(arrayEntries)
-
-
-
-
-       currentGraffiti =  next[2][1][1]
-
-   
-
-
-        }
+        
 
 
 
@@ -830,7 +987,7 @@ await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
 
 
 
-       
+
 
 
         return currentGraffiti;
@@ -843,10 +1000,10 @@ await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
 
 
 
-return graffiti;
+    return graffiti;
 
 
-    
+
   }
 
 
@@ -854,6 +1011,7 @@ return graffiti;
 
 
   const [showForm, setShowForm] = useState(false)
+  const [showForm2, setShowForm2] = useState(false)
   const [currentEditGraffiti, setCurrentEditGraffiti] = useState("")
   const [currentPubkey, setCurrentPubkey] = useState("")
   const [currentPubkeyIndex, setCurrentPubkeyIndex] = useState(0)
@@ -868,30 +1026,50 @@ return graffiti;
   }
 
 
- 
-
-
-const handleGraffitiModal  = ( index: number, pubkey:string, graff: string) => {
-  setShowForm(true);
-  setCurrentPubkey(pubkey)
-  setCurrentEditGraffiti(graff)
-  setCurrentPubkeyIndex(index)
-}
 
 
 
-useEffect(() => {
+  const handleGraffitiModal = (index: number, pubkey: string, graff: string) => {
+    setShowForm(true);
+    setCurrentPubkey(pubkey)
+    setCurrentEditGraffiti(graff)
+    setCurrentPubkeyIndex(index)
+  }
 
-  console.log(currentEditGraffiti)
-
-}, [currentEditGraffiti])
 
 
-const confirmGraffiti = () => {
+  useEffect(() => {
 
-  setGraffiti(currentPubkeyIndex, currentPubkey, currentEditGraffiti)
-}
+    console.log(currentEditGraffiti)
 
+  }, [currentEditGraffiti])
+
+
+  const confirmGraffiti = () => {
+
+    setGraffiti(currentPubkeyIndex, currentPubkey, currentEditGraffiti)
+  }
+
+
+
+
+  const confirmGetPresigned = () => {
+
+    getPresignedExitMessage(currentPubkey, currentPubkeyIndex)
+  }
+
+
+
+
+  const handleGetPresignedModal = (index: number, pubkey: string) => {
+    setShowForm2(true);
+    setCurrentPubkey(pubkey)
+    setCurrentPubkeyIndex(index)
+  }
+
+
+
+  const [dateTime, setDateTime] = useState('');
 
 
 
@@ -935,7 +1113,7 @@ const confirmGraffiti = () => {
             </Link>
 
           </div>
-          <table className="w-full">
+          <table className="w-[90%]">
             <thead>
               <tr className="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b border-gray-600">
                 <th className="px-4 py-3">Status</th>
@@ -1023,20 +1201,21 @@ const confirmGraffiti = () => {
                   </td>
 
                   <td className="px-4 py-3 text-sm font-semibold border"><CountdownComponent milliseconds={data.timeRemaining} /></td>
-                  <td className="px-4 py-3 text-md font-semibold border"> 
+                  <td className="px-4 py-3 text-md  font-semibold border ">
 
 
-              {data.graffiti}
-                  
-                  
-                  
-                  <button  className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(index, data.pubkey, data.graffiti)}}>
-                Change Graffiti
-              </button>
-               
-                  
+                    <p className="text-xs text-gray-600">    {data.graffiti}</p>
+
+
+
+
+                    <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(index, data.pubkey, data.graffiti) }}>
+                      Change
+                    </button>
+
+
                   </td>
-{/*  
+                  {/*  
                  <td className="px-4 py-3 text-md font-semibold border">
               Graffiti placeholder: { /* Get graffiti 
               <input 
@@ -1061,6 +1240,10 @@ const confirmGraffiti = () => {
 
                     }
 
+
+                    <button onClick={() => { handleGetPresignedModal(index, data.pubkey) }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
+
+
                   </td>
                 </tr>
               ))}
@@ -1071,7 +1254,7 @@ const confirmGraffiti = () => {
 
 
 
-          {/*  <tr className="text-gray-700">
+              {/*  <tr className="text-gray-700">
                 <td className="px-4 py-3 border">
                   <div className="flex items-center text-sm">
                     <div className="relative w-8 h-8 mr-3 rounded-full">
@@ -1205,7 +1388,7 @@ const confirmGraffiti = () => {
                 <td className="px-4 py-3 border text-sm">6/10/2020</td>
               </tr>
 
-              */}  
+              */}
             </tbody>
           </table>
         </div>
@@ -1247,52 +1430,104 @@ const confirmGraffiti = () => {
 
 
       <Modal
-                        isOpen={showForm}
-                        onRequestClose={() => setShowForm(false)}
-                        contentLabel="Delete User Modal"
-                        className="modal"
-                        style={{
-                            overlay: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                zIndex: "999999999999999999999999999999999999",
-                            },
-                            content: {
-                                width: '50%',
-                                height: '200px',
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                color: 'black',
-                                backgroundColor: "#2d2c2c",
-                                border: "0",
-                                borderRadius: "20px",
-                                boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                                overflow: "auto",
-                                WebkitOverflowScrolling: "touch", // For iOS Safari
-                                scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                                scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                            },
-                        }}
-                    >
-                        <div>
-                            <AiOutlineClose onClick={() => {
-                                setShowForm(false)
-                            }}  />
-                            <h2>Graffiti Update</h2>
+        isOpen={showForm}
+        onRequestClose={() => setShowForm(false)}
+        contentLabel="Delete User Modal"
+        className="modal"
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+          },
+          content: {
+            width: '50%',
+            height: '200px',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div  className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+          <AiOutlineClose onClick={() => {
+            setShowForm(false)
+          }} />
+          <h2>Graffiti Update</h2>
 
 
-                            <input value={currentEditGraffiti} className=" border border-black-200 text-black-500"  type="text"  onChange={handleGraffitiChange}/>
+          <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
 
-                            <div >
-                                <button onClick={confirmGraffiti}>Update</button>
-                                <button  onClick={() => setShowForm(false)}>Cancel</button>
-                            </div>
-                        </div>
-                    </Modal>
+          <div >
+            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
+            <button  className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        isOpen={showForm2}
+        onRequestClose={() => setShowForm2(false)}
+        contentLabel="Delete User Modal"
+        className="modal"
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+          },
+          content: {
+            width: '50%',
+            height: '200px',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+          <AiOutlineClose onClick={() => {
+            setShowForm2(false)
+          }} />
+          <h2>Get Presigned Exit Message</h2>
+
+          <input
+
+className="w-[60%] self-center border border-black-200 text-black-500"
+            type="datetime-local"
+            id="datetime"
+            value={dateTime}
+            onChange={(e) => setDateTime(e.target.value)}
+          />
+          <div >
+            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Update</button>
+            <button  className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+          </div>
+        </div>
+      </Modal>
 
 
 

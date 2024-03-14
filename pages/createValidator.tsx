@@ -362,7 +362,7 @@ const CreateValidator: NextPage = () => {
         console.log("THIS IS THE TOKEN ADDRESS:" + tokenAddress)
 
 
-        const rplTOKEN = await new ethers.Contract(tokenAddress, tokenABI, provider)
+        const rplTOKEN = await new ethers.Contract(tokenAddress, tokenABI, signer)
 
         const amount = await rplTOKEN.balanceOf(add)
 
@@ -435,7 +435,7 @@ const CreateValidator: NextPage = () => {
         const rocketNodeStaking = new ethers.Contract(
           NodeStakingAddress, // Replace with your staking contract address
           stakingABI, // Replace with your staking contract ABI
-          provider
+          signer
         );
 
 
@@ -454,7 +454,7 @@ const CreateValidator: NextPage = () => {
         console.log("Stake RPL amount:" + amount);
 
         const rocketNetworkPrices = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNetworkPrices"));
-        const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, provider)
+        const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, NetworkABI, signer)
 
         const rplPrice = await rocketNetworkContract.getRPLPrice()
         const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
@@ -954,7 +954,7 @@ const CreateValidator: NextPage = () => {
 
     const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, provider)
+    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
    let attachedPubkeyArray: Array<Boolean> = [];
