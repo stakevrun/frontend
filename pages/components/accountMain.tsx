@@ -376,6 +376,9 @@ console.log("This is the block number" + blockNum)
     }
 
 
+    //ACCOUNT UI BRANCH
+
+
     const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
     const APItype = "GetDepositData"
 
