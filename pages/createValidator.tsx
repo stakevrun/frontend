@@ -1101,9 +1101,39 @@ const CreateValidator: NextPage = () => {
 
 
         })
-        .catch(error => {
+        .catch(async error => {
 
           console.log(error);
+
+          const requiredDeclaration = 'I accept the terms of service specified at https://vrün.com/terms (with version identifier 20240229).';
+
+
+          const TermsOfServiceValue = {
+            declaration: requiredDeclaration
+          }
+    
+    
+          let TermsOfServiceSignature = await signer.signTypedData(EIP712Domain, TermsOfServiceTypes, TermsOfServiceValue);
+    
+    
+          try {
+            const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                type: "AcceptTermsOfService",
+                data: TermsOfServiceValue,
+                signature: TermsOfServiceSignature
+              })
+            });
+    
+          } catch (error) {
+            console.log(error);
+          }
+
+
         });
 
 
@@ -1130,33 +1160,7 @@ const CreateValidator: NextPage = () => {
       }
 
 
-      const requiredDeclaration = 'I accept the terms of service specified at https://vrün.com/terms (with version identifier 20240229).';
-
-
-      const TermsOfServiceValue = {
-        declaration: requiredDeclaration
-      }
-
-
-      let TermsOfServiceSignature = await signer.signTypedData(EIP712Domain, TermsOfServiceTypes, TermsOfServiceValue);
-
-
-      try {
-        const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            type: "AcceptTermsOfService",
-            data: TermsOfServiceValue,
-            signature: TermsOfServiceSignature
-          })
-        });
-
-      } catch (error) {
-        console.log(error);
-      }
+   
 
 
 

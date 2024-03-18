@@ -10,15 +10,13 @@ import daoABI from "../json/daoABI.json"
 import CountdownComponent from './countdown.jsx';
 import QuickNode from '@quicknode/sdk';
 import Modal from 'react-modal';
-
-
+import * as openpgp from 'openpgp';
 import { AiOutlineClose } from 'react-icons/ai'
-
-
-
 import Link
   from 'next/link';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import ContractTag from "../components/contractTag"
+import feeABI from "../json/feeABI.json"
 
 const AccountMain: NextPage = () => {
 
@@ -62,6 +60,64 @@ console.log("This is the block number" + blockNum)
 
 
 
+  const [data, setData] = useState("");
+  const [publicKeyArmored, setPublicKeyArmored] = useState(``);
+
+
+
+  useEffect(() => {
+
+    console.log(publicKeyArmored)
+
+  }, [publicKeyArmored])
+
+
+  const encryptData = async (jsonData: string) => {
+    try {
+      const publicKey = await openpgp.readKey({ armoredKey: publicKeyArmored });
+      const encrypted: string = await openpgp.encrypt({
+        message: await openpgp.createMessage({ text: jsonData }), // input as Message object
+        encryptionKeys: publicKey,
+      });
+      return encrypted;
+    } catch (error) {
+      console.error('Error encrypting data:', error);
+    }
+  };
+
+
+
+
+  const downloadEncryptedJSON = async (data: string | undefined) => {
+    if (!data) return;
+
+    let encryptedData: string | undefined = data;
+    if (checked && encryptedData !== undefined) {
+      encryptedData = await encryptData(data);
+      if (encryptedData === undefined) {
+        // Encryption failed, handle the error
+        return;
+      }
+    }
+
+
+    const blob = new Blob([encryptedData], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'encrypted_data.txt';
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+
+
+  };
+
+
+
+
 
 
 
@@ -91,16 +147,16 @@ console.log("This is the block number" + blockNum)
     if (dateTime === "") {
       const theTime = Date.now()
 
-      epoch = Math.ceil((theTime - genesisTime) / 12 / 32/1000)
+      epoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
 
-    }  else {
+    } else {
 
       const dateTimeObject = new Date(dateTime);
 
       // Convert the JavaScript Date object to a Unix timestamp (in milliseconds)
       const timestampValue = dateTimeObject.getTime();
 
-      epoch = Math.ceil((timestampValue - genesisTime) / 12 / 32/1000);
+      epoch = Math.ceil((timestampValue - genesisTime) / 12 / 32 / 1000);
 
     }
 
@@ -183,9 +239,11 @@ console.log("This is the block number" + blockNum)
 
 
 
-    await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+
+
+    const data: string = await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
       method: "POST",
-    
+
       headers: {
         "Content-Type": "application/json"
       },
@@ -196,23 +254,33 @@ console.log("This is the block number" + blockNum)
       })
     })
       .then(async response => {
-    
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
-    
-        let newJSON = Object.entries(jsonString);
-    
-        console.log(newJSON);
-    
-    
-    
+
+        var json = await response.json()// Note: response will be opaque, won't contain data
+
+        var newJSON = Object.entries(json)
+
+
+        return newJSON.toString();
+
+
+
+
       })
       .catch(error => {
         // Handle error here
         console.log(error);
-      }); 
-    
-    
-  
+      });
+
+
+
+
+
+    if (typeof data !== "undefined") {
+      downloadEncryptedJSON(data);
+    }
+
+
+
 
   }
 
@@ -783,7 +851,7 @@ console.log("This is the block number" + blockNum)
 
         const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
-        const DAOContract = new ethers.Contract(DAOAddress, daoABI, provider);
+        const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
 
         const scrubPeriod: any = await DAOContract.getScrubPeriod();
 
@@ -936,13 +1004,78 @@ console.log("This is the block number" + blockNum)
 
     getMinipoolData();
 
+  }, [])
 
 
+  useEffect(() => {
 
 
-
+    getPayments();
 
   }, [])
+
+
+
+  const [currentPayments, setCurrentPayments] = useState<number>(0)
+
+
+  const getPayments = async () => {
+
+
+    const payments: number = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/payments`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonObject = await response.json()
+
+
+
+
+        let balance = BigInt(0);
+        for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
+
+
+          const paymentsObject = Object(payments)
+
+          for (const { amount, timestamp, tx } of paymentsObject) {
+
+            balance += BigInt(amount);
+
+
+
+          }
+
+
+
+        }
+
+
+        
+
+        return ethers.formatEther(balance);
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+    setCurrentPayments(payments);
+
+
+
+
+
+
+
+  }
 
 
 
@@ -955,7 +1088,7 @@ console.log("This is the block number" + blockNum)
 
 
 
-    const graffiti = await fetch(`https://db.vrün.com/17000/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
+    const graffiti = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
       method: "GET",
 
       headers: {
@@ -973,25 +1106,14 @@ console.log("This is the block number" + blockNum)
         const entries = Object.entries(jsonString);
 
         console.log("grafitti entries:" + entries)
-       const entriesOfEntries =  Object.entries(entries);
+        const entriesOfEntries = Object.entries(entries);
 
-      const newObject = Object(entriesOfEntries[0][1][1]);
+        const newObject = Object(entriesOfEntries[0][1][1]);
 
 
         let currentGraffiti = newObject.graffiti
 
         console.log(currentGraffiti)
-
-        
-
-
-
-
-
-
-
-
-
 
         return currentGraffiti;
 
@@ -1025,6 +1147,39 @@ console.log("This is the block number" + blockNum)
 
 
     setCurrentEditGraffiti(e.target.value);
+
+  }
+
+
+
+  const handlePublicKeyArmored = (e: any) => {
+
+
+    setPublicKeyArmored(e.target.value);
+
+  }
+
+
+
+  const [checked, setChecked] = useState(false);
+
+
+
+
+  useEffect(() => {
+
+    console.log(checked);
+
+
+  }, [checked])
+
+
+
+  const handleChecked = (e: any) => {
+    const { name, type, value, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setChecked(checked)
+
 
   }
 
@@ -1070,9 +1225,74 @@ console.log("This is the block number" + blockNum)
     setCurrentPubkeyIndex(index)
   }
 
+  const [showForm3, setShowForm3] = useState(false);
+
+
+  const handlePaymentModal = () => {
+    setShowForm3(true)
+  }
+
 
 
   const [dateTime, setDateTime] = useState('');
+
+
+
+
+  const [feeETHInput, setFeeETHInput] = useState("")
+
+
+  const handleETHInput = (e: any) => {
+    setFeeETHInput(e.target.value)
+  }
+
+
+
+  const makePayment = async () => {
+
+
+
+    try {
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner()
+
+
+      const feeAddress = "0x272347F941fb5f35854D8f5DbDcEdef1A515dB41";
+
+
+      const FeeContract = new ethers.Contract(feeAddress, feeABI, signer);
+
+      let result = await FeeContract.payEther({ value: ethers.parseEther(feeETHInput) });
+
+      let receipt = await result.wait();
+
+      // Check if the transaction was successful (status === 1)
+      if (receipt.status === 1) {
+        // If successful, setShowForm3(false)
+        setShowForm3(false);
+        console.log("Transaction successful:", result);
+      } else {
+        console.error("Transaction failed:", receipt);
+        // Handle the failure if needed
+
+        alert(receipt)
+
+        setShowForm3(false)
+      }
+
+
+
+    } catch (e) {
+      alert(e)
+
+      setShowForm3(false);
+    }
+
+
+
+
+
+  }
 
 
 
@@ -1094,6 +1314,22 @@ console.log("This is the block number" + blockNum)
             {address}
           </p>
         </div>
+      </div>
+
+      <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+
+
+
+          <h3 className="text-1xl font-bold text-gray-900 mb-2 "> Balance:  {currentPayments}</h3>
+
+          <button onClick={handlePaymentModal} className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Make a payment</button>
+
+
+
+
+        </div>
+
       </div>
 
 
@@ -1124,6 +1360,7 @@ console.log("This is the block number" + blockNum)
                 <th className="px-4 py-3">Pubkey</th>
                 <th className="px-4 py-3">Time remaining</th>
                 <th className="px-4 py-3">Grafitti</th>
+
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
@@ -1188,7 +1425,7 @@ console.log("This is the block number" + blockNum)
                   <td className="px-4 py-3 border">
                     <div className="flex items-center text-sm">
                       <div>
-                        <p className="font-semibold text-black">{truncateString(data.address)}</p>
+                        <p className="font-semibold text-black">View on Beaconchain: <a href={`https://holesky.beaconcha.in/validator/${data.pubkey}`} target="_blank">{truncateString(data.address)}</a></p>
 
                       </div>
                     </div>
@@ -1198,7 +1435,8 @@ console.log("This is the block number" + blockNum)
                     <div className="flex items-center text-sm">
                       <div>
 
-                        <p className="text-xs text-gray-600">{truncateString(data.pubkey)}</p>
+                        <ContractTag pubkey={truncateString(data.pubkey)} />
+
                       </div>
                     </div>
                   </td>
@@ -1230,6 +1468,8 @@ console.log("This is the block number" + blockNum)
                 Set Graffiti
               </button>
             </td> */}
+
+
 
                   <td className="px-4 py-3 gap-2 text-sm border">
 
@@ -1464,7 +1704,7 @@ console.log("This is the block number" + blockNum)
           },
         }}
       >
-        <div  className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+        <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
           <AiOutlineClose onClick={() => {
             setShowForm(false)
           }} />
@@ -1475,7 +1715,7 @@ console.log("This is the block number" + blockNum)
 
           <div >
             <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
-            <button  className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
           </div>
         </div>
       </Modal>
@@ -1494,7 +1734,7 @@ console.log("This is the block number" + blockNum)
           },
           content: {
             width: '50%',
-            height: '200px',
+            height: '700px',
             position: 'absolute',
             top: '50%',
             left: '50%',
@@ -1519,15 +1759,88 @@ console.log("This is the block number" + blockNum)
 
           <input
 
-className="w-[60%] self-center border border-black-200 text-black-500"
+            className="w-[60%] self-center border border-black-200 text-black-500"
             type="datetime-local"
             id="datetime"
             value={dateTime}
             onChange={(e) => setDateTime(e.target.value)}
           />
+
+          <h4>Enter Public Key:</h4>
+          <label className="w-[80%]">
+            Garden?
+            <input
+              type="checkbox"
+
+              checked={checked}
+              onChange={handleChecked}
+            />
+          </label>
+
+          <textarea value={publicKeyArmored} onChange={handlePublicKeyArmored} />
+
+
+
           <div >
-            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Update</button>
-            <button  className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
+            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+          </div>
+        </div>
+      </Modal>
+
+
+      <Modal
+        isOpen={showForm3}
+        onRequestClose={() => setShowForm3(false)}
+        contentLabel="Delete User Modal"
+        className="modal"
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+          },
+          content: {
+            width: '50%',
+            height: '300px',
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+          <AiOutlineClose onClick={() => {
+            setShowForm3(false)
+          }} />
+          <h2>Get Presigned Exit Message</h2>
+
+          <input
+
+            className="w-[60%] self-center border border-black-200 text-black-500"
+            type="text"
+
+            value={feeETHInput}
+            onChange={handleETHInput}
+          />
+
+
+
+          <div >
+            <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
           </div>
         </div>
       </Modal>

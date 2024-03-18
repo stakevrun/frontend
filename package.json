@@ -22,6 +22,7 @@
     "chia-bls": "^1.0.1",
     "ethers": "^6.11.1",
     "next": "^14.0.4",
+    "openpgp": "^5.11.1",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -33,6 +34,7 @@
     "wagmi": "^1.4.13"
   },
   "devDependencies": {
+    "@openpgp/web-stream-tools": "^0.0.11-patch-0",
     "@types/node": "^18.19.3",
     "@types/react": "^18.2.43",
     "@types/react-modal": "^3.16.3",
