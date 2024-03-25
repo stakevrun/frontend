@@ -28,7 +28,7 @@ const Account: NextPage = () => {
       </Head>
       <Navbar />
       <div className='flex w-full sticky top-16'>
-       {/* <Leftbar /> */}
+      {/* <Leftbar /> */}
       <AccountMain/>
 
 

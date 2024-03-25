@@ -11,6 +11,10 @@ import { Address, createPublicClient, hexToNumber, http, publicActions, createWa
 import Head from 'next/head';
 import miniManagerABI from "./json/miniManagerABI.json"
 
+
+
+
+
 import RollingNumber from './components/rollingNumber';
 
 
@@ -38,101 +42,17 @@ const CreateValidator: NextPage = () => {
   const [currentPubKey, setCurrentPubKey] = useState("");
   const [minipoolDepositInput, setMinipoolDepositInput] = useState("")
   const [errorBoxText, setErrorBoxTest] = useState("");
+  const [errorBoxText2, setErrorBoxTest2] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0)
 
 
 
 
 
-  //VIEM FUNCTIONS
-
-
-  const client = createPublicClient({
-
-    chain: mainnet,
-
-    transport: http(`http://127.0.0.1:8545`)
-  })
-    .extend(publicActions)
-    .extend(walletActions)
-
-
-  const connect = async () => {
-
-    try {
-
-
-      let newWallet;
-
-
-      if ((window as any).ethereum !== undefined) {
-
-
-        newWallet = await createWalletClient({
-          chain: mainnet,
-          transport: custom((window as any).ethereum)
-        })
-
-        setWallet(newWallet);
 
 
 
-        const [address] = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
-
-
-
-        setAccount(address)
-
-
-
-
-
-      }
-
-
-
-
-
-      newWallet = null;
-    } catch (e) {
-
-      alert("You must install an Ethereum Wallet to use the app")
-
-      // location.reload();
-    }
-
-
-  }
-
-
-  const getFoundry = async () => {
-
-    try {
-      const [newAddress] = await client.requestAddresses()
-      setFoundryAccount(newAddress)
-      alert("SUCCESS: Foundry connected!")
-
-    } catch (e) {
-
-      console.log(e)
-      alert("FAIL: Foundry has not been connected.")
-
-    }
-
-
-  }
-
-
-  {/*const handleFakestETH = async () => {
-
-
-
-    await client.sendTransaction({
-      account: foundryAccount,
-      to: address,
-      value: parseEther('2')
-    })
-  } */}
+ 
 
 
 
@@ -148,7 +68,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-  
+
 
 
   const fetchData = async () => {
@@ -214,7 +134,7 @@ const CreateValidator: NextPage = () => {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
-        const provider  = new ethers.JsonRpcProvider(currentRPC);
+        const provider = new ethers.JsonRpcProvider(currentRPC);
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
         console.log("Storage Contract:" + storageContract)
 
@@ -257,7 +177,7 @@ const CreateValidator: NextPage = () => {
 
   const { address } = useAccount({
 
-    
+
     onConnect: async ({ address }) => {
 
 
@@ -266,14 +186,14 @@ const CreateValidator: NextPage = () => {
           checkIndex();
           const reg = await registrationCheck(address);
           setIsRegistered(reg);
-          if(reg === true) {
+          if (reg === true) {
 
-            await   handleCheckRPL(address);
+            await handleCheckRPL(address);
             await handleCheckStakeRPL(address)
 
 
           }
-          
+
         } catch (error) {
           // Handle any errors that occur during registration check
           console.error("Error during registration check:", error);
@@ -287,14 +207,14 @@ const CreateValidator: NextPage = () => {
 
 
   const currentChain = useChainId();
- 
-  
 
 
-  
+
+
+
 
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
-  const currentRPC = currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 
 
@@ -306,7 +226,7 @@ const CreateValidator: NextPage = () => {
     if (isRegistered && address !== undefined) {
       handleCheckRPL(address);
       handleCheckStakeRPL(address)
-    
+
 
     }
 
@@ -347,7 +267,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+        const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -420,7 +340,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+        const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -483,7 +403,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-        const possibleNewMinpools = LEB8sPossible  - parseEther(activeMinipools.toString());
+        const possibleNewMinpools = LEB8sPossible - parseEther(activeMinipools.toString());
 
 
 
@@ -676,158 +596,6 @@ const CreateValidator: NextPage = () => {
 
 
 
-
-  /* const handleMiniPoolDeposit = async () => {
- 
- 
-     if (address !== undefined && currentPubKey !== "") {
- 
- 
- 
-       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-       let signer = await browserProvider.getSigner();
- 
- 
-       const defaultSalt = ethers.randomBytes(32)
- 
- 
- 
- 
- 
- 
- 
-       const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-       const baseAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolBase"))
-       const initHash = ethers.keccak256(`0x3d602d80600a3d3981f3363d3d373d3d3d363d73${baseAddress.slice(2)}5af43d82803e903d91602b57fd5bf3`)
- 
- 
- 
- 
-       const MinipoolFactoryAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolFactory"))
- 
- 
-       const factoryContract = new ethers.Contract(MinipoolFactoryAddress, factoryABI, signer);
- 
- 
- 
- 
- 
-       const keccakedHash = ethers.keccak256(initHash)
- 
-       //const salt = await browserProvider.getTransactionCount(address)
- 
- 
- 
- 
- 
- 
-       const newMinipoolAddress = ethers.keccak256(ethers.concat(['0xff', MinipoolFactoryAddress, defaultSalt, keccakedHash]))
- 
- 
- 
- 
- 
-       const truncatedMinipoolAddress = newMinipoolAddress.substring(0, 24); // 24 hex characters represent 12 bytes in length
- 
- 
-       const getMinipoolWithdrawalCredentials = (minipoolAddress: any) => {
-        // let newAddress = ethers.concat(['0x01', hexZeroPad(minipoolAddress, 31)])
- 
- 
-         return newAddress;
-       }
- 
-       const withdrawalCredentials = getMinipoolWithdrawalCredentials(truncatedMinipoolAddress)
- 
- 
-       console.log(withdrawalCredentials)
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-       const types = {
-         GetDepositData: [
-           { name: 'pubkey', type: 'bytes' },
-           { name: 'withdrawalCredentials', type: 'bytes32' },
-           { name: 'amountGwei', type: 'uint256' }
-         ]
-       }
- 
- 
-       const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-       const APItype = "GetDepositData"
- 
- 
- 
-       const parsedDeposit = parseEther(minipoolDepositInput).toString();
- 
-       console.log(parsedDeposit);
-       console.log(withdrawalCredentials);
-       console.log(currentPubKey);
-       const value = { pubkey: currentPubKey, withdrawalCredentials: withdrawalCredentials, amountGwei: parseEther(minipoolDepositInput).toString() }
- 
- 
-       let signature = await signer.signTypedData(EIP712Domain, types, value);
- 
- 
- 
- 
-       await fetch(`https://db.vrün.com/${currentChain}/${address}/0`, {
-         method: "POST",
- 
-         headers: {
-           "Content-Type": "application/json"
-         },
-         body: JSON.stringify({
-           type: APItype,
-           data: value,
-           signature: signature
-         })
-       })
-         .then(async response => {
- 
-           var jsonString = await response.json()// Note: response will be opaque, won't contain data
- 
-           console.log("Get Deposit Data response" + jsonString)
-         })
-         .catch(error => {
-           // Handle error here
-           console.log(error);
-         });
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-     } else {
-       alert("You have not initialised a Validator key")
-     }
- 
- 
-   }
- */
-
-
-
-
-
   useEffect(() => {
 
 
@@ -852,6 +620,30 @@ const CreateValidator: NextPage = () => {
   }, [errorBoxText])
 
 
+  useEffect(() => {
+
+
+    if (errorBoxText2 !== "") {
+
+
+      const handleText = () => {
+        setErrorBoxTest2("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 6000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [errorBoxText2])
+
+
 
 
   const nullAddress = "0x0000000000000000000000000000000000000000";
@@ -860,12 +652,12 @@ const CreateValidator: NextPage = () => {
 
   function findFirstFalseIndex(attachedPubkeyArray: Array<Boolean>) {
     for (let i = 0; i < attachedPubkeyArray.length; i++) {
-        if (!attachedPubkeyArray[i]) {
-            return i;
-        }
+      if (!attachedPubkeyArray[i]) {
+        return i;
+      }
     }
     return -1; // Return -1 if no false value found
-}
+  }
 
 
 
@@ -875,12 +667,12 @@ const CreateValidator: NextPage = () => {
 
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-      let signer = await browserProvider.getSigner()
-      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    let signer = await browserProvider.getSigner()
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
-      const provider  = new ethers.JsonRpcProvider(currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
-   
+    const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+
 
     //Get latest index
 
@@ -943,10 +735,10 @@ const CreateValidator: NextPage = () => {
         })
         .catch(error => {
 
-         
+
         });
 
-   
+
 
     }
 
@@ -957,7 +749,7 @@ const CreateValidator: NextPage = () => {
     const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
-   let attachedPubkeyArray: Array<Boolean> = [];
+    let attachedPubkeyArray: Array<Boolean> = [];
 
 
     for (const key of pubkeyArray) {
@@ -981,24 +773,40 @@ const CreateValidator: NextPage = () => {
 
 
 
-    const index =  findFirstFalseIndex(attachedPubkeyArray);
+    const index = findFirstFalseIndex(attachedPubkeyArray);
 
     if (index !== -1) {
       setCurrentIndex(index);
-  } else {
+    } else {
       setCurrentIndex(newNextIndex)
+    }
+
+
+
+
+
+
+
+
+
+
   }
-  
 
 
+  const [selectedCont, setSelectedCont] = useState("8 ETH")
 
 
+  const handleContChange = (event: any) => {
+    const { value } = event.target;
+    setSelectedCont(value);
+
+  };
 
 
+  useEffect(() => {
+    console.log("Selected Cont:" + selectedCont)
 
-
-
-  }
+  }, [selectedCont])
 
 
 
@@ -1075,8 +883,24 @@ const CreateValidator: NextPage = () => {
     if (address !== undefined) {
 
 
+      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner()
+      console.log("sIGNER ADDRESS:" + signer.address);
 
-     
+      const TermsOfServiceTypes = {
+
+        "AcceptTermsOfService": [
+          { name: "declaration", type: "string" }
+        ]
+
+
+
+      }
+
+
+
+
 
 
 
@@ -1111,11 +935,11 @@ const CreateValidator: NextPage = () => {
           const TermsOfServiceValue = {
             declaration: requiredDeclaration
           }
-    
-    
+
+
           let TermsOfServiceSignature = await signer.signTypedData(EIP712Domain, TermsOfServiceTypes, TermsOfServiceValue);
-    
-    
+
+
           try {
             const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
               method: "PUT",
@@ -1128,7 +952,7 @@ const CreateValidator: NextPage = () => {
                 signature: TermsOfServiceSignature
               })
             });
-    
+
           } catch (error) {
             console.log(error);
           }
@@ -1144,23 +968,10 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-      let signer = await browserProvider.getSigner()
-      console.log("sIGNER ADDRESS:" + signer.address);
-
-      const TermsOfServiceTypes = {
-
-        "AcceptTermsOfService": [
-          { name: "declaration", type: "string" }
-        ]
+    
 
 
 
-      }
-
-
-   
 
 
 
@@ -1177,7 +988,19 @@ const CreateValidator: NextPage = () => {
       const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
 
 
+
+
+
+
+
       const feeRecipient = await distributorContract.getProxyAddress(address);
+
+
+
+
+
+
+
       const date = Math.floor(Date.now() / 1000);
 
 
@@ -1362,29 +1185,43 @@ const CreateValidator: NextPage = () => {
 
       const depositContract = new ethers.Contract(NodeDepositAddress, depositABI, signer);
 
-      let result = await depositContract.deposit(ethers.parseEther('8'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, { value: ethers.parseEther('8') });
+      let result;
+
+
+      if(selectedCont === "16 ETH") {
+
+        result = await depositContract.deposit(ethers.parseEther('16'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, { value: ethers.parseEther('16') });
+
+
+      }
+
+      else {
+        result = await depositContract.deposit(ethers.parseEther('8'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, { value: ethers.parseEther('8') });
+      }
+
+     
       console.log(result);
 
 
       let receipt = await result.wait();
 
-// Check if the transaction was successful
-if (receipt.status === 1) {
-    console.log("Transaction successful!");
+      // Check if the transaction was successful
+      if (receipt.status === 1) {
+        console.log("Transaction successful!");
 
-    // Read the emitted event logs
-    let logs = receipt.logs;
-    // Process logs if needed
+        // Read the emitted event logs
+        let logs = receipt.logs;
+        // Process logs if needed
 
-    // Call checkIndex function regardless of the transaction status
-    checkIndex();
-} else {
-    console.log("Transaction failed!");
-    // Handle the failure case if needed
+        // Call checkIndex function regardless of the transaction status
+        checkIndex();
+      } else {
+        console.log("Transaction failed!");
+        // Handle the failure case if needed
 
-    // Call checkIndex function regardless of the transaction status
-  checkIndex();
-}
+        // Call checkIndex function regardless of the transaction status
+        checkIndex();
+      }
 
 
 
@@ -1399,6 +1236,94 @@ if (receipt.status === 1) {
       //  const contract = new contract('0x', ['function deposit(uint256 minimumNodeFee, bytes validatorPubkey, bytes validatorSignature, bytes32 depositDataRoot, uint256 salt, address expectedMinipoolAddress) external payable'], provider)
       //  await contract.deposit(15%, validatorKey.getPublicKey(), signature, depositDataRoot, salt, minipoolAddress)
 
+    
+
+    }
+  }
+
+
+  const [checked, setChecked] = useState(false)
+
+
+  const handleChecked = (e: any) => {
+    const { name, type, value, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setChecked(checked)
+
+
+  }
+
+
+
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openModal = () => {
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+
+
+
+
+
+
+
+
+
+
+  const handleOptSmoothingPool = async () => {
+    if (typeof (window as any).ethereum !== "undefined") {
+      try {
+
+
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+
+
+        const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+        console.log("Rocket Node Manager:" + rocketNodeManager)
+        const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked)
+        console.log(tx);
+
+        // Listen for transaction confirmation
+        const receipt = await tx.wait();
+        console.log("Transaction confirmed:", receipt);
+
+        if (checked === false) {
+
+          alert("Opt-out of Smoothing Pool Sucessful")
+
+
+        } else {
+
+
+          alert("Opt-in to Smoothing Pool Sucessful")
+
+        }
+
+
+        // Check if transaction was successful
+
+      } catch (error) {
+
+
+
+        let input: any = error
+
+        setErrorBoxTest2(input.reason.toString());
+
+      }
     }
   }
 
@@ -1562,14 +1487,14 @@ if (receipt.status === 1) {
                       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
                       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have 
+                        You have
                         <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(formatEther(RPL))} /> </span>
-                         unstaked RPL in your Wallet and 
-                         <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span> 
-                         staked RPL. 
-                         You have 
-                         <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span> 
-                           one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
+                        unstaked RPL in your Wallet and
+                        <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span>
+                        staked RPL.
+                        You have
+                        <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
+                        one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
 
                       </p>
                       <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
@@ -1609,11 +1534,42 @@ if (receipt.status === 1) {
 
                       <p className="my-4 w-[90%] text-gray-500 sm:text-l">
 
-                        Create your custom &quot;graffiti&quot;, and we will do the rest!
+                        Create your custom &quot;graffiti&quot;, select <span>8ETH</span> or <span>16ETH</span>, and we will do the rest!
                       </p>
 
 
                       <input value={grafittiInput} placeholder='Grafitti' className=" border border-black-200 " type="text" onChange={handleGrafittiInput} />
+
+
+                      <div className="w-[80%]">
+                        <label> Please select ETH Deposit Value:</label>
+                        <div >
+                          <label>
+                            <input
+                              type="radio"
+                              name="contType"
+                              value="8 ETH"
+                              checked={selectedCont === '8 ETH'}
+                              onChange={handleContChange}
+                            />
+                            8 ETH
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="contType"
+                              value="16 ETH"
+                              checked={selectedCont === '16 ETH'}
+                              onChange={handleContChange}
+                            />
+                            16 ETH
+                          </label>
+
+
+                        </div>
+
+                      </div>
+                     
 
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
@@ -1624,38 +1580,49 @@ if (receipt.status === 1) {
                     </div>
 
 
+                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
+                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
 
+                      <p className="my-4 w-[90%] text-gray-500 sm:text-l">
 
-
-
-
-
-
-                    {/* <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
-                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Make Minipool Deposit</h2>
-
-                      <p className="mt-4 text-gray-500 sm:text-l">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Ratione dolore.
+                        Would you like your node to be a part of the Smoothing Pool? Toggle the checkbox and submit your result
                       </p>
 
 
-                      <input value={minipoolDepositInput} placeholder='RPL Value' className=" border border-black-200 " type="text" onChange={handleMinipoolInputChange} />
+
+
+
+                      <label className="w-[80%] gap-2">
+
+                        <input
+                          type="checkbox"
+
+                          checked={checked}
+                          onChange={handleChecked}
+                        />
+                      </label>
+
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button onClick={handleMiniPoolDeposit} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                          Go!
+                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                          Confirm Changes
                         </button>
-
-
                       </div>
-                    </div> */}
+
+                      {errorBoxText2 !== "" &&
+                        <div className='w-3/5 flex gap-2 items-center justify-center'>
+
+                          <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText2}</p>
+
+                        </div>
+
+
+                      }
 
 
 
 
-
-
-
+                    </div>
 
                   </dl>
                 </div>
@@ -1665,19 +1632,11 @@ if (receipt.status === 1) {
 
             </div>) : (<NoRegistration onRegistrationResult={handleRegistrationResult} />)
           }</>
-
-
-
-
-
-
       ) : (<NoConnection />)}
 
 
+      
 
-      {/*<button onClick={connect}>Connect Wallet</button>
-      <button onClick={getFoundry}>CONNECT FOUNDRY</button>
-    <button onClick={handleFakestETH}>Fund Test Account</button>*/}
 
 
     </div>
