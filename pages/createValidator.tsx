@@ -26,22 +26,16 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 const CreateValidator: NextPage = () => {
 
 
-  const [isRegistered, setIsRegistered] = useState(true)
-  const [foundryAccount, setFoundryAccount] = useState("");
-  const [account, setAccount] = useState("")
-  const [wallet, setWallet] = useState({});
-  const [RPL, setRPL] = useState(BigInt(0));
-  const [stakeRPL, setStakeRPL] = useState(BigInt(0));
-  const [newMinipools, setNewMinipools] = useState(BigInt(0))
-  const [RPLinput, setRPLinput] = useState("")
-  const [displayActiveMinipools, setDisplayActiveMinipools] = useState(0)
-  const [stakeButtonBool, setStakeButtonBool] = useState(true)
-  const [RPLApproved, setRPLApproved] = useState(false)
+
+
+
+ 
+ 
   const [NodeStakingAddress, setNodeStakingAddress] = useState("")
 
-  const [currentPubKey, setCurrentPubKey] = useState("");
+
   const [minipoolDepositInput, setMinipoolDepositInput] = useState("")
-  const [errorBoxText, setErrorBoxTest] = useState("");
+  
   const [errorBoxText2, setErrorBoxTest2] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -55,11 +49,54 @@ const CreateValidator: NextPage = () => {
  
 
 
+// BEGINNING RPL FUNCTIONS
 
 
+  const currentChain = useChainId();
+
+  const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
+  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 
+  const [stakeButtonBool, setStakeButtonBool] = useState(true)
+  const [isRegistered, setIsRegistered] = useState(true)
+  const [RPL, setRPL] = useState(BigInt(0));
+  const [stakeRPL, setStakeRPL] = useState(BigInt(0));
+  const [newMinipools, setNewMinipools] = useState(BigInt(0))
+  const [RPLinput, setRPLinput] = useState("")
+  const [displayActiveMinipools, setDisplayActiveMinipools] = useState(0)
   const [registrationResult, setRegistrationResult] = useState({ result: "" });
+  const [errorBoxText, setErrorBoxTest] = useState("");
+
+  const { address } = useAccount({
+
+
+    onConnect: async ({ address }) => {
+
+
+      if (address !== undefined) {
+        try {
+          checkIndex();
+          const reg = await registrationCheck(address);
+          setIsRegistered(reg);
+          if (reg === true) {
+
+            await handleCheckRPL(address);
+            await handleCheckStakeRPL(address)
+
+
+          }
+
+        } catch (error) {
+          // Handle any errors that occur during registration check
+          console.error("Error during registration check:", error);
+        }
+      }
+    }
+  })
+
+
+
 
   const handleRegistrationResult = (result: any) => {
     setRegistrationResult(result);
@@ -108,17 +145,7 @@ const CreateValidator: NextPage = () => {
     fetchData(); // Call the async function
 
 
-
-
-
-
-
   }, [registrationResult]);
-
-
-
-
-
 
 
 
@@ -174,48 +201,6 @@ const CreateValidator: NextPage = () => {
 
 
   }
-
-  const { address } = useAccount({
-
-
-    onConnect: async ({ address }) => {
-
-
-      if (address !== undefined) {
-        try {
-          checkIndex();
-          const reg = await registrationCheck(address);
-          setIsRegistered(reg);
-          if (reg === true) {
-
-            await handleCheckRPL(address);
-            await handleCheckStakeRPL(address)
-
-
-          }
-
-        } catch (error) {
-          // Handle any errors that occur during registration check
-          console.error("Error during registration check:", error);
-        }
-      }
-    }
-  })
-
-
-
-
-
-  const currentChain = useChainId();
-
-
-
-
-
-
-  const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
-  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
-
 
 
 
@@ -540,12 +525,6 @@ const CreateValidator: NextPage = () => {
 
 
 
-
-
-
-
-
-
   const handleUnstakeRPL = async () => {
     try {
 
@@ -618,6 +597,25 @@ const CreateValidator: NextPage = () => {
     }
 
   }, [errorBoxText])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //END RPL FUNCTIONS
+  //
+///
+  ///
 
 
   useEffect(() => {
@@ -1477,7 +1475,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-              <div className="flex items-center justify-center flex-col w-full pb-10 mb-10">
+              <div className="flex items-center justify-center flex-col w-full pb-10 mb-10 flex items-center border p-8 bg-white shadow rounded-lg">
 
                 <div className="mt-8 sm:mt-12 sm:w-2/5   w-3/5">
                   <dl className="grid lg:grid-cols-1 gap-10 md:grid-cols-1 sm:grid-cols-1">
@@ -1529,7 +1527,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
+                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Add Validator</h2>
 
                       <p className="my-4 w-[90%] text-gray-500 sm:text-l">
@@ -1580,7 +1578,7 @@ const CreateValidator: NextPage = () => {
                     </div>
 
 
-                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
+                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center r flex items-center p-8 bg-white shadow rounded-lg border">
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
 
                       <p className="my-4 w-[90%] text-gray-500 sm:text-l">

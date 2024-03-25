@@ -1228,14 +1228,73 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    
     }
 
 
+//FUNCTIONS FOR GRAPH DATA (MAY NEED ADDITIONAL WORK FOR LABELS AND THE FACT ITS )
+
+  /*  const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
+    const [xAxisData, setXAxisData] = useState<Array<number>>([]);
+  
+    const convertToGraphPlotPoints = async () => {
+  
+  
+      let newPlotPoints: Array<number> = [];
+  
+      //for (const object of currentRowData) {
+  
+        for (const log of object.beaconLogs) {
+  
+  
+          if (object.statusResult === "Staking" && Number(log.start_balance) !== 0) {
+  
+            let variance = log.end_balance - log.end_effective_balance
+  
+            let editedVariance = Number(ethers.formatUnits(variance, "gwei"))
+  
+            newPlotPoints.push(editedVariance)
+          }
+  
+        }
+        
+      //}
+  
+  
+      setTotalGraphPlotPoints(newPlotPoints);
+  
+  
+  
+    }
+  
+  
+    useEffect(() => {
+  
+      console.log(TotalGraphPlotPoints)
+  
+      const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
+      setXAxisData(xAxisDataArray);
+  
+    }, [TotalGraphPlotPoints])
+  
+  
+  
+  
+  
+    useEffect(() => {
+  
+      if (currentRowData.length >= 1) {
+        convertToGraphPlotPoints();
+      }
+  
+    }, [currentRowData])
 
 
 
 
 
+
+*/
 
 
 

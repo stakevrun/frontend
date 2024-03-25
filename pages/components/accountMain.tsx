@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { use, useEffect, useState, useRef } from 'react'
 import { PieChart, LineChart } from '@mui/x-charts'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { NextPage } from 'next';
@@ -18,11 +18,33 @@ import NoConnection from './noConnection';
 import Link
   from 'next/link';
 import { useRouter } from 'next/router';
-
+import RPLBlock from './RPL';
 import ContractTag from "../components/contractTag"
 import feeABI from "../json/feeABI.json"
 import { GrSatellite } from "react-icons/gr";
 import RollingNumber from './rollingNumber';
+import { Line, getElementsAtEvent } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend
+} from "chart.js"
+
+
+ChartJS.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend
+
+);
+
 
 
 
@@ -135,33 +157,52 @@ const AccountMain: NextPage = () => {
 
 
 
-  const getValBeaconData = async (pubkey: string) => {
+
+
+  const getMinipoolTruth = async (pubkey: string) => {
 
 
 
-    let newObject
-
-
-    await fetch(` https://holesky.beaconcha.in/api/v1/rocketpool/validator/${pubkey}`, {
-      method: "GET",
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
 
 
-        newObject = jsonString.data
-
-        console.log("Val Balance:" + Object.entries(newObject))
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-      });
+    try {
 
 
-    return newObject
+
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner()
+
+      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+      console.log("Storage Contract:" + storageContract)
+
+      const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+      const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+      console.log("Rocket Node Manager:" + rocketNodeManager)
+      const bool = await rocketNodeManager.getSmoothingPoolRegistrationState(address)
+
+
+
+
+      console.log("Bool:" + bool)
+
+
+      return bool;
+
+    } catch (error) {
+
+      console.log(error)
+
+      return false;
+
+    }
+
+
+
+
+
+
   }
 
 
@@ -201,6 +242,7 @@ const AccountMain: NextPage = () => {
 
 
   }
+
 
 
 
@@ -998,6 +1040,13 @@ const AccountMain: NextPage = () => {
   const nullAddress = "0x0000000000000000000000000000000000000000";
 
 
+  const [totalValidators, setTotalValidators] = useState("");
+  const [runningValidators, setRunningValidators] = useState("");
+
+
+
+
+
 
 
 
@@ -1157,6 +1206,9 @@ const AccountMain: NextPage = () => {
 
     let minipoolObjects: Array<rowObject> = [];
 
+    let newRunningVals = 0;
+    let newTotalVals = 0;
+
 
     for (const [minAddress, pubkey] of attachedPubkeyArray) {
 
@@ -1165,6 +1217,8 @@ const AccountMain: NextPage = () => {
 
 
       if (minAddress === "Null minipool") {
+
+
 
         minipoolObjects.push({
 
@@ -1179,7 +1233,7 @@ const AccountMain: NextPage = () => {
           valBalance: "",
           valProposals: "",
           valDayVariance: "",
-          pubkey: pubkey
+          pubkey: pubkey,
 
         });
 
@@ -1214,6 +1268,16 @@ const AccountMain: NextPage = () => {
 
         const currentStatus = MinipoolStatus[statusResult];
 
+        if (MinipoolStatus[statusResult] === "Staking") {
+
+          newRunningVals += 1;
+          newTotalVals += 1;
+
+        } else {
+
+          newTotalVals += 1;
+
+        }
 
 
 
@@ -1236,6 +1300,14 @@ const AccountMain: NextPage = () => {
 
         const printGraff = await getGraffiti(pubkey);
         const beaconStatus = await getBeaconchainStatus(pubkey)
+
+        const smoothingBool = await getMinipoolTruth(pubkey)
+
+        if (typeof smoothingBool === "boolean") {
+          setChecked2(smoothingBool);
+
+
+        }
 
 
         const beaconObject = await getValBeaconStats(pubkey)
@@ -1284,6 +1356,8 @@ const AccountMain: NextPage = () => {
     }
 
 
+    setRunningValidators(newRunningVals.toString());
+    setTotalValidators(newTotalVals.toString());
     setCurrentRowData(minipoolObjects)
     setShowForm(false)
 
@@ -1385,7 +1459,161 @@ const AccountMain: NextPage = () => {
 
 
   const [currentRowData, setCurrentRowData] = useState<Array<rowObject>>([])
-  const [accountLogs, setAccountLogs] = useState<Array<Array<object>>>([])
+
+
+
+
+  function calculateAveragePlotPoints(newPlotPointsArray: Array<Array<number>>) {
+    const averagePlotPoints = [];
+
+    // Check if newPlotPointsArray is not empty
+    if (newPlotPointsArray.length > 0) {
+      const numArrays = newPlotPointsArray.length;
+      const arrayLength = newPlotPointsArray[0].length; // Assuming all inner arrays have the same length
+
+      // Iterate over each index of the inner arrays
+      for (let i = 0; i < arrayLength; i++) {
+        let sum = 0;
+
+        // Calculate the sum of values at the current index across all inner arrays
+        for (let j = 0; j < numArrays; j++) {
+          sum += newPlotPointsArray[j][i];
+        }
+
+        // Calculate the average and push it to the averagePlotPoints array
+        averagePlotPoints.push(sum / numArrays);
+      }
+    }
+
+    return averagePlotPoints;
+  }
+
+  const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
+  const [xAxisData, setXAxisData] = useState<Array<number>>([]);
+  const [graphState, setGraphState] = useState("Week");
+
+
+  const attestationsPerDay = 225
+
+  const [percentageAttestations, setPercentageAttestations] = useState(0)
+
+
+  function calculateAverage(arrays: Array<Array<number>>) {
+    let totalSum = 0;
+    let totalCount = 0;
+
+    // Iterate through each array
+    for (let i = 0; i < arrays.length; i++) {
+      // Iterate through each number in the array
+      for (let j = 0; j < arrays[i].length; j++) {
+        totalSum += arrays[i][j];
+        totalCount++;
+      }
+    }
+
+    // Calculate the average
+    let average = totalSum / totalCount;
+    return average;
+  }
+
+
+
+
+  const convertToGraphPlotPoints = async () => {
+
+
+    let newPlotPointsArray: Array<Array<number>> = [];
+    let newMissedAttestationsArray: Array<Array<number>> = [];
+
+    for (const object of currentRowData) {
+
+      let newPlotPoints: Array<number> = [];
+      let newMissedAttestations: Array<number> = [];
+
+
+
+
+
+
+      for (const log of object.beaconLogs) {
+
+
+        if (object.statusResult === "Staking" && Number(log.start_balance) !== 0) {
+
+          let variance = Math.abs(Number(log.end_effective_balance - log.end_balance))
+
+          let editedVariance = Number(ethers.formatUnits(variance, "gwei"))
+
+          newPlotPoints.push(editedVariance)
+
+
+          let newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+
+          console.log("New Missed:" + newMissed);
+
+          newMissedAttestations.push(newMissed)
+
+
+
+        }
+
+
+
+      }
+
+      if (object.statusResult === "Staking") {
+
+        newPlotPointsArray.push(newPlotPoints)
+        newMissedAttestationsArray.push(newMissedAttestations)
+
+      }
+
+
+    }
+
+
+
+
+    if (newPlotPointsArray.length > 0) {
+
+
+
+      setTotalGraphPlotPoints(calculateAveragePlotPoints(newPlotPointsArray));
+
+
+    }
+
+    if (newMissedAttestationsArray.length > 0) {
+
+      setPercentageAttestations(calculateAverage(newMissedAttestationsArray))
+
+
+    }
+
+
+  }
+
+
+  useEffect(() => {
+
+    console.log(TotalGraphPlotPoints)
+
+    const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
+    setXAxisData(xAxisDataArray);
+
+  }, [TotalGraphPlotPoints])
+
+
+
+
+
+  useEffect(() => {
+
+    if (currentRowData.length >= 1) {
+      convertToGraphPlotPoints();
+    }
+
+  }, [currentRowData])
 
 
 
@@ -1451,6 +1679,7 @@ const AccountMain: NextPage = () => {
     valBalance: string
     valProposals: string
     valDayVariance: string
+
     graffiti: string
   };
 
@@ -1656,7 +1885,6 @@ const AccountMain: NextPage = () => {
 
 
 
-
   const [showForm, setShowForm] = useState(false)
   const [showForm2, setShowForm2] = useState(false)
   const [currentEditGraffiti, setCurrentEditGraffiti] = useState("")
@@ -1684,16 +1912,11 @@ const AccountMain: NextPage = () => {
 
 
   const [checked, setChecked] = useState(false);
+  const [checked2, setChecked2] = useState(false);
+
+  const [errorBoxText2, setErrorBoxTest2] = useState("");
 
 
-
-
-  useEffect(() => {
-
-    console.log(checked);
-
-
-  }, [checked])
 
 
 
@@ -1705,6 +1928,14 @@ const AccountMain: NextPage = () => {
 
   }
 
+
+  const handleChecked2 = (e: any) => {
+    const { name, type, value, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setChecked2(checked)
+
+
+  }
 
 
 
@@ -1818,6 +2049,13 @@ const AccountMain: NextPage = () => {
 
 
 
+  useEffect(() => {
+
+    console.log(checked2)
+
+  }, [checked2])
+
+
   //<a href={`https://holesky.beaconcha.in/validator/${data.pubkey}`} target="_blank">
 
 
@@ -1828,6 +2066,152 @@ const AccountMain: NextPage = () => {
   const handleClick = (param1: string, param2: number) => {
     router.push(`/validatorDetail/${param1}/${param2}`);
   };
+
+
+  const getGraphData = (graphState: string, xAxisData: Array<number>, TotalGraphPlotPoints: Array<number>) => {
+    let sliceLength;
+    switch (graphState) {
+      case "Week":
+        sliceLength = 7;
+        break;
+      case "Month":
+        sliceLength = 30;
+        break;
+      case "Year":
+        sliceLength = 365;
+        break;
+      default:
+        sliceLength = xAxisData.length;
+        break;
+    }
+
+    const slicedLabels = xAxisData.slice(0, sliceLength);
+    const slicedData = TotalGraphPlotPoints.slice(0, sliceLength);
+
+    return {
+      labels: slicedLabels.reverse(),
+      datasets: [
+        {
+          label: 'Daily Rewards Tracker',
+          data: slicedData.reverse(),
+          backgroundColor: "aqua",
+          borderColor: "black",
+          pointBorderColor: "aqua",
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    };
+  };
+
+  const graphData = getGraphData(graphState, xAxisData, TotalGraphPlotPoints);
+
+
+  const options = {
+
+    scales: {
+      y: {
+        min: 0,
+        max: 0.01
+      }
+    }
+
+  }
+
+
+  const charRef = useRef();
+
+  const onClick = (event: any) => {
+
+    console.log(charRef)
+
+    if (typeof charRef.current !== "undefined") {
+      console.log(getElementsAtEvent(charRef.current, event)[0].datasetIndex)
+    }
+
+  }
+
+
+  const handleOptSmoothingPool = async () => {
+    if (typeof (window as any).ethereum !== "undefined") {
+      try {
+
+
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+
+
+        const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+        console.log("Rocket Node Manager:" + rocketNodeManager)
+        const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked2)
+        console.log(tx);
+
+        // Listen for transaction confirmation
+        const receipt = await tx.wait();
+        console.log("Transaction confirmed:", receipt);
+
+        if (checked === false) {
+
+          alert("Opt-out of Smoothing Pool Sucessful")
+
+
+        } else {
+
+
+          alert("Opt-in to Smoothing Pool Sucessful")
+
+        }
+
+
+        // Check if transaction was successful
+
+      } catch (error) {
+
+
+
+        let input: any = error
+
+        setErrorBoxTest2(input.reason.toString());
+
+      }
+    }
+  }
+
+
+  useEffect(() => {
+
+
+    if (errorBoxText2 !== "") {
+
+
+      const handleText = () => {
+        setErrorBoxTest2("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 6000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [errorBoxText2])
+
+
+
+
+
 
 
 
@@ -1854,26 +2238,70 @@ const AccountMain: NextPage = () => {
 
 
 
-              <div className="flex items-center justify gap-5">
+              <div className="xl:flex xl:flex-row lg:flex-col w-[90%] items-center justify-center xl:gap-5 lg:gap-5">
+
+
 
 
                 <div className="flex items-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5">
-                  <LineChart
-                    xAxis={[{ data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]}
-                    series={[
-                      {
-                        data: [2, 3, 5.5, 8.5, 1.5, 5, 1, 4, 3, 11],
-                        showMark: ({ index }) => index % 2 === 0,
-                      },
-                    ]}
-                    width={500}
-                    height={300}
-                  />
+
+
+                  {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                    <div className="w-[600px] h-[auto] py-3">
+
+
+                      <Line
+
+                        data={graphData}
+                        options={options}
+                        onClick={onClick}
+                        ref={charRef}
+
+                      >
+
+
+
+                      </Line>
+
+                      <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                        <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                        <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                        <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                        <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                      </div>
+                    </div>
+
+                  }
+
+
+                  {/*xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                    <LineChart
+                      xAxis={[{ data: xAxisData }]}
+                      series={[
+                        {
+                          data: TotalGraphPlotPoints,
+                          showMark: ({ index }) => index % 2 === 0,
+                        },
+                      ]}
+                      width={500}
+                      height={300}
+                    />
+
+
+                    */ }
+
                 </div>
 
                 <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
-                  <div className="flex items-center p-8 bg-white shadow rounded-lg mb-5">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+
+                  <div className="flex w-auto items-center p-8 bg-white shadow rounded-lg mb-5">
+                    <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                       <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 327.5 533.3" xmlSpace="preserve">
                         <style>{`.st0{fill:#8A92B2;} .st1{fill:#62688F;} .st2{fill:#454A75;}`}</style>
                         <path className="st0" d="M163.7,197.2V0L0,271.6L163.7,197.2z" />
@@ -1884,29 +2312,29 @@ const AccountMain: NextPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <span className="block text-2xl font-bold">83%</span>
-                      <span className="block text-gray-500">Finished homeworks</span>
+                      <span className="block text-2xl font-bold">{runningValidators} / {totalValidators}</span>
+                      <span className="block text-gray-500">Fully-running Validators</span>
                     </div>
                   </div>
                   <div className="flex items-center  p-8 bg-white shadow rounded-lg mb-5">
 
-                  <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                       <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <div className=" max-w-3xl flex flex-col items-start justify-start gap-2 text-left">
-                   
+                    <div className=" w-full max-w-3xl flex flex-col items-center justify-center gap-2 text-left">
 
 
-                    <div className='mb-2'>
-                      <span className="block text-2xl font-bold">{currentPayments}</span>
-                      <span className="block text-gray-500">in Credit</span>
-                    </div>
-                     
+
+                      <div className='mb-2'>
+                        <span className="block text-2xl font-bold">{currentPayments}</span>
+                        <span className="block text-gray-500">in Credit</span>
+                      </div>
+
 
                       <button onClick={handlePaymentModal} className="bg-green-500 text-xs hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Top-up</button>
-                     
+
 
 
 
@@ -1920,24 +2348,61 @@ const AccountMain: NextPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <span className="block text-2xl font-bold">83%</span>
-                      <span className="block text-gray-500">Attestations</span>
+                      <span className="block text-2xl font-bold">{percentageAttestations}%</span>
+                      <span className="block text-gray-500">Sucessful Attestations</span>
                     </div>
                   </div>
-                  <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                  <div className="flex w-auto items-center p-8 bg-white shadow rounded-lg">
                     <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                       <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                     </div>
-                    <div>
-                      <span className="block text-2xl font-bold">83%</span>
-                      <span className="block text-gray-500 w-[80%]">Currently in the Smoothing Pool</span>
+                    <div className='flex flex-col items-center justify-start w-full'>
+
+                      <div className='flex flex-col items-center gap-1 justify-center w-full'>
+
+                        <span className="block text-xl font-bold">Smoothing Pool</span>
+                        <span className="block text-s text-gray-500 ">Opt-in/opt-out</span>
+                        <label className="self-center">
+
+
+
+
+                          <input
+                            type="checkbox"
+                            className="self-center"
+                            checked={checked2}
+                            onChange={handleChecked2}
+                          />
+                        </label>
+                      </div>
+
+                      <div className='w-3/5 flex gap-2 items-center justify-center'>
+                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
+                          Confirm Changes
+                        </button>
+                      </div>
+
+
                     </div>
+
                   </div>
                 </section>
 
+
+
               </div>
+
+
+              <div className='w-full h-[30px] mt-4 flex gap-2 items-center justify-center'>
+                {errorBoxText2 !== "" &&
+                  <p className="my-4 w-[80%] font-bold text-2xl text-center text-red-500 sm:text-l">{errorBoxText2}</p>
+                }
+              </div>
+
+
+
 
               <div className="w-full my-5 mx-5 mb-1 overflow-hidden rounded-lg ">
                 <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
@@ -1948,9 +2413,15 @@ const AccountMain: NextPage = () => {
 
 
 
-                      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                        Create New
-                      </button>
+
+                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" viewBox="0 0 50 50" xmlSpace="preserve">
+                          <circle style={{ fill: '#43B05C' }} cx="25" cy="25" r="25" />
+                          <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="25" y1="13" x2="25" y2="38" />
+                          <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="37.5" y1="25" x2="12.5" y2="25" />
+                        </svg>
+                      </div>
+
 
 
 
@@ -2061,7 +2532,7 @@ const AccountMain: NextPage = () => {
                           </div>
                         </td>
                         <td className="px-4 py-3 w-[180px]">
-                          <div className="flex items-center flex-col gap-1 text-l text-gray-500">
+                          <div className="flex items-center flex-col gap-1 text-l ">
                             {data.beaconStatus !== "" && <>
                               <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
                               <GrSatellite /></>}
@@ -2087,8 +2558,9 @@ const AccountMain: NextPage = () => {
               </div>
 
 
-
-
+              <div className="w-full py-10 flex flex-col justify-center items-center">
+               {/*<RPLBlock /> */}
+              </div>
 
 
 
@@ -2218,8 +2690,6 @@ const AccountMain: NextPage = () => {
                   </div>
                 </div>
               </Modal>
-
-
               <Modal
                 isOpen={showForm3}
                 onRequestClose={() => setShowForm3(false)}
@@ -2275,8 +2745,6 @@ const AccountMain: NextPage = () => {
                   </div>
                 </div>
               </Modal>
-
-
               <Modal
                 isOpen={showForm4}
                 onRequestClose={() => setShowForm4(false)}
@@ -2335,10 +2803,20 @@ const AccountMain: NextPage = () => {
 
 
 
-              {currentRowData.length > 0 && currentRowData.map((rowObject, index) => (
+
+
+
+
+
+
+              {/*currentRowData.length > 0 && currentRowData.map((rowObject, index) => (
                 <div className="w-full flex flex-wrap items-center justify-center" key={index}>
                   {rowObject.beaconLogs.map((beaconLog, index) => (
                     <div className="w-[280px] m-2 border-2" key={index}>
+                      <p>Attester Slashings: {beaconLog.attester_slashings.toString()}</p>
+                      <p>Day: {beaconLog.day}</p>
+                      <p>Day Start: {beaconLog.day_start}</p>
+                      <p>Day End: {beaconLog.day_end}</p>
                       <p>Validator Index: {beaconLog.validatorindex}</p>
                       <p>Start Balance: {beaconLog.start_balance.toString()}</p>
                       <p>End Balance: {beaconLog.end_balance.toString()}</p>
@@ -2363,7 +2841,7 @@ const AccountMain: NextPage = () => {
                     </div>
                   ))}
                 </div>
-              ))}
+                  )) */}
 
 
 
