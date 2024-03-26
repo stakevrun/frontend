@@ -1475,12 +1475,60 @@ const CreateValidator: NextPage = () => {
 
 
 
+
               <div className="flex items-center justify-center flex-col w-full pb-10 mb-10 flex items-center border p-8 bg-white shadow rounded-lg">
 
                 <div className="mt-8 sm:mt-12 sm:w-2/5   w-3/5">
                   <dl className="grid lg:grid-cols-1 gap-10 md:grid-cols-1 sm:grid-cols-1">
 
+                  {currentIndex === 0 &&
+                  <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center r flex items-center p-8 bg-white shadow rounded-lg border">
+                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
 
+                      <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                        Would you like your node to be a part of the Smoothing Pool? Toggle the checkbox and submit your result
+                      </p>
+
+
+
+
+
+                      <label className="w-[80%] gap-2">
+
+                        <input
+                          type="checkbox"
+
+                          checked={checked}
+                          onChange={handleChecked}
+                        />
+                      </label>
+
+
+                      <div className='w-3/5 flex gap-2 items-center justify-center'>
+                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                          Confirm Changes
+                        </button>
+                      </div>
+
+                      {errorBoxText2 !== "" &&
+                        <div className='w-3/5 flex gap-2 items-center justify-center'>
+
+                          <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText2}</p>
+
+                        </div>
+
+
+                      }
+
+
+
+
+                    </div>
+
+}
+
+{Number(formatEther(newMinipools)) < 1 &&
                     <div className="flex flex-col w-auto h-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
                       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
@@ -1522,7 +1570,7 @@ const CreateValidator: NextPage = () => {
 
 
                       }
-                    </div>
+                    </div>}
 
 
 
@@ -1578,49 +1626,7 @@ const CreateValidator: NextPage = () => {
                     </div>
 
 
-                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center r flex items-center p-8 bg-white shadow rounded-lg border">
-                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
-
-                      <p className="my-4 w-[90%] text-gray-500 sm:text-l">
-
-                        Would you like your node to be a part of the Smoothing Pool? Toggle the checkbox and submit your result
-                      </p>
-
-
-
-
-
-                      <label className="w-[80%] gap-2">
-
-                        <input
-                          type="checkbox"
-
-                          checked={checked}
-                          onChange={handleChecked}
-                        />
-                      </label>
-
-
-                      <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                          Confirm Changes
-                        </button>
-                      </div>
-
-                      {errorBoxText2 !== "" &&
-                        <div className='w-3/5 flex gap-2 items-center justify-center'>
-
-                          <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText2}</p>
-
-                        </div>
-
-
-                      }
-
-
-
-
-                    </div>
+                  
 
                   </dl>
                 </div>

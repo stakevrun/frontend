@@ -45,23 +45,23 @@ const ContractTag = ({pubkey}) => {
   };
 
   return (
-    <div>
-      <div>
+    <div className='flex items-center gap-2 w-full'>
+    
     
         <p id="addressText" aria-disabled>{pubkey}</p>
         {!copied && (
-          <div>
-            <div style={styles}><span>Copy Address</span></div>
-            <AiFillCopy onClick={handleCopyClick} onMouseEnter={changeStyles} onMouseLeave={revertStyles}/>
+       <div className='relative cursor-pointer'>
+            <div className="absolute top-7 bg-green-100 p-2 text-xs" style={styles}><span>Copy Address</span></div>
+            <AiFillCopy className="text-xl" onClick={handleCopyClick} onMouseEnter={changeStyles} onMouseLeave={revertStyles}/>
           </div>
         )}
         {copied && (
-          <div>
-            <div style={styles}><span>Copied!</span></div>
-            <AiOutlineCheck onMouseEnter={changeStyles} onMouseLeave={revertStyles} />
+          <div className='relative cursor-pointer'>
+            <div className="absolute top-7 bg-green-100 p-2 text-xs" style={styles}><span>Copied!</span></div>
+            <AiOutlineCheck className="text-xl" onMouseEnter={changeStyles} onMouseLeave={revertStyles} />
           </div>
         )}
-      </div>
+    
     </div>
   );
 };

@@ -6,8 +6,7 @@ import { configureChains, createConfig, WagmiConfig } from 'wagmi';
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import {
 
-  holesky,
-  mainnet,
+  holesky, mainnet
 
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
@@ -26,11 +25,17 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     rpc: () => ({
       http: 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/',
     }),
+  }),
+  jsonRpcProvider({
+    rpc: () => ({
+      http: 'https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/',
+    }),
   })
     ,publicProvider()]
 );
 
-//currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+//currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    :
+// "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 const { connectors } = getDefaultWallets({
   appName: 'RainbowKit App',

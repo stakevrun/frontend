@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Navbar from '../../components/navbar';
@@ -18,6 +18,29 @@ import { GrSatellite } from "react-icons/gr";
 import { AiOutlineClose } from 'react-icons/ai'
 import { useParams } from 'next/navigation'
 import { PieChart, LineChart } from '@mui/x-charts'
+import { Line, getElementsAtEvent } from 'react-chartjs-2';
+
+import {
+    Chart as ChartJS,
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Legend
+} from "chart.js"
+
+
+ChartJS.register(
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Legend
+
+);
+
 
 
 if (process.browser) {
@@ -94,6 +117,10 @@ const ValidatorDetail: NextPage = () => {
         pubkey: string
         beaconStatus: string
         beaconLogs: beaconLogs
+        valBalance: string
+        valProposals: string
+        valDayVariance: string
+
         graffiti: string
     };
 
@@ -137,7 +164,10 @@ const ValidatorDetail: NextPage = () => {
         graffiti: "",
         beaconStatus: "",
         beaconLogs: [emptyValidatorData],
-        pubkey: ""
+        pubkey: "",
+        valBalance: "",
+        valProposals: "",
+        valDayVariance: ""
 
     })
 
@@ -211,7 +241,10 @@ const ValidatorDetail: NextPage = () => {
                 graffiti: "",
                 beaconStatus: "",
                 beaconLogs: [emptyValidatorData],
-                pubkey: typeof params.param1 === "string" ? params.param1 : ""
+                pubkey: typeof params.param1 === "string" ? params.param1 : "",
+                valBalance: "",
+                valProposals: "",
+                valDayVariance: "",
 
             };
 
@@ -277,6 +310,22 @@ const ValidatorDetail: NextPage = () => {
             console.log(beaconStatistics)
 
 
+            console.log(printGraff)
+
+            const newValBalance = beaconStatistics[0].end_balance
+
+            let newValProposals = 0;
+
+            for (const beaconLog of beaconStatistics) {
+
+                let blocks = beaconLog.proposed_blocks
+
+                newValProposals += blocks
+            }
+
+            const newValVariance = beaconStatistics[0].end_balance - beaconStatistics[0].start_balance
+
+
 
 
             minipoolObject = {
@@ -287,7 +336,10 @@ const ValidatorDetail: NextPage = () => {
                 graffiti: typeof printGraff === "string" ? printGraff : "",
                 beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
                 beaconLogs: beaconStatistics,
-                pubkey: typeof params.param1 === "string" ? params.param1 : ""
+                pubkey: typeof params.param1 === "string" ? params.param1 : "",
+                valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+                valProposals: newValProposals.toString(),
+                valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
             }
 
 
@@ -1228,73 +1280,146 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    
+
     }
 
 
-//FUNCTIONS FOR GRAPH DATA (MAY NEED ADDITIONAL WORK FOR LABELS AND THE FACT ITS )
+    //FUNCTIONS FOR GRAPH DATA (MAY NEED ADDITIONAL WORK FOR LABELS AND THE FACT ITS )
 
-  /*  const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
+
+
+
+    const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
     const [xAxisData, setXAxisData] = useState<Array<number>>([]);
-  
+
     const convertToGraphPlotPoints = async () => {
-  
-  
-      let newPlotPoints: Array<number> = [];
-  
-      //for (const object of currentRowData) {
-  
-        for (const log of object.beaconLogs) {
-  
-  
-          if (object.statusResult === "Staking" && Number(log.start_balance) !== 0) {
-  
-            let variance = log.end_balance - log.end_effective_balance
-  
-            let editedVariance = Number(ethers.formatUnits(variance, "gwei"))
-  
-            newPlotPoints.push(editedVariance)
-          }
-  
+
+
+        let newPlotPoints: Array<number> = [];
+
+        //for (const object of currentRowData) {
+
+        for (const log of currentData.beaconLogs) {
+
+
+            if (currentData.statusResult === "Staking" && Number(log.start_balance) !== 0) {
+
+                let variance = log.end_balance - log.end_effective_balance
+
+                let editedVariance = Number(ethers.formatUnits(variance, "gwei"))
+
+                newPlotPoints.push(editedVariance)
+            }
+
         }
-        
-      //}
-  
-  
-      setTotalGraphPlotPoints(newPlotPoints);
-  
-  
-  
+
+        //}
+
+
+        setTotalGraphPlotPoints(newPlotPoints);
+
+
+
     }
-  
-  
+
+
     useEffect(() => {
-  
-      console.log(TotalGraphPlotPoints)
-  
-      const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
-      setXAxisData(xAxisDataArray);
-  
+
+        console.log(TotalGraphPlotPoints)
+
+        const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
+        setXAxisData(xAxisDataArray);
+
     }, [TotalGraphPlotPoints])
-  
-  
-  
-  
-  
+
+
+    const getGraphData = (graphState: string, xAxisData: Array<number>, TotalGraphPlotPoints: Array<number>) => {
+        let sliceLength;
+        switch (graphState) {
+            case "Week":
+                sliceLength = 7;
+                break;
+            case "Month":
+                sliceLength = 30;
+                break;
+            case "Year":
+                sliceLength = 365;
+                break;
+            default:
+                sliceLength = xAxisData.length;
+                break;
+        }
+
+        const slicedLabels = xAxisData.slice(0, sliceLength);
+        const slicedData = TotalGraphPlotPoints.slice(0, sliceLength);
+
+        return {
+            labels: slicedLabels.reverse(),
+            datasets: [
+                {
+                    label: 'Daily Rewards Tracker',
+                    data: slicedData.reverse(),
+                    backgroundColor: "aqua",
+                    borderColor: "black",
+                    pointBorderColor: "aqua",
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        };
+    };
+
+
+
+    const [graphState, setGraphState] = useState("Week");
+
+
+
+    const charRef = useRef();
+
+    const onClick = (event: any) => {
+
+        console.log(charRef)
+
+        if (typeof charRef.current !== "undefined") {
+            console.log(getElementsAtEvent(charRef.current, event)[0].datasetIndex)
+        }
+
+    }
+
+
+
+
+    const graphData = getGraphData(graphState, xAxisData, TotalGraphPlotPoints);
+
+
+    const options = {
+
+        scales: {
+            y: {
+                min: 0,
+                max: 0.01
+            }
+        }
+
+    }
+
+
+
     useEffect(() => {
-  
-      if (currentRowData.length >= 1) {
-        convertToGraphPlotPoints();
-      }
-  
-    }, [currentRowData])
+
+        if (currentData.address !== "") {
+            convertToGraphPlotPoints();
+        }
+
+    }, [currentData])
 
 
 
 
 
 
-*/
+
 
 
 
@@ -1318,256 +1443,269 @@ const ValidatorDetail: NextPage = () => {
                     <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
 
                     <p className="mt-4 text-gray-500 sm:text-xl">
-                        {params?.param1}
+
+                        <ContractTag pubkey={params?.param1} />
                     </p>
                 </div>
             </div>
 
-           
+
 
 
             <div className="flex items-center justify gap-5">
-            <div className="flex items-center p-8 bg-white shadow rounded-lg mb-5">
-                <LineChart
-                xAxis={[{ data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]}
-                series={[
-                    {
-                        data: [2, 3, 5.5, 8.5, 1.5, 5, 1, 4, 3,11],
-                        showMark: ({ index }) => index % 2 === 0,
-                    },
-                ]}
-                width={500}
-                height={300}
-            />
+
+
+                <div className="flex items-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5">
+                    {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                        <div className="w-[600px] h-[auto] py-3">
+
+
+                            <Line
+
+                                data={graphData}
+                                options={options}
+                                onClick={onClick}
+                                ref={charRef}
+
+                            >
+
+
+
+                            </Line>
+
+                            <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+
+
+
+
+                <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
+
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                        <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-white-100 rounded-full mr-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 327.5 533.3" xmlSpace="preserve">
+                                <style>{`.st0{fill:#8A92B2;} .st1{fill:#62688F;} .st2{fill:#454A75;}`}</style>
+                                <path className="st0" d="M163.7,197.2V0L0,271.6L163.7,197.2z" />
+                                <path className="st1" d="M163.7,368.4V197.2L0,271.6L163.7,368.4z M163.7,197.2l163.7,74.4L163.7,0V197.2z" />
+                                <path className="st2" d="M163.7,197.2v171.2l163.7-96.8L163.7,197.2z" />
+                                <path className="st0" d="M163.7,399.4L0,302.7l163.7,230.7V399.4z" />
+                                <path className="st1" d="M327.5,302.7l-163.8,96.7v134L327.5,302.7z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span className="block text-xl mb-2 font-bold">Validator Status:</span>
+                            <span className="block text-gray-500 mb-2">
+
+
+                                {currentData.statusResult === "Prelaunch" &&
+                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+
+
+                                {currentData.statusResult === "Initialised" &&
+
+                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+
+                                {currentData.statusResult === "Staking" &&
+
+                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+
+
+                                {currentData.statusResult === "Withdrawable" &&
+
+                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+
+
+                                {currentData.statusResult === "Dissolved" &&
+
+                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+
+
+                                {currentData.statusResult === "Empty" &&
+
+                                    <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
+
+
+                                }
+                            </span>
+
+                            {currentData.timeRemaining !== "No countdowns initiated" &&
+                                <CountdownComponent milliseconds={currentData.timeRemaining} />}
+                        </div>
+                    </div>
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+
+                        <div>
+
+                            <span className='text-green-500 text-lg  font-bold' style={Number(currentData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                {Number(currentData.valDayVariance) > 0 ? (
+                                    <div className='flex items-center justify-center'>
+                                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-green-100 rounded-full mr-3">
+                                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                            </svg>
+
+                                        </div>
+
+                                        <div>
+                                            <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
+
+                                            <p className="text-green-600"> {currentData.valDayVariance}</p>
+                                        </div>
+
+                                    </div>
+
+
+                                ) : (
+                                    <>
+                                        {currentData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-red-100 rounded-full mr-6">
+                                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                            </svg>
+                                        </div>}
+
+                                        <div>
+                                            <span className="block text-xl font-black-bold">Daily ETH Tracker:</span>
+                                            <p className='text-red-600'>{currentData.valDayVariance !== "" && "- " + currentData.valDayVariance}</p>
+                                        </div>
+                                    </>
+                                )}
+
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                            <GrSatellite className="text-red-500 text-2xl" />
+                        </div>
+                        <div>
+                            <div className="flex items-start flex-col gap-1 text-l ">
+                                {currentData.beaconStatus !== "" &&
+                                    <h3 className='block text-xl mb-1 font-bold'>Status on Beaconchain</h3>
+                                }
+                                <p>{currentData.beaconStatus}</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div className='flex items-start flex-col gap-1 text-l '>
+                                <span className="text-xl font-bold">Minipool Address:</span>
+                                <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(currentData.address)} /></p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                            <GrSatellite className="text-red-500 text-2xl" />
+                        </div>
+                        <div>
+                            <div className="flex items-start flex-col gap-1 text-l ">
+                                {currentData.beaconStatus !== "" &&
+                                    <h3 className='block text-xl mb-1 font-bold'>Status on Beaconchain</h3>
+                                }
+                                <p>{currentData.beaconStatus}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                            <GrSatellite className="text-red-500 text-2xl" />
+                        </div>
+                        <div>
+                            <div className="flex items-start flex-col gap-1 text-l ">
+                                <p className="text-xs text-gray-600">    {currentData.graffiti}</p>
+
+
+
+
+                                <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(currentData.graffiti) }}>
+                                    Change
+                                </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
 
-              
 
-            <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
-              
-                <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
-                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span className="block text-2xl font-bold">62</span>
-                        <span className="block text-gray-500">Students</span>
-                    </div>
+            <div className="w-full flex flex-col items-center justify-center py-10">
+
+                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Current Actions: </h2>
+                <div className='flex'>
+                    {currentData.statusResult === "Dissolved" &&
+                        <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
+                    }
+                    {currentData.statusResult === "Prelaunch" &&
+
+                        <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
+
+
+                    }
+
+                    {currentData.statusResult === "Staking" &&
+
+                        <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
+
+                    }
+
+
+                    {currentData.statusResult === "withdrawal_done" &&
+
+                        <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
+
+                    }
+
+                    {currentData.statusResult !== "Empty" &&
+                        <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
+
+                    }
+
                 </div>
-                <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-green-600 bg-green-100 rounded-full mr-6">
-                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span className="block text-2xl font-bold">6.8</span>
-                        <span className="block text-gray-500">Average mark</span>
-                    </div>
-                </div>
-                <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span className="inline-block text-2xl font-bold">9</span>
-                        <span className="inline-block text-xl text-gray-500 font-semibold">(14%)</span>
-                        <span className="block text-gray-500">Underperforming students</span>
-                    </div>
-                </div>
-                <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span className="block text-2xl font-bold">83%</span>
-                        <span className="block text-gray-500">Finished homeworks</span>
-                    </div>
-                </div>
-            </section>
 
             </div>
 
 
-            <table className="w-[90%]">
-                <thead>
-                    <tr className="text-md font-semibold tracking-wide text-left text-gray-900 bg-gray-100 uppercase border-b border-gray-600">
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Beacon Chain</th>
-                        <th className="px-4 py-3">Minipool Address</th>
-                        <th className="px-4 py-3">Pubkey</th>
-                        <th className="px-4 py-3">Time remaining</th>
-                        <th className="px-4 py-3">Grafitti</th>
-
-                        <th className="px-4 py-3">Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white">
-
-
-
-
-                    <tr className="text-gray-700">
-                        <td className="px-4 py-3 text-xs border">
-
-
-                            {currentData.statusResult === "Prelaunch" &&
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-
-                            {currentData.statusResult === "Initialised" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-                            {currentData.statusResult === "Staking" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-
-                            {currentData.statusResult === "Withdrawable" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-
-                            {currentData.statusResult === "Dissolved" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-
-                            {currentData.statusResult === "Empty" &&
-
-                                <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                            }
-
-
-
-
-                        </td>
-
-                        <td className="px-4 py-3 border">
-                            <div className="flex items-center text-sm">
-                                <div>
-
-                                    <h3>View on Beaconchain:</h3>
-
-                                    <a className="w-[75px] h=[75px]" href={`https://holesky.beaconcha.in/validator/${currentData.pubkey}`} target="_blank"><GrSatellite /></a>
-
-
-                                    {currentData.beaconStatus}
-
-
-
-                                </div>
-                            </div>
-
-                        </td>
-                        <td className="px-4 py-3 border">
-                            <div className="flex items-center text-sm">
-                                <div>
-                                    <p className="font-semibold text-black">{truncateString(currentData.address)}</p>
-
-                                </div>
-                            </div>
-                        </td>
-
-                        <td className="px-4 py-3 border">
-                            <div className="flex items-center text-sm">
-                                <div>
-
-                                    <ContractTag pubkey={truncateString(currentData.pubkey)} />
-
-                                </div>
-                            </div>
-                        </td>
-
-                        <td className="px-4 py-3 text-sm font-semibold border"><CountdownComponent milliseconds={currentData.timeRemaining} /></td>
-                        <td className="px-4 py-3 text-md  font-semibold border ">
-
-
-                            <p className="text-xs text-gray-600">    {currentData.graffiti}</p>
-
-
-
-
-                            <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(currentData.graffiti) }}>
-                                Change
-                            </button>
-
-
-                        </td>
-                        {/*  
-                 <td className="px-4 py-3 text-md font-semibold border">
-              Graffiti placeholder: { /* Get graffiti 
-              <input 
-                type="text" 
-                value={graffitiValues[index] || ''} 
-                onChange={(e) => handleGraffitiChange(index, currentData.pubkey, e.target.value)} 
-              />
-              <button  className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => handleSetGraffiti(index, currentData.pubkey)}>
-                Set Graffiti
-              </button>
-            </td> */}
-
-
-
-                        <td className="px-4 py-3 gap-2 text-sm border">
-
-                            {currentData.statusResult === "Dissolved" &&
-                                <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
-                            }
-                            {currentData.statusResult === "Prelaunch" &&
-
-                                <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
-
-
-                            }
-
-                            {currentData.statusResult === "Staking" &&
-
-                                <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
-
-                            }
-
-
-                            {currentData.statusResult === "withdrawal_done" &&
-
-                                <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
-
-                            }
-
-                            {currentData.statusResult !== "Empty" &&
-                                <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
-
-                            }
-                        </td>
-                    </tr>
-
-
-                </tbody>
-            </table>
+           
 
 
 
@@ -1803,7 +1941,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            <div>
+           {/*  <div>
 
                 <h2>
 
@@ -1833,17 +1971,16 @@ const ValidatorDetail: NextPage = () => {
                             <p>Start Effective Balance: {beaconLog.start_effective_balance.toString()}</p>
                             <p>Withdrawals: {beaconLog.withdrawals.toString()}</p>
                             <p>Withdrawals Amount: {beaconLog.withdrawals_amount.toString()}</p>
-                            {/* Add more JSX elements to display other properties as needed */}
+                            
                         </div>
 
                     ))}
 
                 </div>
+            */}
 
 
-
-            </div>
-
+        
 
 
 
