@@ -161,7 +161,7 @@ const CreateValidator: NextPage = () => {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
-        const provider = new ethers.JsonRpcProvider(currentRPC);
+        
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
         console.log("Storage Contract:" + storageContract)
 
@@ -252,7 +252,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+       
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -325,7 +325,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+        
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -669,7 +669,7 @@ const CreateValidator: NextPage = () => {
     const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
-    const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
+
 
 
     //Get latest index

@@ -128,8 +128,10 @@ const AccountMain: NextPage = () => {
 
     let newString;
 
+    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
-    await fetch(`https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/eth/v1/beacon/states/finalized/validators/${pubkey}`, {
+
+    await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
       method: "GET",
     })
       .then(async response => {
@@ -215,8 +217,10 @@ const AccountMain: NextPage = () => {
 
     let newString
 
+    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
-    await fetch(`https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/eth/v1/beacon/states/finalized/validator_balances?id=${pubkey}`, {
+
+    await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validator_balances?id=${pubkey}`, {
       method: "GET",
     })
       .then(async response => {
@@ -272,9 +276,11 @@ const AccountMain: NextPage = () => {
 
     //https://holesky.beaconcha.in//eth/v1/beacon/pool/voluntary_exits
 
+    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 
-    await fetch(`'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/eth/v1/beacon/pool/voluntary_exits`, {
+
+    await fetch(`'${currentRPC}eth/v1/beacon/pool/voluntary_exits`, {
       method: "POST",
 
       headers: {
@@ -344,11 +350,14 @@ const AccountMain: NextPage = () => {
     console.log("EPOCH:" + epoch)
 
 
+    const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
 
 
-    const valIndex = await fetch(`https://holesky.beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+
+
+    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
       method: "GET",
 
       headers: {
@@ -1062,16 +1071,16 @@ const AccountMain: NextPage = () => {
 
 
 
-    const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? "https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/" : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/")
+   
 
 
-    //https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/   https://xrchz.net/rpc/holesky
+   
 
 
     const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
     const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, provider)
+    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
     //Get latest index
@@ -1241,7 +1250,7 @@ const AccountMain: NextPage = () => {
       } else {
 
 
-        const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], provider)
+        const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
 
 
         const statusResult = await minipool.getStatus();
@@ -1691,14 +1700,14 @@ const AccountMain: NextPage = () => {
 
 
 
-    //https://holesky.beaconcha.in/api/v1/validator/${pubkey}
-
-
 
     let newLogs: beaconLogs;
 
 
-    const valIndex = await fetch(`https://holesky.beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+    const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
       method: "GET",
 
       headers: {
@@ -1734,7 +1743,7 @@ const AccountMain: NextPage = () => {
     //  https://holesky.beaconcha.in/api/v1/validator/stats/${valindex}
 
 
-    const valStats = await fetch(`https://holesky.beaconcha.in/api/v1/validator/stats/${valIndex}`, {
+    const valStats = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/stats/${valIndex}`, {
       method: "GET",
 
       headers: {
