@@ -32,7 +32,7 @@ import RollingNumber from './rollingNumber';
 import { Line, getElementsAtEvent } from 'react-chartjs-2';
 import type { RootState } from '../GlobalRedux/store';
 import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement, incrementByAmount } from "../GlobalRedux/Features/counter/counterSlice"
+import { increment, decrement, incrementByAmount } from "../globalredux/Features/counter/counterSlice"
 import { getData } from "../globalredux/Features/validator/valDataSlice"
 import { attestationsData } from '../globalredux/Features/attestations/attestationsDataSlice';
 import { getGraphPointsData } from "../globalredux/Features/graphpoints/graphPointsDataSlice"
