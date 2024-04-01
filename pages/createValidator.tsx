@@ -29,13 +29,13 @@ const CreateValidator: NextPage = () => {
 
 
 
- 
- 
+
+
   const [NodeStakingAddress, setNodeStakingAddress] = useState("")
 
 
   const [minipoolDepositInput, setMinipoolDepositInput] = useState("")
-  
+
   const [errorBoxText2, setErrorBoxTest2] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -46,16 +46,16 @@ const CreateValidator: NextPage = () => {
 
 
 
- 
 
 
-// BEGINNING RPL FUNCTIONS
+
+  // BEGINNING RPL FUNCTIONS
 
 
   const currentChain = useChainId();
 
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
-  const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+
 
 
   const [stakeButtonBool, setStakeButtonBool] = useState(true)
@@ -161,7 +161,7 @@ const CreateValidator: NextPage = () => {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
-        
+
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
         console.log("Storage Contract:" + storageContract)
 
@@ -252,7 +252,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-       
+
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -325,7 +325,7 @@ const CreateValidator: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        
+
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -614,7 +614,7 @@ const CreateValidator: NextPage = () => {
 
   //END RPL FUNCTIONS
   //
-///
+  ///
   ///
 
 
@@ -966,7 +966,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-    
+
 
 
 
@@ -1006,11 +1006,6 @@ const CreateValidator: NextPage = () => {
 
 
 
-      const randomName = uniqueNamesGenerator({
-        dictionaries: [colors, adjectives, animals],
-        style: 'capital'
-      });
-
 
 
       const types = {
@@ -1021,7 +1016,7 @@ const CreateValidator: NextPage = () => {
           { name: "feeRecipient", type: "address" },
           { name: "graffiti", type: "string" },
           { name: "withdrawalAddresses", type: "address[]" },
-          { name: "names", type: "string[]" }
+
         ]
       }
 
@@ -1066,7 +1061,7 @@ const CreateValidator: NextPage = () => {
         feeRecipient: feeRecipient.toLowerCase(),
         graffiti: grafittiInput,
         withdrawalAddresses: [fixedNewMinipoolAddress.toLowerCase()],
-        names: [randomName]
+
 
       }
 
@@ -1168,7 +1163,7 @@ const CreateValidator: NextPage = () => {
 
       console.log("Gen pubkey" + generatedPubKey);
       console.log("Graff:" + grafittiInput)
-      console.log("Random name:" + randomName);
+
       console.log("Fixed: " + fixedNewMinipoolAddress);
 
       console.log("Base Address:" + baseAddress);
@@ -1186,7 +1181,7 @@ const CreateValidator: NextPage = () => {
       let result;
 
 
-      if(selectedCont === "16 ETH") {
+      if (selectedCont === "16 ETH") {
 
         result = await depositContract.deposit(ethers.parseEther('16'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, { value: ethers.parseEther('16') });
 
@@ -1197,7 +1192,7 @@ const CreateValidator: NextPage = () => {
         result = await depositContract.deposit(ethers.parseEther('8'), ethers.parseEther('0.14'), generatedPubKey, depositSignature, depositDataRoot, ethers.hexlify(defaultSalt), fixedNewMinipoolAddress, { value: ethers.parseEther('8') });
       }
 
-     
+
       console.log(result);
 
 
@@ -1234,7 +1229,7 @@ const CreateValidator: NextPage = () => {
       //  const contract = new contract('0x', ['function deposit(uint256 minimumNodeFee, bytes validatorPubkey, bytes validatorSignature, bytes32 depositDataRoot, uint256 salt, address expectedMinipoolAddress) external payable'], provider)
       //  await contract.deposit(15%, validatorKey.getPublicKey(), signature, depositDataRoot, salt, minipoolAddress)
 
-    
+
 
     }
   }
@@ -1267,6 +1262,191 @@ const CreateValidator: NextPage = () => {
 
 
 
+  const [checked2, setChecked2] = useState(false);
+
+
+  const handleChecked2 = (e: any) => {
+    const { name, type, value, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
+    setChecked2(checked)
+    console.log(checked);
+
+
+  }
+
+
+
+  const setFeeRecipient = async (inOutBool: boolean) => {
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+
+    /*  struct SetFeeRecipient {
+  uint256 timestamp;
+  bytes pubkey;
+  address feeRecipient;
+} */
+
+
+    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+        console.log("Result of get next index" + jsonString)
+
+
+        return jsonString;
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+
+
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
+    const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
+
+
+
+
+
+
+
+    let newPubkeyArray: Array<string> = []
+    let newIndexArray: Array<number> = []
+
+
+
+    for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+
+          let pubkey = await response.json()
+
+          newPubkeyArray.push(pubkey)
+          newIndexArray.push(i)
+
+          console.log("pUBKEY:" + pubkey)
+
+
+        })
+        .catch(error => {
+
+          console.log(error)
+
+
+        });
+
+    }
+
+
+    console.log(newPubkeyArray);
+    console.log(newIndexArray);
+
+    const types = {
+      SetFeeRecipient: [
+        { name: 'timestamp', type: 'uint256' },
+        { name: 'pubkeys', type: 'bytes[]' },
+        { name: 'feeRecipient', type: 'address' },
+
+      ]
+    }
+
+
+    let newFeeRecipient;
+
+    if (inOutBool === true) {
+
+
+
+      newFeeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
+      console.log("It is true dough!")
+      console.log(newFeeRecipient)
+
+
+    } else {
+      newFeeRecipient = await distributorContract.getProxyAddress(address);
+      console.log(newFeeRecipient)
+
+    }
+
+
+
+    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+    const APItype = "SetFeeRecipient"
+
+    const date = Math.floor(Date.now() / 1000);
+
+    const value = { timestamp: date, pubkeys: newPubkeyArray, feeRecipient: newFeeRecipient }
+
+
+    let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+
+
+
+    await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: APItype,
+        data: value,
+        signature: signature,
+        indices: newIndexArray
+      })
+    })
+      .then(async response => {
+
+        var resString = await response.text()// Note: response will be opaque, won't contain data
+
+        console.log("Get Deposit Data response" + resString)
+
+        alert("setFeeRecipient success!")
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+        alert("setFeeRecipient failed...")
+      });
+
+
+
+
+
+
+  }
+
+
+
 
 
 
@@ -1291,14 +1471,16 @@ const CreateValidator: NextPage = () => {
 
         const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
         console.log("Rocket Node Manager:" + rocketNodeManager)
-        const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked)
+        const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked2)
         console.log(tx);
 
         // Listen for transaction confirmation
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
-        if (checked === false) {
+        await setFeeRecipient(checked2);
+
+        if (checked2 === false) {
 
           alert("Opt-out of Smoothing Pool Sucessful")
 
@@ -1324,6 +1506,7 @@ const CreateValidator: NextPage = () => {
       }
     }
   }
+
 
 
 
@@ -1469,19 +1652,23 @@ const CreateValidator: NextPage = () => {
 
 
 
-            <div className='flex w-full mt-10 lg:mt-0 flex-col items-center justify-center'>
+            <div className='flex w-full mt-10 h-auto lg:mt-0 flex-col items-center justify-center'>
 
 
 
 
 
 
-              <div className="flex items-center justify-center flex-col w-full pb-10 mb-10 flex items-center border p-8 bg-white shadow rounded-lg">
+              <div className="flex items-center justify-center flex-col w-full pb-10  flex items-center  p-8 bg-white ">
 
                 <div className="mt-8 sm:mt-12 sm:w-2/5   w-3/5">
                   <dl className="grid lg:grid-cols-1 gap-10 md:grid-cols-1 sm:grid-cols-1">
 
-                  {currentIndex === 0 &&
+
+
+                    {currentIndex === 0 &&
+
+              
                   <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center r flex items-center p-8 bg-white shadow rounded-lg border">
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
 
@@ -1494,13 +1681,16 @@ const CreateValidator: NextPage = () => {
 
 
 
-                      <label className="w-[80%] gap-2">
+                      <label className=" flex items-center justify-center w-[80%] gap-2">
+
+
+                        <span>Opt in?</span>
 
                         <input
                           type="checkbox"
 
-                          checked={checked}
-                          onChange={handleChecked}
+                          checked={checked2}
+                          onChange={handleChecked2}
                         />
                       </label>
 
@@ -1526,56 +1716,54 @@ const CreateValidator: NextPage = () => {
 
                     </div>
 
-}
+                            }        {Number(formatEther(newMinipools)) < 1 &&
+                      <div className="flex flex-col w-auto h-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center shadow items-center justify-center">
+                        <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
-{Number(formatEther(newMinipools)) < 1 &&
-                    <div className="flex flex-col w-auto h-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center">
-                      <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
+                        <p className="my-4 w-[80%] text-gray-500 sm:text-l">
+                          You have
+                          <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(formatEther(RPL))} /> </span>
+                          unstaked RPL in your Wallet and
+                          <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span>
+                          staked RPL.
+                          You have
+                          <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
+                          one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
 
-                      <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                        You have
-                        <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(formatEther(RPL))} /> </span>
-                        unstaked RPL in your Wallet and
-                        <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span>
-                        staked RPL.
-                        You have
-                        <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
-                        one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
+                        </p>
+                        <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
 
-                      </p>
-                      <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
+                        <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
-                      <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
-
-                        {!stakeButtonBool && <p>Continuing approval & stake in Wallet...</p>}
+                          {!stakeButtonBool && <p>Continuing approval & stake in Wallet...</p>}
 
 
-                        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
-                        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
+                          <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
+                          <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
 
 
 
 
 
 
-
-                      </div>
-
-                      {errorBoxText !== "" &&
-                        <div className='w-3/5 flex gap-2 items-center justify-center'>
-
-                          <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText}</p>
 
                         </div>
 
+                        {errorBoxText !== "" &&
+                          <div className='w-3/5 flex gap-2 items-center justify-center'>
 
-                      }
-                    </div>}
+                            <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText}</p>
+
+                          </div>
+
+
+                        }
+                      </div>}
 
 
 
 
-                    <div className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
+                    <div style={Number(formatEther(newMinipools)) < 1 ? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-auto gap-2 rounded-lg border border-black-100 px-4 py-[5vh] text-center shadow items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
                       <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Add Validator</h2>
 
                       <p className="my-4 w-[90%] text-gray-500 sm:text-l">
@@ -1587,10 +1775,10 @@ const CreateValidator: NextPage = () => {
                       <input value={grafittiInput} placeholder='Grafitti' className=" border border-black-200 " type="text" onChange={handleGrafittiInput} />
 
 
-                      <div className="w-[80%]">
-                        <label> Please select ETH Deposit Value:</label>
-                        <div >
-                          <label>
+                      <div className="w-[80%] mt-5">
+                        <label className="text-gray-500 mb-3 sm:text-l"> Please select ETH Deposit Value:</label>
+                        <div className="flex items-center justify-center gap-2">
+                          <label >
                             <input
                               type="radio"
                               name="contType"
@@ -1598,7 +1786,7 @@ const CreateValidator: NextPage = () => {
                               checked={selectedCont === '8 ETH'}
                               onChange={handleContChange}
                             />
-                            8 ETH
+                            <span className="ml-2">8 ETH</span>
                           </label>
                           <label>
                             <input
@@ -1608,14 +1796,14 @@ const CreateValidator: NextPage = () => {
                               checked={selectedCont === '16 ETH'}
                               onChange={handleContChange}
                             />
-                            16 ETH
+                            <span className="ml-2">16 ETH</span>
                           </label>
 
 
                         </div>
 
                       </div>
-                     
+
 
 
                       <div className='w-3/5 flex gap-2 items-center justify-center'>
@@ -1626,7 +1814,7 @@ const CreateValidator: NextPage = () => {
                     </div>
 
 
-                  
+
 
                   </dl>
                 </div>
@@ -1639,7 +1827,7 @@ const CreateValidator: NextPage = () => {
       ) : (<NoConnection />)}
 
 
-      
+
 
 
 

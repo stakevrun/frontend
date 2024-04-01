@@ -8,6 +8,7 @@ import storageABI from "../json/storageABI.json"
 import miniManagerABI from "../json/miniManagerABI.json"
 import managerABI from "../json/managerABI.json"
 import daoABI from "../json/daoABI.json"
+import distributorABI from "../json/distributorABI.json"
 import CountdownComponent from './countdown.jsx';
 import QuickNode from '@quicknode/sdk';
 import Modal from 'react-modal';
@@ -22,8 +23,25 @@ import RPLBlock from './RPL';
 import ContractTag from "../components/contractTag"
 import feeABI from "../json/feeABI.json"
 import { GrSatellite } from "react-icons/gr";
+import { FaEthereum } from "react-icons/fa";
+import { FaCoins } from "react-icons/fa";
+import BounceLoader from "react-spinners/BounceLoader";
+import Image from 'next/image';
+
 import RollingNumber from './rollingNumber';
 import { Line, getElementsAtEvent } from 'react-chartjs-2';
+import type { RootState } from '../GlobalRedux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { increment, decrement, incrementByAmount } from "../GlobalRedux/Features/counter/counterSlice"
+import { getData } from "../GlobalRedux/Features/validator/valDataSlice"
+import { attestationsData } from '../GlobalRedux/Features/attestations/attestationsDataSlice';
+import { getGraphPointsData } from "../GlobalRedux/Features/graphpoints/graphPointsDataSlice"
+
+
+
+
+
+
 import {
   Chart as ChartJS,
   LineElement,
@@ -65,6 +83,10 @@ const AccountMain: NextPage = () => {
   const [data, setData] = useState("");
   const [publicKeyArmored, setPublicKeyArmored] = useState(``);
 
+  const beaconAPIKey = process.env.BEACON
+  const holeskyRPCKey = process.env.HOLESKY_RPC
+  const mainnetRPCKey = process.env.MAINNET_RPC
+
 
 
   useEffect(() => {
@@ -86,6 +108,28 @@ const AccountMain: NextPage = () => {
       console.error('Error encrypting data:', error);
     }
   };
+
+
+
+  const count = useSelector((state: RootState) => state.counter.value)
+  const dispatch = useDispatch()
+
+
+
+  const reduxData = useSelector((state: RootState) => state.valData.data);
+  const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data);
+  const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -128,7 +172,7 @@ const AccountMain: NextPage = () => {
 
     let newString;
 
-    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
 
 
     await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
@@ -217,7 +261,7 @@ const AccountMain: NextPage = () => {
 
     let newString
 
-    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
 
 
     await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validator_balances?id=${pubkey}`, {
@@ -276,7 +320,7 @@ const AccountMain: NextPage = () => {
 
     //https://holesky.beaconcha.in//eth/v1/beacon/pool/voluntary_exits
 
-    const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
 
 
 
@@ -301,7 +345,6 @@ const AccountMain: NextPage = () => {
 
 
   }
-
 
 
 
@@ -357,7 +400,7 @@ const AccountMain: NextPage = () => {
 
 
 
-    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
       method: "GET",
 
       headers: {
@@ -899,13 +942,12 @@ const AccountMain: NextPage = () => {
       if (address !== undefined) {
         try {
 
-
-
           const reg = await registrationCheck(address);
           setIsRegistered(reg);
 
           if (reg === true) {
             getMinipoolData();
+            getPayments();
           }
 
         } catch (error) {
@@ -1053,6 +1095,93 @@ const AccountMain: NextPage = () => {
   const [runningValidators, setRunningValidators] = useState("");
 
 
+  const getValIndex = async (pubkey: string) => {
+
+    const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+
+        for (const object of jsonString.data) {
+          if (object.publickey === pubkey) {
+
+            return object.validatorindex
+
+
+          }
+        }
+        console.log("Result of Logs GET" + Object.entries(jsonString));
+        console.log(typeof jsonString);
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+    return valIndex
+  }
+
+
+  const getEnabled = async (pubkey: string) => {
+
+
+
+
+
+    const enabled = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+        console.log("GET Enabled" + Object.entries(jsonString))
+
+
+        const entries = Object.entries(jsonString);
+
+        console.log("grafitti entries:" + entries)
+        const entriesOfEntries = Object.entries(entries);
+
+        const newObject = Object(entriesOfEntries[0][1][1]);
+
+
+        let currentEnablement = newObject.enabled
+
+        console.log(currentEnablement)
+
+        return currentEnablement;
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+    return enabled;
+
+
+
+  }
 
 
 
@@ -1064,22 +1193,9 @@ const AccountMain: NextPage = () => {
 
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
-
-
-
-
-
-
-   
-
-
-   
-
-
+    let signer = await browserProvider.getSigner();
     const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
     const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
     const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
@@ -1114,10 +1230,10 @@ const AccountMain: NextPage = () => {
 
     //Get all pubkeys
 
-    let pubkeyArray: Array<string> = [];
+    let attachedPubkeyArray: Array<Array<string>> = [];
 
 
-    for (let i = 0; i < newNextIndex; i++) {
+    for (let i = 0; i <= newNextIndex - 1; i++) {
 
 
 
@@ -1130,12 +1246,57 @@ const AccountMain: NextPage = () => {
       })
         .then(async response => {
 
-          var jsonString = await response.json()
+          let pubkey = await response.json()
 
 
-          console.log("Result of pubkey GET" + jsonString)
 
-          pubkeyArray.push(jsonString);
+
+          const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+
+
+          await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
+            method: "GET",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+
+              var jsonObject = await response.json()
+
+
+              let minipoolAddress = jsonObject.data.minipool_address;
+
+
+
+
+
+
+
+
+              if (minipoolAddress === nullAddress) {
+                attachedPubkeyArray.push(["Null minipool", pubkey])
+              }
+
+              else {
+                attachedPubkeyArray.push([minipoolAddress, pubkey]);
+              }
+
+
+              console.log("Get minipool result:" + minipoolAddress);
+
+
+
+
+
+            })
+            .catch(error => {
+
+
+            });
 
 
 
@@ -1158,27 +1319,7 @@ const AccountMain: NextPage = () => {
 
 
 
-    let attachedPubkeyArray: Array<Array<string>> = [];
 
-
-    for (const key of pubkeyArray) {
-
-      console.log("Pubkey:" + key);
-
-      let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(key);
-
-      if (minipoolAddress === nullAddress) {
-        attachedPubkeyArray.push(["Null minipool", key])
-      }
-
-      else {
-        attachedPubkeyArray.push([minipoolAddress, key]);
-      }
-
-
-      console.log("Get minipool result:" + minipoolAddress);
-
-    }
 
 
 
@@ -1214,6 +1355,7 @@ const AccountMain: NextPage = () => {
 
 
     let minipoolObjects: Array<rowObject> = [];
+    let seperateMinipoolObjects: Array<rowObject2> = [];
 
     let newRunningVals = 0;
     let newTotalVals = 0;
@@ -1245,6 +1387,25 @@ const AccountMain: NextPage = () => {
           pubkey: pubkey,
 
         });
+
+
+        seperateMinipoolObjects.push({
+          address: "",
+          statusResult: "Empty",
+          statusTimeResult: "",
+          timeRemaining: "",
+          graffiti: "",
+          beaconStatus: "",
+
+
+          valBalance: "",
+          valProposals: "",
+          valDayVariance: "",
+          pubkey: pubkey,
+          isEnabled: false,
+          valIndex: "",
+
+        })
 
 
       } else {
@@ -1309,6 +1470,8 @@ const AccountMain: NextPage = () => {
 
         const printGraff = await getGraffiti(pubkey);
         const beaconStatus = await getBeaconchainStatus(pubkey)
+        const isEnabled = await getEnabled(pubkey)
+        const valIndex = await getValIndex(pubkey)
 
         const smoothingBool = await getMinipoolTruth(pubkey)
 
@@ -1345,7 +1508,7 @@ const AccountMain: NextPage = () => {
         minipoolObjects.push({
           address: minAddress,
           statusResult: currentStatus,
-          statusTimeResult: statusTimeResult,
+          statusTimeResult: statusTimeResult.toString(),
           timeRemaining: timeRemaining.toString(),
           graffiti: typeof printGraff === "string" ? printGraff : "",
           beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
@@ -1358,6 +1521,28 @@ const AccountMain: NextPage = () => {
           pubkey: pubkey
         })
 
+
+        seperateMinipoolObjects.push({
+          address: minAddress,
+          statusResult: currentStatus,
+          statusTimeResult: statusTimeResult.toString(),
+          timeRemaining: timeRemaining.toString(),
+          graffiti: typeof printGraff === "string" ? printGraff : "",
+          beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+
+          valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+          valProposals: newValProposals.toString(),
+          valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+          isEnabled: isEnabled,
+          valIndex: valIndex,
+          pubkey: pubkey
+        })
+
+
+
+
+
       }
 
 
@@ -1368,10 +1553,239 @@ const AccountMain: NextPage = () => {
     setRunningValidators(newRunningVals.toString());
     setTotalValidators(newTotalVals.toString());
     setCurrentRowData(minipoolObjects)
+    dispatch(getData(seperateMinipoolObjects))
     setShowForm(false)
 
 
   }
+
+
+
+
+  useEffect(() => {
+
+    if (reduxData.length > 0) {
+      let newRunningVals = 0;
+      let newTotalVals = 0;
+
+
+      for (const log of reduxData) {
+
+
+        console.log(reduxData)
+        console.log("Redux loop running")
+
+
+
+
+
+
+
+
+
+        if (log.statusResult === "Staking") {
+
+          newRunningVals += 1;
+          newTotalVals += 1;
+
+        } else {
+
+          newTotalVals += 1;
+
+        }
+
+
+
+
+
+
+
+
+
+      }
+
+      setRunningValidators(newRunningVals.toString());
+      setTotalValidators(newTotalVals.toString());
+
+    }
+
+
+
+
+  }, [reduxData])
+
+
+
+
+  const setFeeRecipient = async (inOutBool: boolean) => {
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+
+    /*  struct SetFeeRecipient {
+  uint256 timestamp;
+  bytes pubkey;
+  address feeRecipient;
+} */
+
+
+    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()
+
+
+        console.log("Result of get next index" + jsonString)
+
+
+        return jsonString;
+
+      })
+      .catch(error => {
+
+        console.log(error);
+      });
+
+
+
+
+
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
+    const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
+
+
+
+
+
+
+
+    let newPubkeyArray: Array<string> = []
+    let newIndexArray: Array<number> = []
+
+
+
+    for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+
+          let pubkey = await response.json()
+
+          newPubkeyArray.push(pubkey)
+          newIndexArray.push(i)
+
+          console.log("pUBKEY:" + pubkey)
+
+
+        })
+        .catch(error => {
+
+          console.log(error)
+
+
+        });
+
+    }
+
+
+    console.log(newPubkeyArray);
+    console.log(newIndexArray);
+
+    const types = {
+      SetFeeRecipient: [
+        { name: 'timestamp', type: 'uint256' },
+        { name: 'pubkeys', type: 'bytes[]' },
+        { name: 'feeRecipient', type: 'address' },
+
+      ]
+    }
+
+
+    let newFeeRecipient;
+
+    if (inOutBool === true) {
+
+
+
+      newFeeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
+      console.log("It is true dough!")
+      console.log(newFeeRecipient)
+
+
+    } else {
+      newFeeRecipient = await distributorContract.getProxyAddress(address);
+      console.log(newFeeRecipient)
+
+    }
+
+
+
+    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+    const APItype = "SetFeeRecipient"
+
+    const date = Math.floor(Date.now() / 1000);
+
+    const value = { timestamp: date, pubkeys: newPubkeyArray, feeRecipient: newFeeRecipient }
+
+
+    let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+
+
+
+    await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: APItype,
+        data: value,
+        signature: signature,
+        indices: newIndexArray
+      })
+    })
+      .then(async response => {
+
+        var resString = await response.text()// Note: response will be opaque, won't contain data
+
+        console.log("Get Deposit Data response" + resString)
+
+        alert("setFeeRecipient success!")
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+        alert("setFeeRecipient failed...")
+      });
+
+
+
+
+
+
+  }
+
 
 
 
@@ -1468,6 +1882,9 @@ const AccountMain: NextPage = () => {
 
 
   const [currentRowData, setCurrentRowData] = useState<Array<rowObject>>([])
+
+
+
 
 
 
@@ -1585,16 +2002,25 @@ const AccountMain: NextPage = () => {
 
     if (newPlotPointsArray.length > 0) {
 
+      dispatch(getGraphPointsData(newPlotPointsArray))
 
 
-      setTotalGraphPlotPoints(calculateAveragePlotPoints(newPlotPointsArray));
+
+
+
+
+
 
 
     }
 
     if (newMissedAttestationsArray.length > 0) {
 
-      setPercentageAttestations(calculateAverage(newMissedAttestationsArray))
+
+
+      dispatch(attestationsData(newMissedAttestationsArray))
+
+
 
 
     }
@@ -1628,8 +2054,13 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
+    if(address !== undefined) {
 
-    getMinipoolData();
+      getMinipoolData();
+
+
+    }
+ 
 
   }, [])
 
@@ -1695,6 +2126,41 @@ const AccountMain: NextPage = () => {
 
 
 
+  type rowObject2 = {
+    address: string,
+    statusResult: string,
+    statusTimeResult: string,
+    timeRemaining: string,
+    pubkey: string
+    beaconStatus: string
+
+    valBalance: string
+    valProposals: string
+    valDayVariance: string
+
+    graffiti: string
+    isEnabled: boolean
+    valIndex: string
+  };
+
+
+
+  useEffect(() => {
+
+    setTotalGraphPlotPoints(calculateAveragePlotPoints(reduxGraphPoints));
+
+  }, [reduxGraphPoints])
+
+  useEffect(() => {
+
+    setPercentageAttestations(calculateAverage(reduxAttestations))
+
+  }, [reduxAttestations])
+
+
+
+
+
   const getValBeaconStats = async (pubkey: string) => {
 
 
@@ -1707,7 +2173,7 @@ const AccountMain: NextPage = () => {
     const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
-    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+    const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
       method: "GET",
 
       headers: {
@@ -2058,14 +2524,8 @@ const AccountMain: NextPage = () => {
 
 
 
-  useEffect(() => {
-
-    console.log(checked2)
-
-  }, [checked2])
 
 
-  //<a href={`https://holesky.beaconcha.in/validator/${data.pubkey}`} target="_blank">
 
 
 
@@ -2096,6 +2556,9 @@ const AccountMain: NextPage = () => {
 
     const slicedLabels = xAxisData.slice(0, sliceLength);
     const slicedData = TotalGraphPlotPoints.slice(0, sliceLength);
+
+
+
 
     return {
       labels: slicedLabels.reverse(),
@@ -2141,6 +2604,11 @@ const AccountMain: NextPage = () => {
   }
 
 
+  const handleOptSmoothingPool2 = async () => {
+    setFeeRecipient(false);
+  }
+
+
   const handleOptSmoothingPool = async () => {
     if (typeof (window as any).ethereum !== "undefined") {
       try {
@@ -2166,7 +2634,9 @@ const AccountMain: NextPage = () => {
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
-        if (checked === false) {
+        await setFeeRecipient(checked2);
+
+        if (checked2 === false) {
 
           alert("Opt-out of Smoothing Pool Sucessful")
 
@@ -2233,31 +2703,302 @@ const AccountMain: NextPage = () => {
 
 
 
+
+
             <>
-              <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
-                <div className="mx-auto max-w-3xl text-center">
-                  <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Connected User: </h2>
 
-                  <p className="mt-4 text-gray-500 sm:text-xl">
-                    {address}
-                  </p>
+
+
+
+
+              {reduxGraphPoints[0].length > 0 ? (<div className="w-full flex flex-col items-center gap-5 justify-center">
+
+
+
+                <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+                  <div className="mx-auto max-w-3xl text-center">
+                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Connected User: </h2>
+
+                    <p className="mt-4 text-gray-500 sm:text-xl">
+                      {address}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
 
 
 
-              <div className="xl:flex xl:flex-row lg:flex-col w-[90%] items-center justify-center xl:gap-5 lg:gap-5">
+                <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
 
-                <div className="flex items-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5">
+
+
+                  <section className="grid md:grid-cols-2 xl:grid-cols-2 xl:grid-rows-2 gap-6">
+
+                    <div className="flex w-auto items-center p-6 bg-white border shadow rounded-lg mb-5">
+                      <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                        <FaEthereum className="text-2xl text-blue-500" />
+                      </div>
+                      <div>
+                        <span className="block text-2xl font-bold">{runningValidators} / {totalValidators}</span>
+                        <span className="block text-gray-500">Fully-running Validators</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center  p-6 bg-white border shadow rounded-lg mb-5">
+
+                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
+                        <FaCoins className="text-yellow-500 text-xl" />
+
+                      </div>
+                      <div className=" w-full max-w-3xl flex flex-col items-center justify-center gap-2 text-left">
+
+
+
+                        <div className='mb-2'>
+                          <span className="block text-2xl font-bold">{currentPayments}</span>
+                          <span className="block text-gray-500">in Credit</span>
+                        </div>
+
+
+                        <button onClick={handlePaymentModal} className="bg-green-500 text-xs hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Top-up</button>
+
+
+
+
+                      </div>
+
+                    </div>
+                    <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="block text-2xl font-bold">{percentageAttestations.toString().slice(0, 5)}%</span>
+                        <span className="block text-gray-500">Sucessful Attestations</span>
+                      </div>
+                    </div>
+                    <div className="flex w-auto items-center p-6 bg-white shadow border  rounded-lg">
+                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                        <Image
+                          width={70}
+                          height={70}
+                          alt="Rocket Pool Logo"
+                          src={"/images/rocketPlogo.png"} />
+                      </div>
+                      <div className='flex flex-col items-center justify-start w-full'>
+
+                        <div className='flex flex-col items-center gap-1 justify-center w-full'>
+
+                          <span className="block text-xl font-bold">Smoothing Pool</span>
+
+                          <label className="self-center">
+                            <span className="text-gray-500 pr-2 "> Opt-in?</span>
+                            <input
+                              type="checkbox"
+                              className="self-center"
+                              checked={checked2}
+                              onChange={handleChecked2}
+                            />
+                          </label>
+
+
+
+                        </div>
+
+                        <div className='w-3/5 flex gap-2 items-center justify-center'>
+                          <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
+                            Confirm Changes
+                          </button>
+                        </div>
+
+
+                      </div>
+
+                    </div>
+                  </section>
+
+
+
+                </div>
+
+
+                <div className='w-full h-[30px] mt-4 flex gap-2 items-center justify-center'>
+                  {errorBoxText2 !== "" &&
+                    <p className="my-4 w-[80%] font-bold text-2xl text-center text-red-500 sm:text-l">{errorBoxText2}</p>
+                  }
+                </div>
+
+
+
+
+                <div className="w-full my-5 mx-5 mb-1 overflow-hidden rounded-lg ">
+                  <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
+
+                    <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
+                      <h3 className="text-2xl font-bold text-gray-900 ">Active Validators</h3>
+                      <Link href="/createValidator">
+
+
+
+
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                          <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" viewBox="0 0 50 50" xmlSpace="preserve">
+                            <circle style={{ fill: '#43B05C' }} cx="25" cy="25" r="25" />
+                            <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="25" y1="13" x2="25" y2="38" />
+                            <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="37.5" y1="25" x2="12.5" y2="25" />
+                          </svg>
+                        </div>
+
+
+
+
+
+                      </Link>
+
+                    </div>
+
+                  </div>
+                </div>
+
+
+
+
+                <div className="w-[] overflow-hidden shadow border rounded-lg mb-10 ">
+                  <table className="w-full">
+                    <tbody>
+
+                      {reduxData.map((data, index) => (
+                        <tr key={index} className="border-b-2 hover:bg-gray-100 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
+
+                          <td className="px-4 pl-10 py-3 text-xs w-[180px]">
+
+                            {data.statusResult === "Prelaunch" &&
+                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+
+                            {data.statusResult === "Initialised" &&
+
+                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+                            {data.statusResult === "Staking" &&
+
+                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+
+                            {data.statusResult === "Withdrawable" &&
+
+                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+
+                            {data.statusResult === "Dissolved" &&
+
+                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+
+                            {data.statusResult === "Empty" &&
+
+                              <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                            }
+
+
+                          </td>
+
+                          <td className="px-4 py-3 w-[200px] ">
+                            <span className='text-green-500 self-center font-bold text-lg ' >
+
+                              {data.valBalance}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-3 w-[200px]">
+                            <div className="flex items-center text-lg">
+
+
+                              <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                {Number(data.valDayVariance) > 0 ? (
+                                  <div className='flex items-center justify-center'>
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
+                                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                      </svg>
+
+                                    </div>
+                                    <p> {data.valDayVariance}</p>
+
+                                  </div>
+
+
+                                ) : (
+                                  <div className='flex items-center justify-center'>
+                                    {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                      </svg>
+                                    </div>}
+                                    <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
+                                  </div>
+                                )}
+
+                              </span>
+
+
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-3 w-[180px]">
+                            <div className="flex items-center flex-col gap-1 text-l ">
+                              {data.beaconStatus !== "" && <>
+                                <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
+                                <GrSatellite /></>}
+                              {data.beaconStatus}
+                            </div>
+                          </td>
+
+                          <td className="px-4 pr-10 py-3 w-[auto]">
+                            <div className="flex items-center text-l  flex-col gap-1">
+                              {data.valProposals !== "" &&
+
+                                <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
+
+                              }
+
+                              <p>{data.valProposals}</p>
+                            </div>
+                          </td>
+
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center  justify-center p-8 bg-white shadow border border-b-2 rounded-lg my-8">
 
 
                   {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
 
-                    <div className="w-[600px] h-[auto] py-3">
+                    <div className="w-[500px] h-[auto] py-3">
 
 
                       <Line
@@ -2288,575 +3029,318 @@ const AccountMain: NextPage = () => {
                   }
 
 
-                  {/*xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
-
-                    <LineChart
-                      xAxis={[{ data: xAxisData }]}
-                      series={[
-                        {
-                          data: TotalGraphPlotPoints,
-                          showMark: ({ index }) => index % 2 === 0,
-                        },
-                      ]}
-                      width={500}
-                      height={300}
-                    />
-
-
-                    */ }
 
                 </div>
 
-                <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
-
-                  <div className="flex w-auto items-center p-8 bg-white shadow rounded-lg mb-5">
-                    <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 327.5 533.3" xmlSpace="preserve">
-                        <style>{`.st0{fill:#8A92B2;} .st1{fill:#62688F;} .st2{fill:#454A75;}`}</style>
-                        <path className="st0" d="M163.7,197.2V0L0,271.6L163.7,197.2z" />
-                        <path className="st1" d="M163.7,368.4V197.2L0,271.6L163.7,368.4z M163.7,197.2l163.7,74.4L163.7,0V197.2z" />
-                        <path className="st2" d="M163.7,197.2v171.2l163.7-96.8L163.7,197.2z" />
-                        <path className="st0" d="M163.7,399.4L0,302.7l163.7,230.7V399.4z" />
-                        <path className="st1" d="M327.5,302.7l-163.8,96.7v134L327.5,302.7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <span className="block text-2xl font-bold">{runningValidators} / {totalValidators}</span>
-                      <span className="block text-gray-500">Fully-running Validators</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center  p-8 bg-white shadow rounded-lg mb-5">
-
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className=" w-full max-w-3xl flex flex-col items-center justify-center gap-2 text-left">
-
-
-
-                      <div className='mb-2'>
-                        <span className="block text-2xl font-bold">{currentPayments}</span>
-                        <span className="block text-gray-500">in Credit</span>
-                      </div>
-
-
-                      <button onClick={handlePaymentModal} className="bg-green-500 text-xs hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Top-up</button>
 
 
 
 
-                    </div>
-
-                  </div>
-                  <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                  <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
-                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                    <div>
-                      <span className="block text-2xl font-bold">{percentageAttestations}%</span>
-                      <span className="block text-gray-500">Sucessful Attestations</span>
-                    </div>
-                  </div>
-                  <div className="flex w-auto items-center p-8 bg-white shadow rounded-lg">
-                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div className='flex flex-col items-center justify-start w-full'>
-
-                      <div className='flex flex-col items-center gap-1 justify-center w-full'>
-
-                        <span className="block text-xl font-bold">Smoothing Pool</span>
-                        <span className="block text-s text-gray-500 ">Opt-in/opt-out</span>
-                        <label className="self-center">
-
-
-
-
-                          <input
-                            type="checkbox"
-                            className="self-center"
-                            checked={checked2}
-                            onChange={handleChecked2}
-                          />
-                        </label>
-                      </div>
-
-                      <div className='w-3/5 flex gap-2 items-center justify-center'>
-                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
-                          Confirm Changes
-                        </button>
-                      </div>
-
-
-                    </div>
-
-                  </div>
-                </section>
-
-
-
-              </div>
-
-
-              <div className='w-full h-[30px] mt-4 flex gap-2 items-center justify-center'>
-                {errorBoxText2 !== "" &&
-                  <p className="my-4 w-[80%] font-bold text-2xl text-center text-red-500 sm:text-l">{errorBoxText2}</p>
-                }
-              </div>
-
-
-
-
-              <div className="w-full my-5 mx-5 mb-1 overflow-hidden rounded-lg ">
-                <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
-
-                  <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                    <h3 className="text-2xl font-bold text-gray-900 ">Active Validators</h3>
-                    <Link href="/createValidator">
-
-
-
-
-                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" viewBox="0 0 50 50" xmlSpace="preserve">
-                          <circle style={{ fill: '#43B05C' }} cx="25" cy="25" r="25" />
-                          <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="25" y1="13" x2="25" y2="38" />
-                          <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="37.5" y1="25" x2="12.5" y2="25" />
-                        </svg>
-                      </div>
-
-
-
-
-
-                    </Link>
-
-                  </div>
-
+                <div className="w-full py-8 my-8 flex flex-col justify-center items-center">
+                <RPLBlock /> 
                 </div>
-              </div>
 
 
 
 
-              <div className="w-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
-                <table className="w-full">
-                  <tbody>
-                    {currentRowData.map((data, index) => (
-                      <tr key={index} className="border-b-2 hover:bg-gray-100 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
-                        <td className="px-4 pl-10 py-3 text-xs w-[180px]">
+                {/* <div className='w-auto p-8 border shadow rounded-lg'>
 
-                          {data.statusResult === "Prelaunch" &&
-                            <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+                  <span>{count}</span>
 
+                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
+                    onClick={() => dispatch(increment())
 
-                          }
+                    }
+                  >Increment</button>
+                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
+                    onClick={() => dispatch(decrement())
 
+                    }
+                  >Decrement</button>
+                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
+                    onClick={() => dispatch(incrementByAmount(2))
 
-                          {data.statusResult === "Initialised" &&
+                    }
+                  >Increment By 2</button>
 
-                            <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                          }
-
-                          {data.statusResult === "Staking" &&
-
-                            <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                          }
-
-
-                          {data.statusResult === "Withdrawable" &&
-
-                            <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                          }
-
-
-                          {data.statusResult === "Dissolved" &&
-
-                            <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
-
-
-                          }
-
-
-                          {data.statusResult === "Empty" &&
-
-                            <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                          }
-
-
-                        </td>
-
-                        <td className="px-4 py-3 w-[200px] ">
-                          <span className='text-green-500 font-bold text-lg ' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-
-                            {data.valBalance}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 w-[200px]">
-                          <div className="flex items-center text-lg">
-
-
-                            <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                              {Number(data.valDayVariance) > 0 ? (
-                                <div className='flex items-center justify-center'>
-                                  <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
-                                    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                    </svg>
-
-                                  </div>
-                                  <p> {data.valDayVariance}</p>
-
-                                </div>
-
-
-                              ) : (
-                                <>
-                                  {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                                    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                    </svg>
-                                  </div>}
-                                  <p>{data.valDayVariance !== "" && "- " + data.valDayVariance}</p>
-                                </>
-                              )}
-
-                            </span>
-
-
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 w-[180px]">
-                          <div className="flex items-center flex-col gap-1 text-l ">
-                            {data.beaconStatus !== "" && <>
-                              <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
-                              <GrSatellite /></>}
-                            {data.beaconStatus}
-                          </div>
-                        </td>
-
-                        <td className="px-4 pr-10 py-3 w-[auto]">
-                          <div className="flex items-center text-l  flex-col gap-1">
-                            {data.valProposals !== "" &&
-
-                              <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
-
-                            }
-
-                            <p>{data.valProposals}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-
-              <div className="w-full py-10 flex flex-col justify-center items-center">
-               {/*<RPLBlock /> */}
-              </div>
+                </div> */}
 
 
 
-              <Modal
-                isOpen={showForm}
-                onRequestClose={() => setShowForm(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-                ariaHideApp={false}
-                style={{
-                  overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: "999999999999999999999999999999999999",
-                  },
-                  content: {
-                    width: '50%',
-                    height: '200px',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    color: 'black',
-                    backgroundColor: "#fff",
-                    border: "0",
-                    borderRadius: "20px",
-                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                    overflow: "auto",
-                    WebkitOverflowScrolling: "touch", // For iOS Safari
-                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                  },
-                }}
-              >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                  <AiOutlineClose onClick={() => {
-                    setShowForm(false)
-                  }} />
-                  <h2>Graffiti Update</h2>
 
 
-                  <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
+                <Modal
+                  isOpen={showForm}
+                  onRequestClose={() => setShowForm(false)}
+                  contentLabel="Delete User Modal"
+                  className="modal"
+                  ariaHideApp={false}
+                  style={{
+                    overlay: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      zIndex: "999999999999999999999999999999999999",
+                    },
+                    content: {
+                      width: '50%',
+                      height: '200px',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: 'black',
+                      backgroundColor: "#fff",
+                      border: "0",
+                      borderRadius: "20px",
+                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                      overflow: "auto",
+                      WebkitOverflowScrolling: "touch", // For iOS Safari
+                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                    },
+                  }}
+                >
+                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                    <AiOutlineClose onClick={() => {
+                      setShowForm(false)
+                    }} />
+                    <h2>Graffiti Update</h2>
 
-                  <div >
-                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
-                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+
+                    <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
+
+                    <div >
+                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
+                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+                    </div>
                   </div>
-                </div>
-              </Modal>
-              <Modal
-                isOpen={showForm2}
-                onRequestClose={() => setShowForm2(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
+                </Modal>
+                <Modal
+                  isOpen={showForm2}
+                  onRequestClose={() => setShowForm2(false)}
+                  contentLabel="Delete User Modal"
+                  className="modal"
 
-                style={{
-                  overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: "999999999999999999999999999999999999",
-                  },
-                  content: {
-                    width: '50%',
-                    height: '700px',
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    color: 'black',
-                    backgroundColor: "#fff",
-                    border: "0",
-                    borderRadius: "20px",
-                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                    overflow: "auto",
-                    WebkitOverflowScrolling: "touch", // For iOS Safari
-                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                  },
-                }}
-              >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                  <AiOutlineClose onClick={() => {
-                    setShowForm2(false)
-                  }} />
-                  <h2>Get Presigned Exit Message</h2>
+                  style={{
+                    overlay: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      zIndex: "999999999999999999999999999999999999",
+                    },
+                    content: {
+                      width: '50%',
+                      height: '700px',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: 'black',
+                      backgroundColor: "#fff",
+                      border: "0",
+                      borderRadius: "20px",
+                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                      overflow: "auto",
+                      WebkitOverflowScrolling: "touch", // For iOS Safari
+                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                    },
+                  }}
+                >
+                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                    <AiOutlineClose onClick={() => {
+                      setShowForm2(false)
+                    }} />
+                    <h2>Get Presigned Exit Message</h2>
 
-                  <input
-
-                    className="w-[60%] self-center border border-black-200 text-black-500"
-                    type="datetime-local"
-                    id="datetime"
-                    value={dateTime}
-                    onChange={(e) => setDateTime(e.target.value)}
-                  />
-
-
-                  <label className="w-[80%] ">
-                    Encrypted?
                     <input
-                      type="checkbox"
 
-                      checked={checked}
-                      onChange={handleChecked}
+                      className="w-[60%] self-center border border-black-200 text-black-500"
+                      type="datetime-local"
+                      id="datetime"
+                      value={dateTime}
+                      onChange={(e) => setDateTime(e.target.value)}
                     />
-                  </label>
 
 
-                  {checked && <>
+                    <label className="w-[80%] ">
+                      Encrypted?
+                      <input
+                        type="checkbox"
 
-                    <h4>Enter Public Key:</h4>
-
-                    <textarea className="border-2" value={publicKeyArmored} onChange={handlePublicKeyArmored} />
-                  </>
-                  }
-
-
-
-
-
-                  <div >
-                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
-                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
-                  </div>
-                </div>
-              </Modal>
-              <Modal
-                isOpen={showForm3}
-                onRequestClose={() => setShowForm3(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-
-                style={{
-                  overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 999, // Increase the z-index if needed
-                  },
-                  content: {
-                    width: '280px', // Adjust as per your modal's width
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    backgroundColor: '#fff',
-                    border: '0',
-                    borderRadius: '20px',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
-                    overflow: 'auto',
-                    WebkitOverflowScrolling: 'touch', // For iOS Safari
-                    scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
-                    scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
-                    animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
-                  },
-                }}
-              >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                  <AiOutlineClose onClick={() => {
-                    setShowForm3(false)
-                  }} />
-                  <h2>Add Credit to your Vrun account</h2>
-
-                  <input
-
-                    className="w-[60%] self-center border border-black-200 text-black-500"
-                    type="text"
-
-                    value={feeETHInput}
-                    onChange={handleETHInput}
-                  />
+                        checked={checked}
+                        onChange={handleChecked}
+                      />
+                    </label>
 
 
+                    {checked && <>
 
-                  <div >
-                    <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
-                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
-                  </div>
-                </div>
-              </Modal>
-              <Modal
-                isOpen={showForm4}
-                onRequestClose={() => setShowForm4(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
+                      <h4>Enter Public Key:</h4>
 
-                style={{
-                  overlay: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 999, // Increase the z-index if needed
-                  },
-                  content: {
-                    width: '280px', // Adjust as per your modal's width
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    backgroundColor: '#fff',
-                    border: '0',
-                    borderRadius: '20px',
-                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
-                    overflow: 'auto',
-                    WebkitOverflowScrolling: 'touch', // For iOS Safari
-                    scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
-                    scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
-                    animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
-                  },
-                }}
-              >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                  <AiOutlineClose onClick={() => {
-                    setShowForm4(false)
-                  }} />
-                  <h2>Post Presigned Exit Message</h2>
-
-
-                  <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
+                      <textarea className="border-2" value={publicKeyArmored} onChange={handlePublicKeyArmored} />
+                    </>
+                    }
 
 
 
 
 
-                  <textarea value={exitMessage} onChange={handleChangeExitMessage} />
-
-
-
-                  <div >
-                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
-                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
-                  </div>
-                </div>
-              </Modal>
-
-
-
-
-
-
-
-
-
-              {/*currentRowData.length > 0 && currentRowData.map((rowObject, index) => (
-                <div className="w-full flex flex-wrap items-center justify-center" key={index}>
-                  {rowObject.beaconLogs.map((beaconLog, index) => (
-                    <div className="w-[280px] m-2 border-2" key={index}>
-                      <p>Attester Slashings: {beaconLog.attester_slashings.toString()}</p>
-                      <p>Day: {beaconLog.day}</p>
-                      <p>Day Start: {beaconLog.day_start}</p>
-                      <p>Day End: {beaconLog.day_end}</p>
-                      <p>Validator Index: {beaconLog.validatorindex}</p>
-                      <p>Start Balance: {beaconLog.start_balance.toString()}</p>
-                      <p>End Balance: {beaconLog.end_balance.toString()}</p>
-                      <p>Missed Attestations: {beaconLog.missed_attestations}</p>
-                      <p>Missed Blocks: {beaconLog.missed_blocks}</p>
-                      <p>Deposits: {beaconLog.deposits.toString()}</p>
-                      <p>Deposits Amount: {beaconLog.deposits_amount.toString()}</p>
-                      <p>End Effective Balance: {beaconLog.end_effective_balance.toString()}</p>
-                      <p>Max Balance: {beaconLog.max_balance.toString()}</p>
-                      <p>Min Balance: {beaconLog.min_balance.toString()}</p>
-                      <p>Missed Sync: {beaconLog.missed_sync}</p>
-                      <p>Orphaned Attestations: {beaconLog.orphaned_attestations}</p>
-                      <p>Orphaned Blocks: {beaconLog.orphaned_blocks}</p>
-                      <p>Orphaned Sync: {beaconLog.orphaned_sync}</p>
-                      <p>Participated Sync: {beaconLog.participated_sync}</p>
-                      <p>Proposed Blocks: {beaconLog.proposed_blocks}</p>
-                      <p>Proposer Slashings: {beaconLog.proposer_slashings.toString()}</p>
-                      <p>Start Effective Balance: {beaconLog.start_effective_balance.toString()}</p>
-                      <p>Withdrawals: {beaconLog.withdrawals.toString()}</p>
-                      <p>Withdrawals Amount: {beaconLog.withdrawals_amount.toString()}</p>
-
+                    <div >
+                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
+                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
                     </div>
-                  ))}
+                  </div>
+                </Modal>
+                <Modal
+                  isOpen={showForm3}
+                  onRequestClose={() => setShowForm3(false)}
+                  contentLabel="Delete User Modal"
+                  className="modal"
+
+                  style={{
+                    overlay: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      zIndex: 999, // Increase the z-index if needed
+                    },
+                    content: {
+                      width: '280px', // Adjust as per your modal's width
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: '#fff',
+                      border: '0',
+                      borderRadius: '20px',
+                      boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
+                      overflow: 'auto',
+                      WebkitOverflowScrolling: 'touch', // For iOS Safari
+                      scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
+                      scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
+                      animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
+                    },
+                  }}
+                >
+                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                    <AiOutlineClose onClick={() => {
+                      setShowForm3(false)
+                    }} />
+                    <h2>Add Credit to your Vrun account</h2>
+
+                    <input
+
+                      className="w-[60%] self-center border border-black-200 text-black-500"
+                      type="text"
+
+                      value={feeETHInput}
+                      onChange={handleETHInput}
+                    />
+
+
+
+                    <div >
+                      <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
+                    </div>
+                  </div>
+                </Modal>
+                <Modal
+                  isOpen={showForm4}
+                  onRequestClose={() => setShowForm4(false)}
+                  contentLabel="Delete User Modal"
+                  className="modal"
+
+                  style={{
+                    overlay: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      zIndex: 999, // Increase the z-index if needed
+                    },
+                    content: {
+                      width: '280px', // Adjust as per your modal's width
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      backgroundColor: '#fff',
+                      border: '0',
+                      borderRadius: '20px',
+                      boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
+                      overflow: 'auto',
+                      WebkitOverflowScrolling: 'touch', // For iOS Safari
+                      scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
+                      scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
+                      animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
+                    },
+                  }}
+                >
+                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                    <AiOutlineClose onClick={() => {
+                      setShowForm4(false)
+                    }} />
+                    <h2>Post Presigned Exit Message</h2>
+
+
+                    <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
+
+
+
+
+
+                    <textarea value={exitMessage} onChange={handleChangeExitMessage} />
+
+
+
+                    <div >
+                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
+                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
+                    </div>
+                  </div>
+                </Modal>
+
+              </div>) : (
+
+
+                <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
+
+                  <h3>Please wait while we retrieve your account info...</h3>
+
+                  <BounceLoader />
+
+
                 </div>
-                  )) */}
+
+
+
+
+
+              )
+
+
+
+              }
+
+
 
 
 
             </>
 
-          ) : (<NoRegistration onRegistrationResult={handleRegistrationResult} />)
+          ) : (<
+
+
+            NoRegistration onRegistrationResult={handleRegistrationResult} />
+
+
+          )
           }
         </>
       ) : (<NoConnection />)}

@@ -19,6 +19,20 @@ import { AiOutlineClose } from 'react-icons/ai'
 import { useParams } from 'next/navigation'
 import { PieChart, LineChart } from '@mui/x-charts'
 import { Line, getElementsAtEvent } from 'react-chartjs-2';
+import { PiSignatureBold } from "react-icons/pi";
+import { FaEthereum } from "react-icons/fa";
+import { VscActivateBreakpoints } from "react-icons/vsc";
+import managerABI from "../../json/managerABI.json"
+import BounceLoader from "react-spinners/BounceLoader";
+import { useSelector, useDispatch } from 'react-redux';
+import { increment, decrement, incrementByAmount } from "../../GlobalRedux/Features/counter/counterSlice"
+import type { RootState } from '../../GlobalRedux/store';
+import { getData } from "../../GlobalRedux/Features/validator/valDataSlice"
+import { attestationsData } from '../../GlobalRedux/Features/attestations/attestationsDataSlice';
+import { getGraphPointsData } from "../../GlobalRedux/Features/graphpoints/graphPointsDataSlice"
+
+import Image from 'next/image';
+
 
 import {
     Chart as ChartJS,
@@ -71,8 +85,24 @@ const ValidatorDetail: NextPage = () => {
 
     const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
 
-
     const nullAddress = "0x0000000000000000000000000000000000000000";
+
+    const beaconAPIKey = process.env.BEACON
+    const holeskyRPCKey = process.env.HOLESKY_RPC
+    const mainnetRPCKey = process.env.MAINNET_RPC
+
+
+    const count = useSelector((state: RootState) => state.counter.value)
+    const dispatch = useDispatch()
+
+
+    const reduxData = useSelector((state: RootState) => state.valData.data[Number(params.param2)]);
+    const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[Number(params.param2)]);
+    const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[Number(params.param2)])
+
+
+
+
 
 
     type beaconLog = {
@@ -122,6 +152,28 @@ const ValidatorDetail: NextPage = () => {
         valDayVariance: string
 
         graffiti: string
+        isEnabled: boolean
+        valIndex: string
+    };
+
+
+
+
+    type rowObject2 = {
+        address: string,
+        statusResult: string,
+        statusTimeResult: string,
+        timeRemaining: string,
+        pubkey: string
+        beaconStatus: string
+
+        valBalance: string
+        valProposals: string
+        valDayVariance: string
+
+        graffiti: string
+        isEnabled: boolean
+        valIndex: string
     };
 
 
@@ -167,9 +219,430 @@ const ValidatorDetail: NextPage = () => {
         pubkey: "",
         valBalance: "",
         valProposals: "",
-        valDayVariance: ""
+        valDayVariance: "",
+        isEnabled: false,
+        valIndex: ""
 
     })
+
+
+    const getMinipoolTruth = async (pubkey: string) => {
+
+
+
+
+
+
+        try {
+
+
+
+            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+            let signer = await browserProvider.getSigner()
+
+            const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+            console.log("Storage Contract:" + storageContract)
+
+            const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+            const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+            console.log("Rocket Node Manager:" + rocketNodeManager)
+            const bool = await rocketNodeManager.getSmoothingPoolRegistrationState(address)
+
+
+
+
+            console.log("Bool:" + bool)
+
+
+            return bool;
+
+        } catch (error) {
+
+            console.log(error)
+
+            return false;
+
+        }
+
+
+
+
+
+
+    }
+
+
+    const getMinipoolData = async () => {
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner();
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
+
+
+        //Get latest index
+
+        const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()
+
+
+                console.log("Result of get next index" + jsonString)
+
+
+                return jsonString;
+
+            })
+            .catch(error => {
+
+                console.log(error);
+            });
+
+
+
+
+
+        //Get all pubkeys
+
+        let attachedPubkeyArray: Array<Array<string>> = [];
+
+
+        for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+            await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+                method: "GET",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
+
+                    let pubkey = await response.json()
+
+
+
+
+                    const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+
+
+                    await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
+                        method: "GET",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                    })
+                        .then(async response => {
+
+                            var jsonObject = await response.json()
+
+
+                            let minipoolAddress = jsonObject.data.minipool_address;
+
+
+
+
+
+
+
+
+                            if (minipoolAddress === nullAddress) {
+                                attachedPubkeyArray.push(["Null minipool", pubkey])
+                            }
+
+                            else {
+                                attachedPubkeyArray.push([minipoolAddress, pubkey]);
+                            }
+
+
+                            console.log("Get minipool result:" + minipoolAddress);
+
+
+
+
+
+                        })
+                        .catch(error => {
+
+
+                        });
+
+
+
+
+
+                })
+                .catch(error => {
+
+
+                });
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        const emptyValidatorData: beaconLog = {
+            attester_slashings: BigInt(0),
+            day: 0,
+            day_end: "",
+            day_start: "",
+            deposits: BigInt(0),
+            deposits_amount: BigInt(0),
+            end_balance: BigInt(0),
+            end_effective_balance: BigInt(0),
+            max_balance: BigInt(0),
+            max_effective_balance: BigInt(0),
+            min_balance: BigInt(0),
+            min_effective_balance: BigInt(0),
+            missed_attestations: 0,
+            missed_blocks: 0,
+            missed_sync: 0,
+            orphaned_attestations: 0,
+            orphaned_blocks: 0,
+            orphaned_sync: 0,
+            participated_sync: 0,
+            proposed_blocks: 0,
+            proposer_slashings: BigInt(0),
+            start_balance: BigInt(0),
+            start_effective_balance: BigInt(0),
+            validatorindex: 0,
+            withdrawals: BigInt(0),
+            withdrawals_amount: BigInt(0)
+        };
+
+
+
+        let minipoolObjects: Array<rowObject> = [];
+        let seperateMinipoolObjects: Array<rowObject2> = [];
+
+        let newRunningVals = 0;
+        let newTotalVals = 0;
+
+
+        for (const [minAddress, pubkey] of attachedPubkeyArray) {
+
+
+
+
+
+            if (minAddress === "Null minipool") {
+
+
+
+                minipoolObjects.push({
+
+                    address: "",
+                    statusResult: "Empty",
+                    statusTimeResult: "",
+                    timeRemaining: "",
+                    graffiti: "",
+                    beaconStatus: "",
+
+                    beaconLogs: [emptyValidatorData],
+                    valBalance: "",
+                    valProposals: "",
+                    valDayVariance: "",
+                    pubkey: pubkey,
+                    isEnabled: false,
+                    valIndex: ""
+
+
+                });
+
+
+
+
+                seperateMinipoolObjects.push({
+                    address: "",
+                    statusResult: "Empty",
+                    statusTimeResult: "",
+                    timeRemaining: "",
+                    graffiti: "",
+                    beaconStatus: "",
+
+
+                    valBalance: "",
+                    valProposals: "",
+                    valDayVariance: "",
+                    pubkey: pubkey,
+                    isEnabled: false,
+                    valIndex: "",
+
+                })
+
+
+            } else {
+
+
+                const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+
+
+                const statusResult = await minipool.getStatus();
+                const statusTimeResult = await minipool.getStatusTime();
+                const numStatusTime = Number(statusTimeResult) * 1000;
+
+                console.log("Status Result:" + statusResult)
+
+                console.log("Status Time Result:" + statusTimeResult)
+
+                console.log(Date.now());
+                console.log(numStatusTime);
+
+
+
+                const MinipoolStatus = [
+                    "Initialised",
+                    "Prelaunch",
+                    "Staking",
+                    "Withdrawable",
+                    "Dissolved"
+                ];
+
+
+                const currentStatus = MinipoolStatus[statusResult];
+
+                if (MinipoolStatus[statusResult] === "Staking") {
+
+                    newRunningVals += 1;
+                    newTotalVals += 1;
+
+                } else {
+
+                    newTotalVals += 1;
+
+                }
+
+
+
+                const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
+
+                const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+
+                const scrubPeriod: any = await DAOContract.getScrubPeriod();
+
+                const numScrub = Number(scrubPeriod) * 1000;
+                console.log(numScrub);
+
+                const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
+
+
+                const string = formatTime(timeRemaining);
+
+                console.log("Time Remaining:" + string);
+
+
+                const printGraff = await getGraffiti(pubkey);
+                const beaconStatus = await getBeaconchainStatus(pubkey)
+                const isEnabled = await getEnabled(pubkey)
+                const valIndex = await getValIndex(pubkey)
+
+                const smoothingBool = await getMinipoolTruth(pubkey)
+
+
+
+                const beaconObject = await getValBeaconStats(pubkey)
+
+                console.log(typeof beaconObject === "object" ? Object.entries(beaconObject) : "");
+
+
+
+                console.log(printGraff)
+
+                const newValBalance = beaconObject[0].end_balance
+
+                let newValProposals = 0;
+
+                for (const beaconLog of beaconObject) {
+
+                    let blocks = beaconLog.proposed_blocks
+
+                    newValProposals += blocks
+                }
+
+                const newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+
+
+
+                minipoolObjects.push({
+                    address: minAddress,
+                    statusResult: currentStatus,
+                    statusTimeResult: statusTimeResult.toString(),
+                    timeRemaining: timeRemaining.toString(),
+                    graffiti: typeof printGraff === "string" ? printGraff : "",
+                    beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+                    beaconLogs: typeof beaconObject === "object" ? beaconObject : [emptyValidatorData],
+                    valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+                    valProposals: newValProposals.toString(),
+                    valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+                    isEnabled: isEnabled,
+                    valIndex: valIndex,
+
+                    pubkey: pubkey
+                })
+
+
+                seperateMinipoolObjects.push({
+                    address: minAddress,
+                    statusResult: currentStatus,
+                    statusTimeResult: statusTimeResult.toString(),
+                    timeRemaining: timeRemaining.toString(),
+                    graffiti: typeof printGraff === "string" ? printGraff : "",
+                    beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+
+                    valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+                    valProposals: newValProposals.toString(),
+                    valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+                    isEnabled: isEnabled,
+                    valIndex: valIndex,
+                    pubkey: pubkey
+                })
+
+
+
+
+
+            }
+
+
+
+        }
+
+
+
+
+        dispatch(getData(seperateMinipoolObjects))
+
+
+
+    }
 
 
 
@@ -224,10 +697,6 @@ const ValidatorDetail: NextPage = () => {
 
         let minipoolObject: rowObject;
 
-
-
-
-
         if (minipoolAddress === nullAddress) {
 
             minipoolObject = {
@@ -243,6 +712,8 @@ const ValidatorDetail: NextPage = () => {
                 valBalance: "",
                 valProposals: "",
                 valDayVariance: "",
+                isEnabled: false,
+                valIndex: ""
 
             };
 
@@ -300,6 +771,12 @@ const ValidatorDetail: NextPage = () => {
             const printGraff = typeof params.param1 === "string" ? await getGraffiti(params.param1) : "";
             const beaconStatus = typeof params.param1 === "string" ? await getBeaconchainStatus(params.param1) : ""
 
+            const isEnabled = typeof params.param1 === "string" ? await getEnabled(params.param1) : ""
+            const valIndex = typeof params.param1 === "string" ? await getValIndex(params.param1) : ""
+
+
+            setEnChecked(isEnabled)
+
             const beaconStatistics: beaconLogs = typeof params.param1 === "string" ? await getValBeaconStats(params.param1) : [emptyValidatorData]
 
             console.log(printGraff)
@@ -329,7 +806,7 @@ const ValidatorDetail: NextPage = () => {
             minipoolObject = {
                 address: minipoolAddress,
                 statusResult: currentStatus,
-                statusTimeResult: statusTimeResult,
+                statusTimeResult: statusTimeResult.toString(),
                 timeRemaining: timeRemaining.toString(),
                 graffiti: typeof printGraff === "string" ? printGraff : "",
                 beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
@@ -338,7 +815,14 @@ const ValidatorDetail: NextPage = () => {
                 valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
                 valProposals: newValProposals.toString(),
                 valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+                isEnabled: isEnabled,
+                valIndex: valIndex
             }
+
+            let newInputIndex = Number(params.param2)
+            let newObject = { newInputIndex, minipoolObject }
+
+          
 
 
 
@@ -346,26 +830,65 @@ const ValidatorDetail: NextPage = () => {
 
 
         setCurrentData(minipoolObject)
+
+
+
+
     }
 
 
 
-    useEffect(() => {
 
 
-        console.log("Get Data Running")
 
-        console.log(params)
-        console.log(params.param1)
+    const getEnabled = async (pubkey: string) => {
 
 
-        if (typeof params.param1 === "string" && typeof params.param2 === "string") {
-            getValidatorData();
-        }
 
 
-    }, [params])
 
+        const enabled = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()
+
+
+                console.log("GET Enabled" + Object.entries(jsonString))
+
+
+                const entries = Object.entries(jsonString);
+
+                console.log("grafitti entries:" + entries)
+                const entriesOfEntries = Object.entries(entries);
+
+                const newObject = Object(entriesOfEntries[0][1][1]);
+
+
+                let currentEnablement = newObject.enabled
+
+                console.log(currentEnablement)
+
+                return currentEnablement;
+
+            })
+            .catch(error => {
+
+                console.log(error);
+            });
+
+
+
+        return enabled;
+
+
+
+    }
 
 
     const getGraffiti = async (pubkey: string) => {
@@ -423,7 +946,7 @@ const ValidatorDetail: NextPage = () => {
 
         let newString;
 
-        const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+        const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
 
 
 
@@ -635,6 +1158,10 @@ const ValidatorDetail: NextPage = () => {
 
             const string = formatTime(timeRemaining);
 
+
+
+
+
             console.log("Time Remaining:" + string);
 
 
@@ -798,8 +1325,9 @@ const ValidatorDetail: NextPage = () => {
         const types = {
             SetGraffiti: [
                 { name: 'timestamp', type: 'uint256' },
-                { name: 'pubkey', type: 'bytes' },
-                { name: 'graffiti', type: 'string' }
+                { name: 'pubkeys', type: 'bytes[]' },
+                { name: 'graffiti', type: 'string' },
+
             ]
         }
 
@@ -809,7 +1337,7 @@ const ValidatorDetail: NextPage = () => {
 
         const date = Math.floor(Date.now() / 1000);
 
-        const value = { timestamp: date, pubkey: pubkey, graffiti: newGrafitti }
+        const value = { timestamp: date, pubkeys: [pubkey], graffiti: newGrafitti }
 
 
         let signature = await signer.signTypedData(EIP712Domain, types, value);
@@ -817,7 +1345,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+        await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
             method: "POST",
 
             headers: {
@@ -826,7 +1354,8 @@ const ValidatorDetail: NextPage = () => {
             body: JSON.stringify({
                 type: APItype,
                 data: value,
-                signature: signature
+                signature: signature,
+                indices: [index]
             })
         })
             .then(async response => {
@@ -841,7 +1370,8 @@ const ValidatorDetail: NextPage = () => {
             });
 
 
-        getValidatorData();
+        await getMinipoolData();
+        setShowForm(false);
 
 
 
@@ -1049,13 +1579,13 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        
+
 
 
         const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
-        const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+        const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
             method: "GET",
 
             headers: {
@@ -1178,7 +1708,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const currentRPC = currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
+        const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
 
 
 
@@ -1206,6 +1736,46 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    const getValIndex = async (pubkey: string) => {
+
+        const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+        const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
+            method: "GET",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()
+
+
+
+                for (const object of jsonString.data) {
+                    if (object.publickey === pubkey) {
+
+                        return object.validatorindex
+
+
+                    }
+                }
+                console.log("Result of Logs GET" + Object.entries(jsonString));
+                console.log(typeof jsonString);
+
+            })
+            .catch(error => {
+
+                console.log(error);
+            });
+
+        return valIndex
+    }
+
+
+
     const getValBeaconStats = async (pubkey: string) => {
 
 
@@ -1214,7 +1784,7 @@ const ValidatorDetail: NextPage = () => {
         const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
-        const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=7f0daf71-cc5e-4a97-8106-a3b3d6b2332d`, {
+        const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
             method: "GET",
 
             headers: {
@@ -1247,10 +1817,10 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        
 
 
-  
+
+
 
 
         const valStats = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/stats/${valIndex}`, {
@@ -1292,35 +1862,20 @@ const ValidatorDetail: NextPage = () => {
     const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
     const [xAxisData, setXAxisData] = useState<Array<number>>([]);
 
-    const convertToGraphPlotPoints = async () => {
+    const convertToGraphPlotPoints = () => {
 
 
-        let newPlotPoints: Array<number> = [];
-
-        //for (const object of currentRowData) {
-
-        for (const log of currentData.beaconLogs) {
 
 
-            if (currentData.statusResult === "Staking" && Number(log.start_balance) !== 0) {
-
-                let variance = log.end_balance - log.end_effective_balance
-
-                let editedVariance = Number(ethers.formatUnits(variance, "gwei"))
-
-                newPlotPoints.push(editedVariance)
-            }
-
-        }
-
-        //}
-
-
-        setTotalGraphPlotPoints(newPlotPoints);
+        setTotalGraphPlotPoints(reduxGraphPoints);
 
 
 
     }
+
+
+
+
 
 
     useEffect(() => {
@@ -1408,11 +1963,103 @@ const ValidatorDetail: NextPage = () => {
 
     useEffect(() => {
 
-        if (currentData.address !== "") {
+        if (reduxData.address !== "") {
             convertToGraphPlotPoints();
         }
 
-    }, [currentData])
+    }, [reduxData])
+
+
+    const [enChecked, setEnChecked] = useState(false)
+
+
+
+    const handleEnCheckedInput = (e: any) => {
+        const { name, type, value, checked } = e.target;
+        const newValue = type === "checkbox" ? checked : value;
+        setEnChecked(checked)
+
+
+    }
+
+    useEffect(() => {
+        console.log(enChecked)
+
+    }, [enChecked])
+
+
+
+
+    const toggleEnableDisable = async () => {
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+
+
+
+
+
+
+
+
+
+
+        const types = {
+            SetEnabled: [
+                { name: 'timestamp', type: 'uint256' },
+                { name: 'pubkeys', type: 'bytes[]' },
+                { name: 'enabled', type: 'bool' },
+
+            ]
+        }
+
+
+        const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+        const APItype = "SetEnabled"
+
+        const date = Math.floor(Date.now() / 1000);
+
+        const value = { timestamp: date, pubkeys: [params.param1], enabled: enChecked }
+
+
+        let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+        await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                type: APItype,
+                data: value,
+                signature: signature,
+                indices: [params.param2]
+            })
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+                console.log("Get Deposit Data response" + jsonString)
+
+                alert("Enable/Disable sucessful")
+            })
+            .catch(error => {
+                // Handle error here
+                console.log(error);
+            });
+
+
+
+
+
+
+
+    }
 
 
 
@@ -1437,511 +2084,693 @@ const ValidatorDetail: NextPage = () => {
             </Head>
             <Navbar />
 
+            {xAxisData.length > 0 ? (<>
+                <div className="w-full h-[auto] flex flex-col items-center justify-center py-10">
+                    <div className="w-[50%] flex flex-col justify-center items-center">
+                        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
 
-            <div className="w-full flex flex-col items-center justify-center py-10">
-                <div className="w-[50%] flex flex-col justify-center items-center">
-                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
+                        <p className="mt-4 text-gray-500 sm:text-xl">
 
-                    <p className="mt-4 text-gray-500 sm:text-xl">
-
-                        <ContractTag pubkey={params?.param1} />
-                    </p>
+                            <ContractTag pubkey={params?.param1} />
+                        </p>
+                    </div>
                 </div>
-            </div>
 
 
 
 
-            <div className="flex items-center justify gap-5">
-
-
-                <div className="flex items-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5">
-                    {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
-
-                        <div className="w-[600px] h-[auto] py-3">
-
-
-                            <Line
-
-                                data={graphData}
-                                options={options}
-                                onClick={onClick}
-                                ref={charRef}
-
-                            >
+                <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
-                            </Line>
 
-                            <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
 
-                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
 
+                    <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
+
+                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                            <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                <FaEthereum className="text-2xl text-blue-500" />
+                            </div>
+                            <div>
+
+                                <span className="block text-xl mb-1 font-bold">Validator Status:</span>
+                                <span className="block text-gray-500 mb-1">
+
+
+                                    {reduxData.statusResult === "Prelaunch" &&
+                                        <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+
+
+                                    {reduxData.statusResult === "Initialised" &&
+
+                                        <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+
+                                    {reduxData.statusResult === "Staking" &&
+
+                                        <span className="py-1 font-semibold text-md leading-tight text-green-700 rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+
+
+                                    {reduxData.statusResult === "Withdrawable" &&
+
+                                        <span className="py-1 font-semibold text-md leading-tight text-green-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+
+
+                                    {reduxData.statusResult === "Dissolved" &&
+
+                                        <span className="py-1 font-semibold text-md leading-tight text-red-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+
+
+                                    {reduxData.statusResult === "Empty" &&
+
+                                        <span className="py-1 font-semibold  text-md leading-tight text-greay-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                    }
+                                </span>
+
+
+                                {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
+                                    <CountdownComponent milliseconds={reduxData.timeRemaining} />}
+
+                                {reduxData.statusResult === "Prelaunch" &&
+
+                                    <button onClick={() => { stakeMinipool() }} className="bg-green-500 mt-1  text-xs  hover:bg-green-700 text-white font-bold  py-2 px-4 rounded-md">Stake Minipool</button>
+
+
+                                }
+                                {reduxData.statusResult === "Dissolved" &&
+                                    <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-1  text-xs  hover:bg-red-700 text-white font-bold  py-2 px-4 rounded-md">Close Minipool</button>
+                                }
 
 
                             </div>
                         </div>
 
-                    }
-                </div>
+                        <div className="flex w-auto items-center p-6 bg-white shadow border rounded-lg">
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                <VscActivateBreakpoints className="text-blue-500 text-2xl" />
+
+                            </div>
+                            <div className='flex flex-col items-start justify-center w-full'>
+
+                                <div className='flex items-center gap-2 justify-start w-full'>
+
+                                    <span className="block text-xl font-bold">Enabled?</span>
+
+                                    <label className="self-center">
 
 
 
 
-                <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
+                                        <input
+                                            type="checkbox"
+                                            className="self-center"
+                                            checked={enChecked}
+                                            onChange={handleEnCheckedInput}
+                                        />
+                                    </label>
+                                </div>
 
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                        <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-white-100 rounded-full mr-6">
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" viewBox="0 0 327.5 533.3" xmlSpace="preserve">
-                                <style>{`.st0{fill:#8A92B2;} .st1{fill:#62688F;} .st2{fill:#454A75;}`}</style>
-                                <path className="st0" d="M163.7,197.2V0L0,271.6L163.7,197.2z" />
-                                <path className="st1" d="M163.7,368.4V197.2L0,271.6L163.7,368.4z M163.7,197.2l163.7,74.4L163.7,0V197.2z" />
-                                <path className="st2" d="M163.7,197.2v171.2l163.7-96.8L163.7,197.2z" />
-                                <path className="st0" d="M163.7,399.4L0,302.7l163.7,230.7V399.4z" />
-                                <path className="st1" d="M327.5,302.7l-163.8,96.7v134L327.5,302.7z" />
-                            </svg>
+                                <div className='w-full flex gap-2 text-xs items-start justify-start'>
+                                    <button onClick={() => { toggleEnableDisable() }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
+                                        Confirm Changes
+                                    </button>
+                                </div>
+
+
+                            </div>
+
                         </div>
-                        <div>
-                            <span className="block text-xl mb-2 font-bold">Validator Status:</span>
-                            <span className="block text-gray-500 mb-2">
+                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
 
+                            <div>
 
-                                {currentData.statusResult === "Prelaunch" &&
-                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
+                                <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                    {Number(reduxData.valDayVariance) > 0 ? (
+                                        <div className='flex items-center justify-center'>
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-green-100 rounded-full mr-3">
+                                                <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                </svg>
 
+                                            </div>
 
-                                }
+                                            <div className="px-3">
+                                                <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
 
+                                                <p className="text-green-600"> {reduxData.valDayVariance}</p>
 
-                                {currentData.statusResult === "Initialised" &&
-
-                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                                }
-
-                                {currentData.statusResult === "Staking" &&
-
-                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                                }
-
-
-                                {currentData.statusResult === "Withdrawable" &&
-
-                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                                }
-
-
-                                {currentData.statusResult === "Dissolved" &&
-
-                                    <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                                }
-
-
-                                {currentData.statusResult === "Empty" &&
-
-                                    <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{currentData.statusResult}</span>
-
-
-                                }
-                            </span>
-
-                            {currentData.timeRemaining !== "No countdowns initiated" &&
-                                <CountdownComponent milliseconds={currentData.timeRemaining} />}
-                        </div>
-                    </div>
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-
-                        <div>
-
-                            <span className='text-green-500 text-lg  font-bold' style={Number(currentData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                {Number(currentData.valDayVariance) > 0 ? (
-                                    <div className='flex items-center justify-center'>
-                                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-green-100 rounded-full mr-3">
-                                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                            </svg>
+                                            </div>
 
                                         </div>
 
-                                        <div>
-                                            <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
 
-                                            <p className="text-green-600"> {currentData.valDayVariance}</p>
+                                    ) : (
+                                        <div className='flex items-center justify-center'>
+                                            {reduxData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-red-100 rounded-full mr-6">
+                                                <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                                </svg>
+                                            </div>}
+
+                                            <div>
+                                                <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
+
+                                                <p className='text-red-600'>{reduxData.valDayVariance !== "" && reduxData.valDayVariance}</p>
+
+                                            </div>
+
                                         </div>
+                                    )}
 
-                                    </div>
-
-
-                                ) : (
-                                    <>
-                                        {currentData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-red-100 rounded-full mr-6">
-                                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                            </svg>
-                                        </div>}
-
-                                        <div>
-                                            <span className="block text-xl font-black-bold">Daily ETH Tracker:</span>
-                                            <p className='text-red-600'>{currentData.valDayVariance !== "" && "- " + currentData.valDayVariance}</p>
-                                        </div>
-                                    </>
-                                )}
-
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                            <GrSatellite className="text-red-500 text-2xl" />
-                        </div>
-                        <div>
-                            <div className="flex items-start flex-col gap-1 text-l ">
-                                {currentData.beaconStatus !== "" &&
-                                    <h3 className='block text-xl mb-1 font-bold'>Status on Beaconchain</h3>
-                                }
-                                <p>{currentData.beaconStatus}</p>
+                                </span>
                             </div>
                         </div>
-                    </div>
+                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
+                                <GrSatellite className="text-yellow-500 text-2xl" />
+                            </div>
+                            <div>
+                                <div className="flex items-start flex-col gap-0.5 text-l ">
+                                    {reduxData.beaconStatus !== "" &&
+                                        <h3 className='block text-xl mb-1 font-bold'>Beaconchain</h3>
+                                    }
 
-
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                            <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                        </div>
-                        <div>
-                            <div className='flex items-start flex-col gap-1 text-l '>
-                                <span className="text-xl font-bold">Minipool Address:</span>
-                                <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(currentData.address)} /></p>
+                                    <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
+                                    <a className="text-black-500  hover:text-blue-300  text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
 
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                            <GrSatellite className="text-red-500 text-2xl" />
-                        </div>
-                        <div>
-                            <div className="flex items-start flex-col gap-1 text-l ">
-                                {currentData.beaconStatus !== "" &&
-                                    <h3 className='block text-xl mb-1 font-bold'>Status on Beaconchain</h3>
-                                }
-                                <p>{currentData.beaconStatus}</p>
+                        <div className="flex items-center p-6 bg-white shadow rounded-lg">
+                            <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">
+                                <Image
+                                    width={70}
+                                    height={70}
+                                    alt="Rocket Pool Logo"
+                                    src={"/images/rocketPlogo.png"} />
+                            </div>
+                            <div>
+                                <div className='flex items-start flex-col gap-1 text-l '>
+                                    <span className="text-xl font-bold">Minipool Address:</span>
+                                    <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(reduxData.address)} /></p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="flex items-center p-8 bg-white shadow rounded-lg">
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                            <GrSatellite className="text-red-500 text-2xl" />
-                        </div>
-                        <div>
-                            <div className="flex items-start flex-col gap-1 text-l ">
-                                <p className="text-xs text-gray-600">    {currentData.graffiti}</p>
 
 
 
 
-                                <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(currentData.graffiti) }}>
-                                    Change
-                                </button>
+                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
+                                <PiSignatureBold className="text-purple-500 text-3xl" />
+                            </div>
+                            <div>
+                                <div className="flex items-start flex-col gap-1 text-l ">
+                                    <p className="text-xs text-gray-600">    {reduxData.graffiti}</p>
 
+
+
+
+                                    <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
+                                        Change
+                                    </button>
+
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
-
-            </div>
-
-
-            <div className="w-full flex flex-col items-center justify-center py-10">
-
-                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Current Actions: </h2>
-                <div className='flex'>
-                    {currentData.statusResult === "Dissolved" &&
-                        <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
-                    }
-                    {currentData.statusResult === "Prelaunch" &&
-
-                        <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
-
-
-                    }
-
-                    {currentData.statusResult === "Staking" &&
-
-                        <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
-
-                    }
-
-
-                    {currentData.statusResult === "withdrawal_done" &&
-
-                        <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
-
-                    }
-
-                    {currentData.statusResult !== "Empty" &&
-                        <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
-
-                    }
+                    </section>
 
                 </div>
 
-            </div>
+
+                <div className="w-full flex flex-col items-center justify-center py-10">
 
 
-           
 
 
-
-            <Modal
-                isOpen={showForm}
-                onRequestClose={() => setShowForm(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-                style={{
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: "999999999999999999999999999999999999",
-                    },
-                    content: {
-                        width: '50%',
-                        height: '200px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'black',
-                        backgroundColor: "#fff",
-                        border: "0",
-                        borderRadius: "20px",
-                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                        overflow: "auto",
-                        WebkitOverflowScrolling: "touch", // For iOS Safari
-                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                }}
-            >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                        setShowForm(false)
-                    }} />
-                    <h2>Graffiti Update</h2>
-
-
-                    <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
-
-                    <div >
-                        <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
-                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
-                    </div>
                 </div>
-            </Modal>
-            <Modal
-                isOpen={showForm2}
-                onRequestClose={() => setShowForm2(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-                style={{
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: "999999999999999999999999999999999999",
-                    },
-                    content: {
-                        width: '50%',
-                        height: '700px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'black',
-                        backgroundColor: "#fff",
-                        border: "0",
-                        borderRadius: "20px",
-                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                        overflow: "auto",
-                        WebkitOverflowScrolling: "touch", // For iOS Safari
-                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                }}
-            >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                        setShowForm2(false)
-                    }} />
-                    <h2>Get Presigned Exit Message</h2>
 
-                    <input
 
-                        className="w-[60%] self-center border border-black-200 text-black-500"
-                        type="datetime-local"
-                        id="datetime"
-                        value={dateTime}
-                        onChange={(e) => setDateTime(e.target.value)}
-                    />
 
-                    <h4>Enter Public Key:</h4>
-                    <label className="w-[80%]">
-                        Garden?
+                <div className=" w-full flex flex-col items-center justify-center gap-8  ">
+
+
+                <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+
+                    <table className="w-full">
+                        <tbody>
+                            <tr className="border-b-2">
+                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+
+                                    <p className="text-black-500">Fee recipient</p>
+
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+
+                                </td>
+                            </tr>
+                            <tr className="border-b-2 ">
+                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+                                    <p>Graffiti</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+
+                                    {reduxData.graffiti}
+
+                                </td>
+                            </tr>
+                            <tr className="border-b-2 ">
+                                <td className="px-5  bg-gray-100 py-3 text-s font-bold w-auto text-center">
+                                    <p>Balance</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+                                    {reduxData.valBalance}
+                                </td>
+                            </tr>
+                            <tr className="border-b-2 ">
+                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+                                    <p>Validator Index</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+                                    {reduxData.valIndex}
+
+                                </td>
+                            </tr>
+                            <tr className="border-b-2 ">
+                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                    <p>Minipool Address</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+                                    <ContractTag pubkey={truncateString(reduxData.address)} />
+
+                                </td>
+                            </tr>
+
+                            <tr className="border-b-2 ">
+                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                    <p>Active since</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                </div>
+
+
+
+
+                <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+
+                    <table className="w-full">
+                        <tbody>
+
+                            {reduxData.statusResult === "Dissolved" &&
+
+                             <tr className="border-b-2 ">
+                                <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                    <p>Close Failed Minipool Instance</p>
+                                </td>
+                                <td className="px-5  py-3 text-s w-auto text-center">
+                                <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
+                                </td>
+                            </tr>
+                                
+                            }
+
+
+                            {reduxData.statusResult === "Prelaunch" &&
+                               <tr className="border-b-2 ">
+                               <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                   <p>Stake Prelaunched Minipool</p>
+                               </td>
+                               <td className="px-5 py-3 text-s w-auto text-center">
+                                <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
+                                </td>
+                            </tr>
+                            }
+
+                            {reduxData.statusResult === "Staking" &&
+                             <tr className="border-b-2 ">
+                             <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                 <p>Close Active Minipool</p>
+                             </td>
+                             <td className="px-5  py-3 text-s w-auto text-center">
+                                <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
+                                </td>
+                            </tr>
+                            }
+
+
+                            {reduxData.beaconStatus === "withdrawal_done" &&
+                             <tr className="border-b-2 ">
+                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center" >
+                                 <p >Distribute balance of  &quot;Withdrawn&quot; Minipool</p>
+                             </td>
+                             <td className="px-5  py-3 text-s w-auto text-center">
+                                <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
+                                </td>
+                            </tr>
+                            }
+
+                            {reduxData.statusResult !== "Empty" &&
+                             <tr className="border-b-2 ">
+                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                 <p>Get Presigned Exit Message</p>
+                             </td>
+                             <td className="px-5 py-3 text-s w-auto text-center">
+                                <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
+                                </td>
+                            </tr>
+                            }
+
+
+
+                        </tbody>
+                    </table>
+
+
+                </div>
+
+                </div>
+
+
+                
+                <div className="flex items-center  justify-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5 my-8">
+                        {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                            <div className="w-[500px] h-[auto]  flex flex-col items-center justify-center py-3">
+
+
+                                <Line
+
+                                    data={graphData}
+                                    options={options}
+                                    onClick={onClick}
+                                    ref={charRef}
+
+                                >
+
+
+
+                                </Line>
+
+                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                    <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                    <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                    <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                    <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                                </div>
+                                <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className=" text-blue-400 hover:text-blue-200" href="rocketsweep.app">rocketsweep.app</a></p>
+
+                            </div>
+
+                        }
+                    </div>
+
+
+
+
+
+
+
+
+                <Modal
+                    isOpen={showForm}
+                    onRequestClose={() => setShowForm(false)}
+                    contentLabel="Delete User Modal"
+                    className="modal"
+                    style={{
+                        overlay: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            zIndex: "999999999999999999999999999999999999",
+                        },
+                        content: {
+                            width: '50%',
+                            height: '200px',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'black',
+                            backgroundColor: "#fff",
+                            border: "0",
+                            borderRadius: "20px",
+                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                            overflow: "auto",
+                            WebkitOverflowScrolling: "touch", // For iOS Safari
+                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                        },
+                    }}
+                >
+                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                        <AiOutlineClose onClick={() => {
+                            setShowForm(false)
+                        }} />
+                        <h2>Graffiti Update</h2>
+
+
+                        <input value={currentEditGraffiti} className="border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
+
+                        <div >
+                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
+                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+                        </div>
+                    </div>
+                </Modal>
+                <Modal
+                    isOpen={showForm2}
+                    onRequestClose={() => setShowForm2(false)}
+                    contentLabel="Delete User Modal"
+                    className="modal"
+                    style={{
+                        overlay: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            zIndex: "999999999999999999999999999999999999",
+                        },
+                        content: {
+                            width: '50%',
+                            height: '700px',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'black',
+                            backgroundColor: "#fff",
+                            border: "0",
+                            borderRadius: "20px",
+                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                            overflow: "auto",
+                            WebkitOverflowScrolling: "touch", // For iOS Safari
+                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                        },
+                    }}
+                >
+                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                        <AiOutlineClose onClick={() => {
+                            setShowForm2(false)
+                        }} />
+                        <h2>Get Presigned Exit Message</h2>
+
                         <input
-                            type="checkbox"
 
-                            checked={checked}
-                            onChange={handleChecked}
+                            className="w-[60%] self-center border border-black-200 text-black-500"
+                            type="datetime-local"
+                            id="datetime"
+                            value={dateTime}
+                            onChange={(e) => setDateTime(e.target.value)}
                         />
-                    </label>
 
-                    <textarea value={publicKeyArmored} onChange={handlePublicKeyArmored} />
+                        
+                        <label className="w-full flex items-center justify-center gap-2">
+                            <span className="font-bold">Encrypt your Exit Message?</span>
+                            <input
+                                type="checkbox"
+
+                                checked={checked}
+                                onChange={handleChecked}
+                            />
+                        </label>
+
+                      { checked && <>
+                        <h4>Enter Public Key:</h4>
+
+                        <textarea className="border " value={publicKeyArmored} onChange={handlePublicKeyArmored} />
+                        </>  }
 
 
-
-                    <div >
-                        <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
-                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+                        <div >
+                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
+                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+                        </div>
                     </div>
-                </div>
-            </Modal>
+                </Modal>
 
+                <Modal
+                    isOpen={showForm3}
+                    onRequestClose={() => setShowForm3(false)}
+                    contentLabel="Delete User Modal"
+                    className="modal"
+                    style={{
+                        overlay: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            zIndex: "999999999999999999999999999999999999",
+                        },
+                        content: {
+                            width: '50%',
+                            height: '300px',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'black',
+                            backgroundColor: "#fff",
+                            border: "0",
+                            borderRadius: "20px",
+                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                            overflow: "auto",
+                            WebkitOverflowScrolling: "touch", // For iOS Safari
+                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                        },
+                    }}
+                >
+                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                        <AiOutlineClose onClick={() => {
+                            setShowForm3(false)
+                        }} />
+                        <h2>Add Credit to your Vrun account</h2>
 
-            <Modal
-                isOpen={showForm3}
-                onRequestClose={() => setShowForm3(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-                style={{
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: "999999999999999999999999999999999999",
-                    },
-                    content: {
-                        width: '50%',
-                        height: '300px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'black',
-                        backgroundColor: "#fff",
-                        border: "0",
-                        borderRadius: "20px",
-                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                        overflow: "auto",
-                        WebkitOverflowScrolling: "touch", // For iOS Safari
-                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                }}
-            >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                        setShowForm3(false)
-                    }} />
-                    <h2>Add Credit to your Vrun account</h2>
+                        <input
 
-                    <input
+                            className="w-[60%] self-center border border-black-200 text-black-500"
+                            type="text"
 
-                        className="w-[60%] self-center border border-black-200 text-black-500"
-                        type="text"
-
-                        value={feeETHInput}
-                        onChange={handleETHInput}
-                    />
+                            value={feeETHInput}
+                            onChange={handleETHInput}
+                        />
 
 
 
-                    <div >
-                        <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
-                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
+                        <div >
+                            <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
+                        </div>
                     </div>
-                </div>
-            </Modal>
+                </Modal>
 
 
-            <Modal
-                isOpen={showForm4}
-                onRequestClose={() => setShowForm4(false)}
-                contentLabel="Delete User Modal"
-                className="modal"
-                style={{
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: "999999999999999999999999999999999999",
-                    },
-                    content: {
-                        width: '50%',
-                        height: '700px',
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'black',
-                        backgroundColor: "#fff",
-                        border: "0",
-                        borderRadius: "20px",
-                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                        overflow: "auto",
-                        WebkitOverflowScrolling: "touch", // For iOS Safari
-                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                }}
-            >
-                <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                        setShowForm4(false)
-                    }} />
-                    <h2>Post Presigned Exit Message</h2>
+                <Modal
+                    isOpen={showForm4}
+                    onRequestClose={() => setShowForm4(false)}
+                    contentLabel="Delete User Modal"
+                    className="modal"
+                    style={{
+                        overlay: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            zIndex: "999999999999999999999999999999999999",
+                        },
+                        content: {
+                            width: '50%',
+                            height: '700px',
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'black',
+                            backgroundColor: "#fff",
+                            border: "0",
+                            borderRadius: "20px",
+                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                            overflow: "auto",
+                            WebkitOverflowScrolling: "touch", // For iOS Safari
+                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                        },
+                    }}
+                >
+                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                        <AiOutlineClose onClick={() => {
+                            setShowForm4(false)
+                        }} />
+                        <h2>Post Presigned Exit Message</h2>
 
 
-                    <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
-
-
+                        <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
 
 
 
-                    <textarea value={exitMessage} onChange={handleChangeExitMessage} />
+
+
+                        <textarea className="border " value={exitMessage} onChange={handleChangeExitMessage} />
 
 
 
-                    <div >
-                        <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
-                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
+                        <div >
+                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
+                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
+                        </div>
                     </div>
+                </Modal>
+
+            </>) : (
+
+                <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
+
+                    <h3>Please wait while we retrieve your validator detail...</h3>
+
+                    <BounceLoader />
+
+
                 </div>
-            </Modal>
 
 
 
-           {/*  <div>
+
+            )}
+
+
+
+            {/*  <div>
 
                 <h2>
 
@@ -1980,7 +2809,7 @@ const ValidatorDetail: NextPage = () => {
             */}
 
 
-        
+
 
 
 

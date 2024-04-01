@@ -10,6 +10,12 @@ import {
 
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import {Provider} from 'react-redux';
+import {store} from "./GlobalRedux/store"
+
+
+const holeskyRPCKey = process.env.HOLESKY_RPC
+const mainnetRPCKey = process.env.MAINNET_RPC
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
@@ -23,12 +29,12 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
   ],
   [ jsonRpcProvider({
     rpc: () => ({
-      http: 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/',
+      http: `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/`,
     }),
   }),
   jsonRpcProvider({
     rpc: () => ({
-      http: 'https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/',
+      http: `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`,
     }),
   })
     ,publicProvider()]
@@ -55,11 +61,15 @@ const wagmiConfig = createConfig({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
+   
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
+      <Provider store={store}>
         <Component {...pageProps} />
+      </Provider>
       </RainbowKitProvider>
     </WagmiConfig>
+
   );
 }
 
