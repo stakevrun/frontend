@@ -30,7 +30,7 @@ import Image from 'next/image';
 
 import RollingNumber from './rollingNumber';
 import { Line, getElementsAtEvent } from 'react-chartjs-2';
-import type { RootState } from '../GlobalRedux/store';
+import type { RootState } from '../globalredux/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { increment, decrement, incrementByAmount } from "../globalredux/Features/counter/counterSlice"
 import { getData } from "../globalredux/Features/validator/valDataSlice"
