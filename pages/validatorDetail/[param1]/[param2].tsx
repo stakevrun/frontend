@@ -26,10 +26,10 @@ import managerABI from "../../json/managerABI.json"
 import BounceLoader from "react-spinners/BounceLoader";
 import { useSelector, useDispatch } from 'react-redux';
 import { increment, decrement, incrementByAmount } from "../../GlobalRedux/Features/counter/counterSlice"
-import type { RootState } from '../../GlobalRedux/store';
-import { getData } from "../../GlobalRedux/Features/validator/valDataSlice"
-import { attestationsData } from '../../GlobalRedux/Features/attestations/attestationsDataSlice';
-import { getGraphPointsData } from "../../GlobalRedux/Features/graphpoints/graphPointsDataSlice"
+import type { RootState } from '../../globalredux/store';
+import { getData } from "../../globalredux/Features/validator/valDataSlice"
+import { attestationsData } from '../../globalredux/Features/attestations/attestationsDataSlice';
+import { getGraphPointsData } from "../../globalredux/Features/graphpoints/graphPointsDataSlice"
 
 import Image from 'next/image';
 
