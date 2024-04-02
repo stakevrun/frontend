@@ -61,14 +61,26 @@ if (process.browser) {
     Modal.setAppElement(document.body);
 }
 
+
+interface MyComponentProps {
+    param1: string | string[] | undefined;
+    param2: string | string[] | undefined;
+  }
+
 const ValidatorDetail: NextPage = () => {
 
 
+    const router = useRouter();
+    const { param1, param2 } = router.query;
 
-    const router = useRouter()
-    const params = useParams<{ param1: string; param2: string }>() // Accessing the 'id' parameter from the URL
+   
+    const params: MyComponentProps = {
+        param1: param1,
+        param2: param2
 
+    } // Accessing the 'id' parameter from the URL
 
+ 
 
 
     const { address } = useAccount({

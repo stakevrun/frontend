@@ -2533,7 +2533,9 @@ const AccountMain: NextPage = () => {
   const router = useRouter();
 
   const handleClick = (param1: string, param2: number) => {
+
     router.push(`/validatorDetail/${param1}/${param2}`);
+    
   };
 
 
