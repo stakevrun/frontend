@@ -11,7 +11,8 @@ import {
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import {Provider} from 'react-redux';
-import {store} from "./GlobalRedux/store"
+import {store} from "./globalredux/store"
+import { Providers } from './globalredux/provider';
 
 
 const holeskyRPCKey = process.env.HOLESKY_RPC
@@ -61,14 +62,15 @@ const wagmiConfig = createConfig({
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-   
+   <Providers>
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
-      <Provider store={store}>
+   
         <Component {...pageProps} />
-      </Provider>
+  
       </RainbowKitProvider>
     </WagmiConfig>
+    </Providers>
 
   );
 }

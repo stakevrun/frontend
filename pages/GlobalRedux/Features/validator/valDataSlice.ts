@@ -1,3 +1,6 @@
+'use client'
+
+
 import { createSlice } from '@reduxjs/toolkit'
 import { ethers } from 'ethers';
 import storageABI from "../../../json/storageABI.json"
