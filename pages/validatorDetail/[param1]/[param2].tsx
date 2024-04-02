@@ -98,9 +98,9 @@ const ValidatorDetail: NextPage = () => {
     //Ace
 
       
-    const reduxData = useSelector((state: RootState) => state.valData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
-    const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
-    const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0])
+    const reduxData = useSelector((state: RootState) => state.valData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0]);
+    const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0]);
+    const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0])
 
 
     
