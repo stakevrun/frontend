@@ -10,8 +10,7 @@ import {
 
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import {Provider} from 'react-redux';
-import {store} from "./globalredux/store"
+
 import { Providers } from './globalredux/provider';
 
 
