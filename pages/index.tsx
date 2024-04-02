@@ -5,7 +5,7 @@ import styles from '../styles/Home.module.css';
 import Link
   from 'next/link';
 import { useAccount } from 'wagmi';
-import Navbar from './components/navbar';
+import Navbar from '../components/navbar';
 import { useEffect } from 'react';
 
 

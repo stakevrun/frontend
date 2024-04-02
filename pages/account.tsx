@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Navbar from './components/navbar';
+import Navbar from '../components/navbar';
 import { NextPage } from 'next';
-import Leftbar from './components/leftbar';
-import AccountMain from './components/accountMain';
+import Leftbar from '../components/leftbar';
+import AccountMain from '../components/accountMain';
 import Head from 'next/head';
 
 const Account: NextPage = () => {

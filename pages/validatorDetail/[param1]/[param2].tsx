@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useRef } from 'react'
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import Navbar from '../../components/navbar';
+import Navbar from '../../../components/navbar';
 import { useAccount, useChainId } from 'wagmi';
 import { useRouter } from 'next/router';
 import { ethers } from 'ethers';
 import * as openpgp from 'openpgp';
-import storageABI from "../../json/storageABI.json"
-import miniManagerABI from "../../json/miniManagerABI.json"
-import daoABI from "../../json/daoABI.json"
-import feeABI from "../../json/feeABI.json"
-import CountdownComponent from '../../components/countdown.jsx';
+import storageABI from "../../../json/storageABI.json"
+import miniManagerABI from "../../../json/miniManagerABI.json"
+import daoABI from "../../../json/daoABI.json"
+import feeABI from "../../../json/feeABI.json"
+import CountdownComponent from '../../../components/countdown.jsx';
 import QuickNode from '@quicknode/sdk';
 import Modal from 'react-modal';
-import ContractTag from "../../components/contractTag"
+import ContractTag from "../../../components/contractTag"
 import { GrSatellite } from "react-icons/gr";
 import { AiOutlineClose } from 'react-icons/ai'
 import { useParams } from 'next/navigation'
@@ -22,7 +22,7 @@ import { Line, getElementsAtEvent } from 'react-chartjs-2';
 import { PiSignatureBold } from "react-icons/pi";
 import { FaEthereum } from "react-icons/fa";
 import { VscActivateBreakpoints } from "react-icons/vsc";
-import managerABI from "../../json/managerABI.json"
+import managerABI from "../../../json/managerABI.json"
 import BounceLoader from "react-spinners/BounceLoader";
 import { useSelector, useDispatch } from 'react-redux';
 import { increment, decrement, incrementByAmount } from "../../../globalredux/Features/counter/counterSlice"

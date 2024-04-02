@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Navbar from './components/navbar';
+import Navbar from '../components/navbar';
 import type { NextPage } from 'next';
 import { useAccount, useChainId } from 'wagmi';
-import NoConnection from './components/noConnection';
+import NoConnection from '../components/noConnection';
 import { ethers } from 'ethers';
-import NoRegistration from './components/noRegistration';
+import NoRegistration from '../components/noRegistration';
 import { mainnet } from 'viem/chains';
 import { Address, createPublicClient, hexToNumber, http, publicActions, createWalletClient, decodeEventLog, walletActions, custom, decodeFunctionData, decodeFunctionResult, parseEther, formatEther, TransactionReceipt } from 'viem';
 import Head from 'next/head';
-import miniManagerABI from "./json/miniManagerABI.json"
+import miniManagerABI from "../json/miniManagerABI.json"
 
 
 
 
 
-import RollingNumber from './components/rollingNumber';
+import RollingNumber from '../components/rollingNumber';
 
 
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
