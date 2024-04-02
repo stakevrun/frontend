@@ -25,11 +25,11 @@ import { VscActivateBreakpoints } from "react-icons/vsc";
 import managerABI from "../../json/managerABI.json"
 import BounceLoader from "react-spinners/BounceLoader";
 import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement, incrementByAmount } from "../../globalredux/Features/counter/counterSlice"
-import type { RootState } from '../../globalredux/store';
-import { getData } from "../../globalredux/Features/validator/valDataSlice"
-import { attestationsData } from '../../globalredux/Features/attestations/attestationsDataSlice';
-import { getGraphPointsData } from "../../globalredux/Features/graphpoints/graphPointsDataSlice"
+import { increment, decrement, incrementByAmount } from "../../../globalredux/Features/counter/counterSlice"
+import type { RootState } from '../../../globalredux/store';
+import { getData } from "../../../globalredux/Features/validator/valDataSlice"
+import { attestationsData } from '../../../globalredux/Features/attestations/attestationsDataSlice';
+import { getGraphPointsData } from "../../../globalredux/Features/graphpoints/graphPointsDataSlice"
 
 import Image from 'next/image';
 
