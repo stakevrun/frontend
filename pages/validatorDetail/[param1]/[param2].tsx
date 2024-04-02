@@ -95,6 +95,8 @@ const ValidatorDetail: NextPage = () => {
     const count = useSelector((state: RootState) => state.counter.value)
     const dispatch = useDispatch()
 
+    //Ace
+
       
     const reduxData = useSelector((state: RootState) => state.valData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
     const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
