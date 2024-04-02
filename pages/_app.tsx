@@ -11,7 +11,7 @@ import {
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
-import { Providers } from './globalredux/provider';
+import { Providers } from './pages/globalredux/provider';
 
 
 const holeskyRPCKey = process.env.HOLESKY_RPC
