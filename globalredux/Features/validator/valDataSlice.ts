@@ -2,12 +2,7 @@
 
 
 import { createSlice } from '@reduxjs/toolkit'
-import { ethers } from 'ethers';
-import storageABI from "../../../json/storageABI.json"
-import miniManagerABI from "../../../json/miniManagerABI.json"
-import managerABI from "../../../json/managerABI.json"
-import daoABI from "../../../json/daoABI.json"
-import distributorABI from "../../../json/distributorABI.json"
+
 
 
 
