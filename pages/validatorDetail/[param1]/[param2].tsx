@@ -95,13 +95,13 @@ const ValidatorDetail: NextPage = () => {
     const count = useSelector((state: RootState) => state.counter.value)
     const dispatch = useDispatch()
 
+      
+    const reduxData = useSelector((state: RootState) => state.valData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
+    const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0]);
+    const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[typeof params.param1 === "string" && typeof params.param2 === "string" ? Number(params.param2) : 0])
 
-    const reduxData = useSelector((state: RootState) => state.valData.data[Number(params.param2)]);
-    const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[Number(params.param2)]);
-    const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[Number(params.param2)])
 
-
-
+    
 
 
 
@@ -1992,6 +1992,10 @@ const ValidatorDetail: NextPage = () => {
 
     const toggleEnableDisable = async () => {
 
+
+        if (typeof params.param1 === "string" && typeof params.param2 === "string") {
+           
+
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
@@ -2056,7 +2060,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-
+        }
 
 
     }
