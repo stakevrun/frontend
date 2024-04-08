@@ -43,7 +43,7 @@ export type beaconLogs = Array<beaconLog>
 
 
 
- type rowObject =  {
+ type rowObject2 =  {
     
  
     address: string,
@@ -59,6 +59,7 @@ export type beaconLogs = Array<beaconLog>
     graffiti: string
     valIndex: string
     isEnabled: boolean
+    nodeAddress: string
 };
 
 
@@ -93,7 +94,7 @@ const emptyValidatorData: beaconLog = {
 }
 
 type rowArray = [
-    rowObject
+    rowObject2
 ]
 
 type stateType = {
@@ -104,20 +105,19 @@ type stateType = {
 const initialState: stateType =  {
 
    data: [{
-    address: "",
+    address: "NO VALIDATORS",
     statusResult: "Empty",
     statusTimeResult: "",
     timeRemaining: "",
     graffiti: "",
     beaconStatus: "",
-
-   
     valBalance: "",
     valProposals: "",
     valDayVariance: "",
     pubkey: "",
     valIndex: "",
-    isEnabled: false
+    isEnabled: false,
+    nodeAddress: ""
    }]
 
 }

@@ -5,6 +5,7 @@ import { NextPage } from 'next';
 import Leftbar from '../components/leftbar';
 import AccountMain from '../components/accountMain';
 import Head from 'next/head';
+import Footer from '../components/footer';
 
 const Account: NextPage = () => {
 
@@ -27,13 +28,9 @@ const Account: NextPage = () => {
         <link href="/favicon.ico" rel="icon" />
       </Head>
       <Navbar />
-      <div className='flex w-full sticky top-16'>
+      <div className='flex w-full sticky top-16 mb-8 pb-8'>
       {/* <Leftbar /> */}
       <AccountMain/>
-
-
-
-
 
 
       </div>
@@ -43,7 +40,7 @@ const Account: NextPage = () => {
 
 
 
-
+<Footer/>
     </div>
   )
 }

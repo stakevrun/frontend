@@ -337,11 +337,14 @@ const AccountMain: NextPage = () => {
         var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
         console.log("POST exit message response" + jsonString)
+
       })
       .catch(error => {
         // Handle error here
         console.log(error);
       });
+
+
 
 
   }
@@ -353,6 +356,7 @@ const AccountMain: NextPage = () => {
 
 
   const getPresignedExitMessage = async (pubkey: string, index: number) => {
+
 
 
     /*struct GetPresignedExit {
@@ -959,15 +963,23 @@ const AccountMain: NextPage = () => {
     }
   })
 
+  const [isInitialRender, setIsInitialRender] = useState(true);
 
   useEffect(() => {
-
-
-
-    fetchData();
-
-
-  }, [currentChain, address])
+    if (!isInitialRender && address !== undefined) {
+      // This block will run after the initial render
+      setPreloader(true);
+      fetchData();
+      dispatch(getGraphPointsData([]));
+      dispatch(attestationsData([]));
+      getMinipoolData();
+      getPayments();
+    } else {
+      // This block will run only on the initial render
+      setPreloader(true)
+      setIsInitialRender(false);
+    }
+  }, [currentChain, address]);
 
 
 
@@ -1091,8 +1103,8 @@ const AccountMain: NextPage = () => {
   const nullAddress = "0x0000000000000000000000000000000000000000";
 
 
-  const [totalValidators, setTotalValidators] = useState("");
-  const [runningValidators, setRunningValidators] = useState("");
+  const [totalValidators, setTotalValidators] = useState("0");
+  const [runningValidators, setRunningValidators] = useState("0");
 
 
   const getValIndex = async (pubkey: string) => {
@@ -1185,11 +1197,17 @@ const AccountMain: NextPage = () => {
 
 
 
+  const [preloader, setPreloader] = useState(true)
+
+
 
 
 
 
   const getMinipoolData = async () => {
+
+
+
 
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
@@ -1224,102 +1242,10 @@ const AccountMain: NextPage = () => {
         console.log(error);
       });
 
+    console.log("Next index:" + newNextIndex)
 
-
-
-
-    //Get all pubkeys
-
-    let attachedPubkeyArray: Array<Array<string>> = [];
-
-
-    for (let i = 0; i <= newNextIndex - 1; i++) {
-
-
-
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
-        method: "GET",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-      })
-        .then(async response => {
-
-          let pubkey = await response.json()
-
-
-
-
-          const chainString = currentChain === 17000 ? 'holesky.' : ''
-
-
-
-
-          await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
-            method: "GET",
-
-            headers: {
-              "Content-Type": "application/json"
-            },
-          })
-            .then(async response => {
-
-              var jsonObject = await response.json()
-
-
-              let minipoolAddress = jsonObject.data.minipool_address;
-
-
-
-
-
-
-
-
-              if (minipoolAddress === nullAddress) {
-                attachedPubkeyArray.push(["Null minipool", pubkey])
-              }
-
-              else {
-                attachedPubkeyArray.push([minipoolAddress, pubkey]);
-              }
-
-
-              console.log("Get minipool result:" + minipoolAddress);
-
-
-
-
-
-            })
-            .catch(error => {
-
-
-            });
-
-
-
-
-
-        })
-        .catch(error => {
-
-
-        });
-
-
-
-    }
-
-
-
-
-
-
-
-
-
+    let minipoolObjects: Array<rowObject> = [];
+    let seperateMinipoolObjects: Array<rowObject2> = [];
 
 
 
@@ -1354,192 +1280,145 @@ const AccountMain: NextPage = () => {
 
 
 
-    let minipoolObjects: Array<rowObject> = [];
-    let seperateMinipoolObjects: Array<rowObject2> = [];
-
-    let newRunningVals = 0;
-    let newTotalVals = 0;
-
-
-    for (const [minAddress, pubkey] of attachedPubkeyArray) {
+    if (newNextIndex === 0) {
 
 
 
+      minipoolObjects.push({
+
+        address: "",
+        statusResult: "Empty",
+        statusTimeResult: "",
+        timeRemaining: "",
+        graffiti: "",
+        beaconStatus: "",
+
+        beaconLogs: [emptyValidatorData],
+        valBalance: "",
+        valProposals: "",
+        valDayVariance: "",
+        pubkey: "",
+
+      });
 
 
-      if (minAddress === "Null minipool") {
+
+      seperateMinipoolObjects.push({
+        address: "NO VALIDATORS checked",
+        statusResult: "Empty",
+        statusTimeResult: "",
+        timeRemaining: "",
+        graffiti: "",
+        beaconStatus: "",
+
+
+        valBalance: "",
+        valProposals: "",
+        valDayVariance: "",
+        pubkey: "",
+        isEnabled: false,
+        valIndex: "",
+        nodeAddress: ""
+
+      })
 
 
 
-        minipoolObjects.push({
-
-          address: "",
-          statusResult: "Empty",
-          statusTimeResult: "",
-          timeRemaining: "",
-          graffiti: "",
-          beaconStatus: "",
-
-          beaconLogs: [emptyValidatorData],
-          valBalance: "",
-          valProposals: "",
-          valDayVariance: "",
-          pubkey: pubkey,
-
-        });
+      setRunningValidators("0");
+      setTotalValidators("0");
+      setCurrentRowData(minipoolObjects)
+      dispatch(getData(seperateMinipoolObjects))
 
 
-        seperateMinipoolObjects.push({
-          address: "",
-          statusResult: "Empty",
-          statusTimeResult: "",
-          timeRemaining: "",
-          graffiti: "",
-          beaconStatus: "",
 
 
-          valBalance: "",
-          valProposals: "",
-          valDayVariance: "",
-          pubkey: pubkey,
-          isEnabled: false,
-          valIndex: "",
 
+
+
+
+    } else {
+
+
+      //Get all pubkeys
+
+      let attachedPubkeyArray: Array<Array<string>> = [];
+
+
+      for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+          method: "GET",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
         })
+          .then(async response => {
 
-
-      } else {
-
-
-        const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
-
-
-        const statusResult = await minipool.getStatus();
-        const statusTimeResult = await minipool.getStatusTime();
-        const numStatusTime = Number(statusTimeResult) * 1000;
-
-        console.log("Status Result:" + statusResult)
-
-        console.log("Status Time Result:" + statusTimeResult)
-
-        console.log(Date.now());
-        console.log(numStatusTime);
+            let pubkey = await response.json()
 
 
 
-        const MinipoolStatus = [
-          "Initialised",
-          "Prelaunch",
-          "Staking",
-          "Withdrawable",
-          "Dissolved"
-        ];
 
-
-        const currentStatus = MinipoolStatus[statusResult];
-
-        if (MinipoolStatus[statusResult] === "Staking") {
-
-          newRunningVals += 1;
-          newTotalVals += 1;
-
-        } else {
-
-          newTotalVals += 1;
-
-        }
+            const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
 
-        const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
-        const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+            await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
+              method: "GET",
 
-        const scrubPeriod: any = await DAOContract.getScrubPeriod();
+              headers: {
+                "Content-Type": "application/json"
+              },
+            })
+              .then(async response => {
 
-        const numScrub = Number(scrubPeriod) * 1000;
-        console.log(numScrub);
-
-        const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
-
-
-        const string = formatTime(timeRemaining);
-
-        console.log("Time Remaining:" + string);
+                var jsonObject = await response.json()
 
 
-        const printGraff = await getGraffiti(pubkey);
-        const beaconStatus = await getBeaconchainStatus(pubkey)
-        const isEnabled = await getEnabled(pubkey)
-        const valIndex = await getValIndex(pubkey)
-
-        const smoothingBool = await getMinipoolTruth(pubkey)
-
-        if (typeof smoothingBool === "boolean") {
-          setChecked2(smoothingBool);
-
-
-        }
-
-
-        const beaconObject = await getValBeaconStats(pubkey)
-
-        console.log(typeof beaconObject === "object" ? Object.entries(beaconObject) : "");
+                let minipoolAddress = jsonObject.data.minipool_address;
 
 
 
-        console.log(printGraff)
-
-        const newValBalance = beaconObject[0].end_balance
-
-        let newValProposals = 0;
-
-        for (const beaconLog of beaconObject) {
-
-          let blocks = beaconLog.proposed_blocks
-
-          newValProposals += blocks
-        }
-
-        const newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
 
 
-        minipoolObjects.push({
-          address: minAddress,
-          statusResult: currentStatus,
-          statusTimeResult: statusTimeResult.toString(),
-          timeRemaining: timeRemaining.toString(),
-          graffiti: typeof printGraff === "string" ? printGraff : "",
-          beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-
-          beaconLogs: typeof beaconObject === "object" ? beaconObject : [emptyValidatorData],
-          valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-          valProposals: newValProposals.toString(),
-          valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-
-          pubkey: pubkey
-        })
 
 
-        seperateMinipoolObjects.push({
-          address: minAddress,
-          statusResult: currentStatus,
-          statusTimeResult: statusTimeResult.toString(),
-          timeRemaining: timeRemaining.toString(),
-          graffiti: typeof printGraff === "string" ? printGraff : "",
-          beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+                if (minipoolAddress === nullAddress) {
+                  attachedPubkeyArray.push(["Null minipool", pubkey])
+                }
+
+                else {
+                  attachedPubkeyArray.push([minipoolAddress, pubkey]);
+                }
 
 
-          valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-          valProposals: newValProposals.toString(),
-          valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-          isEnabled: isEnabled,
-          valIndex: valIndex,
-          pubkey: pubkey
-        })
+                console.log("Get minipool result:" + minipoolAddress);
 
 
+
+
+
+              })
+              .catch(error => {
+
+
+              });
+
+
+
+
+
+          })
+          .catch(error => {
+
+
+          });
 
 
 
@@ -1547,14 +1426,222 @@ const AccountMain: NextPage = () => {
 
 
 
+
+
+
+
+      let newRunningVals = 0;
+      let newTotalVals = 0;
+
+
+      for (const [minAddress, pubkey] of attachedPubkeyArray) {
+
+
+
+
+
+        if (minAddress === "Null minipool") {
+
+
+
+          minipoolObjects.push({
+
+            address: "",
+            statusResult: "Empty",
+            statusTimeResult: "",
+            timeRemaining: "",
+            graffiti: "",
+            beaconStatus: "",
+
+            beaconLogs: [emptyValidatorData],
+            valBalance: "",
+            valProposals: "",
+            valDayVariance: "",
+            pubkey: pubkey,
+
+          });
+
+
+          seperateMinipoolObjects.push({
+            address: "",
+            statusResult: "Empty",
+            statusTimeResult: "",
+            timeRemaining: "",
+            graffiti: "",
+            beaconStatus: "",
+
+
+            valBalance: "",
+            valProposals: "",
+            valDayVariance: "",
+            pubkey: pubkey,
+            isEnabled: false,
+            valIndex: "",
+            nodeAddress: ""
+
+          })
+
+
+        } else {
+
+
+          const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+
+
+          const statusResult = await minipool.getStatus();
+          const statusTimeResult = await minipool.getStatusTime();
+          const numStatusTime = Number(statusTimeResult) * 1000;
+
+          console.log("Status Result:" + statusResult)
+
+          console.log("Status Time Result:" + statusTimeResult)
+
+          console.log(Date.now());
+          console.log(numStatusTime);
+
+
+
+          const MinipoolStatus = [
+            "Initialised",
+            "Prelaunch",
+            "Staking",
+            "Withdrawable",
+            "Dissolved"
+          ];
+
+
+          const currentStatus = MinipoolStatus[statusResult];
+
+          if (MinipoolStatus[statusResult] === "Staking") {
+
+            newRunningVals += 1;
+            newTotalVals += 1;
+
+          } else {
+
+            newTotalVals += 1;
+
+          }
+
+
+
+          const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
+
+          const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+
+          const scrubPeriod: any = await DAOContract.getScrubPeriod();
+
+          const numScrub = Number(scrubPeriod) * 1000;
+          console.log(numScrub);
+
+          const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
+
+
+          const string = formatTime(timeRemaining);
+
+          console.log("Time Remaining:" + string);
+
+
+          const printGraff = await getGraffiti(pubkey);
+          const beaconStatus = await getBeaconchainStatus(pubkey)
+          const isEnabled = await getEnabled(pubkey)
+          const valIndex = await getValIndex(pubkey)
+
+          const charges = await getCharges(pubkey);
+
+
+
+          const smoothingBool = await getMinipoolTruth(pubkey)
+
+          if (typeof smoothingBool === "boolean") {
+            setChecked2(smoothingBool);
+
+
+          }
+
+
+          const beaconObject = await getValBeaconStats(pubkey)
+
+          console.log(typeof beaconObject === "object" ? Object.entries(beaconObject) : "");
+
+
+
+          console.log(printGraff)
+
+          const newValBalance = beaconObject[0].end_balance
+
+          let newValProposals = 0;
+
+          for (const beaconLog of beaconObject) {
+
+            let blocks = beaconLog.proposed_blocks
+
+            newValProposals += blocks
+          }
+
+          const newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+
+
+
+          minipoolObjects.push({
+            address: minAddress,
+            statusResult: currentStatus,
+            statusTimeResult: statusTimeResult.toString(),
+            timeRemaining: timeRemaining.toString(),
+            graffiti: typeof printGraff === "string" ? printGraff : "",
+            beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+            beaconLogs: typeof beaconObject === "object" ? beaconObject : [emptyValidatorData],
+            valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+            valProposals: newValProposals.toString(),
+            valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+
+            pubkey: pubkey
+          })
+
+
+          seperateMinipoolObjects.push({
+            address: minAddress,
+            statusResult: currentStatus,
+            statusTimeResult: statusTimeResult.toString(),
+            timeRemaining: timeRemaining.toString(),
+            graffiti: typeof printGraff === "string" ? printGraff : "",
+            beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+
+
+            valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+            valProposals: newValProposals.toString(),
+            valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+            isEnabled: isEnabled,
+            valIndex: valIndex,
+            pubkey: pubkey,
+            nodeAddress: address !== undefined ? address.toString() : ""
+          })
+
+
+
+
+
+        }
+
+
+
+      }
+
+
+      setRunningValidators(newRunningVals.toString());
+      setTotalValidators(newTotalVals.toString());
+      setCurrentRowData(minipoolObjects)
+      dispatch(getData(seperateMinipoolObjects))
+      setPreloader(false)
+
+
+
+
+
     }
 
 
-    setRunningValidators(newRunningVals.toString());
-    setTotalValidators(newTotalVals.toString());
-    setCurrentRowData(minipoolObjects)
-    dispatch(getData(seperateMinipoolObjects))
-    setShowForm(false)
 
 
   }
@@ -1564,7 +1651,13 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
-    if (reduxData.length > 0) {
+    if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
+
+      setPreloader(true)
+
+
+
+
       let newRunningVals = 0;
       let newTotalVals = 0;
 
@@ -1572,7 +1665,9 @@ const AccountMain: NextPage = () => {
       for (const log of reduxData) {
 
 
-        console.log(reduxData)
+
+
+        console.log("Log of reduxData:" + Object.entries(log))
         console.log("Redux loop running")
 
 
@@ -1590,7 +1685,15 @@ const AccountMain: NextPage = () => {
 
         } else {
 
-          newTotalVals += 1;
+
+          if (reduxData[0].address !== "NO VALIDATORS" && reduxData[0].address !== "NO VALIDATORS checked") {
+
+            console.log("Condition True")
+            newTotalVals += 1;
+
+          }
+
+
 
         }
 
@@ -1606,6 +1709,12 @@ const AccountMain: NextPage = () => {
 
       setRunningValidators(newRunningVals.toString());
       setTotalValidators(newTotalVals.toString());
+      setPreloader(false)
+
+    } else {
+      setPreloader(true);
+      setRunningValidators("0");
+      setTotalValidators("0");
 
     }
 
@@ -1656,132 +1765,137 @@ const AccountMain: NextPage = () => {
 
 
 
+    if (newNextIndex === 0) {
 
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-    const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
-    const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
+      alert("No Validators to change the Fee Recipient for")
 
-
-
+    } else {
 
 
 
 
-    let newPubkeyArray: Array<string> = []
-    let newIndexArray: Array<number> = []
 
 
 
-    for (let i = 0; i <= newNextIndex - 1; i++) {
+
+      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+      const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
+      const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
 
 
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
-        method: "GET",
+
+
+
+
+      let newPubkeyArray: Array<string> = []
+      let newIndexArray: Array<number> = []
+
+
+
+      for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+          method: "GET",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+        })
+          .then(async response => {
+
+            let pubkey = await response.json()
+
+            newPubkeyArray.push(pubkey)
+            newIndexArray.push(i)
+
+            console.log("pUBKEY:" + pubkey)
+
+
+          })
+          .catch(error => {
+
+            console.log(error)
+
+
+          });
+
+      }
+
+
+      console.log(newPubkeyArray);
+      console.log(newIndexArray);
+
+      const types = {
+        SetFeeRecipient: [
+          { name: 'timestamp', type: 'uint256' },
+          { name: 'pubkeys', type: 'bytes[]' },
+          { name: 'feeRecipient', type: 'address' },
+
+        ]
+      }
+
+
+      let newFeeRecipient;
+
+      if (inOutBool === true) {
+
+
+
+        newFeeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
+        console.log("It is true dough!")
+        console.log(newFeeRecipient)
+
+
+      } else {
+        newFeeRecipient = await distributorContract.getProxyAddress(address);
+        console.log(newFeeRecipient)
+
+      }
+
+
+
+      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+      const APItype = "SetFeeRecipient"
+
+      const date = Math.floor(Date.now() / 1000);
+
+      const value = { timestamp: date, pubkeys: newPubkeyArray, feeRecipient: newFeeRecipient }
+
+
+      let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+        method: "POST",
 
         headers: {
           "Content-Type": "application/json"
         },
+        body: JSON.stringify({
+          type: APItype,
+          data: value,
+          signature: signature,
+          indices: newIndexArray
+        })
       })
         .then(async response => {
 
-          let pubkey = await response.json()
+          var resString = await response.text()// Note: response will be opaque, won't contain data
 
-          newPubkeyArray.push(pubkey)
-          newIndexArray.push(i)
+          console.log("Get Deposit Data response" + resString)
 
-          console.log("pUBKEY:" + pubkey)
-
-
+          alert("setFeeRecipient success!")
         })
         .catch(error => {
-
-          console.log(error)
-
-
+          // Handle error here
+          console.log(error);
+          alert("setFeeRecipient failed...")
         });
 
-    }
-
-
-    console.log(newPubkeyArray);
-    console.log(newIndexArray);
-
-    const types = {
-      SetFeeRecipient: [
-        { name: 'timestamp', type: 'uint256' },
-        { name: 'pubkeys', type: 'bytes[]' },
-        { name: 'feeRecipient', type: 'address' },
-
-      ]
-    }
-
-
-    let newFeeRecipient;
-
-    if (inOutBool === true) {
-
-
-
-      newFeeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
-      console.log("It is true dough!")
-      console.log(newFeeRecipient)
-
-
-    } else {
-      newFeeRecipient = await distributorContract.getProxyAddress(address);
-      console.log(newFeeRecipient)
 
     }
-
-
-
-    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-    const APItype = "SetFeeRecipient"
-
-    const date = Math.floor(Date.now() / 1000);
-
-    const value = { timestamp: date, pubkeys: newPubkeyArray, feeRecipient: newFeeRecipient }
-
-
-    let signature = await signer.signTypedData(EIP712Domain, types, value);
-
-
-
-
-
-
-
-    await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        type: APItype,
-        data: value,
-        signature: signature,
-        indices: newIndexArray
-      })
-    })
-      .then(async response => {
-
-        var resString = await response.text()// Note: response will be opaque, won't contain data
-
-        console.log("Get Deposit Data response" + resString)
-
-        alert("setFeeRecipient success!")
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-        alert("setFeeRecipient failed...")
-      });
-
-
-
-
 
 
   }
@@ -1792,7 +1906,13 @@ const AccountMain: NextPage = () => {
 
 
 
-  const setGraffiti = async (index: number, pubkey: string, newGrafitti: string) => {
+
+
+
+
+
+
+  const setGraffiti = async (newGrafitti: string) => {
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
     let signer = await browserProvider.getSigner()
@@ -1806,11 +1926,32 @@ const AccountMain: NextPage = () => {
 
 
     const types = {
-      SetGraffiti: [
-        { name: 'timestamp', type: 'uint256' },
-        { name: 'pubkey', type: 'bytes' },
-        { name: 'graffiti', type: 'string' }
-      ]
+        SetGraffiti: [
+            { name: 'timestamp', type: 'uint256' },
+            { name: 'pubkeys', type: 'bytes[]' },
+            { name: 'graffiti', type: 'string' },
+        ]
+    }
+
+    let pubkeyArray = [];
+    let indexArray = [];
+
+
+    let i = 0;
+
+
+
+    for (const data of reduxData) {
+
+      indexArray.push(i)
+
+      pubkeyArray.push(data.pubkey)
+
+
+      i++
+
+
+
     }
 
 
@@ -1819,7 +1960,7 @@ const AccountMain: NextPage = () => {
 
     const date = Math.floor(Date.now() / 1000);
 
-    const value = { timestamp: date, pubkey: pubkey, graffiti: newGrafitti }
+    const value = { timestamp: date, pubkeys: pubkeyArray, graffiti: newGrafitti }
 
 
     let signature = await signer.signTypedData(EIP712Domain, types, value);
@@ -1827,31 +1968,33 @@ const AccountMain: NextPage = () => {
 
 
 
-    await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
-      method: "POST",
+    await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        type: APItype,
-        data: value,
-        signature: signature
-      })
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            type: APItype,
+            data: value,
+            signature: signature,
+            indices: indexArray
+        })
     })
-      .then(async response => {
+        .then(async response => {
 
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+            var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
-        console.log("Get Deposit Data response" + jsonString)
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-      });
+            console.log("Get Deposit Data response" + jsonString)
+        })
+        .catch(error => {
+            // Handle error here
+            console.log(error);
+        });
 
 
-    getMinipoolData();
+    await getMinipoolData();
+    setShowForm(false);
 
 
 
@@ -2054,13 +2197,13 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
-    if(address !== undefined) {
+    if (address !== undefined) {
 
       getMinipoolData();
 
 
     }
- 
+
 
   }, [])
 
@@ -2141,6 +2284,7 @@ const AccountMain: NextPage = () => {
     graffiti: string
     isEnabled: boolean
     valIndex: string
+    nodeAddress: string
   };
 
 
@@ -2242,6 +2386,41 @@ const AccountMain: NextPage = () => {
 
 
   const [currentPayments, setCurrentPayments] = useState<number>(0)
+
+
+
+
+
+
+
+  const getCharges = async (pubkey: string) => {
+
+
+    const charges: string = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/${pubkey}/charges`, {
+      method: "GET",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+    })
+      .then(async response => {
+
+        var jsonObject = await response.json()
+
+        console.log("Charges object:" + jsonObject);
+
+        return jsonObject.toString();
+
+      })
+      .catch(error => {
+
+        console.log(error);
+        return "";
+      });
+
+
+
+  }
 
 
   const getPayments = async () => {
@@ -2415,11 +2594,10 @@ const AccountMain: NextPage = () => {
 
 
 
-  const handleGraffitiModal = (index: number, pubkey: string, graff: string) => {
+  const handleGraffitiModal = () => {
     setShowForm(true);
-    setCurrentPubkey(pubkey)
-    setCurrentEditGraffiti(graff)
-    setCurrentPubkeyIndex(index)
+  
+   
   }
 
 
@@ -2433,7 +2611,7 @@ const AccountMain: NextPage = () => {
 
   const confirmGraffiti = () => {
 
-    setGraffiti(currentPubkeyIndex, currentPubkey, currentEditGraffiti)
+    setGraffiti(currentEditGraffiti)
   }
 
 
@@ -2535,7 +2713,7 @@ const AccountMain: NextPage = () => {
   const handleClick = (param1: string, param2: number) => {
 
     router.push(`/validatorDetail/${param1}/${param2}`);
-    
+
   };
 
 
@@ -2640,13 +2818,13 @@ const AccountMain: NextPage = () => {
 
         if (checked2 === false) {
 
-          alert("Opt-out of Smoothing Pool Sucessful")
+          alert("Opt-out of Smoothing Pool Successful")
 
 
         } else {
 
 
-          alert("Opt-in to Smoothing Pool Sucessful")
+          alert("Opt-in to Smoothing Pool Successful")
 
         }
 
@@ -2696,6 +2874,14 @@ const AccountMain: NextPage = () => {
 
 
 
+ 
+
+
+
+
+
+
+
   return (
     <section className="flex w-full flex-col items-center justify-center ">
 
@@ -2713,7 +2899,7 @@ const AccountMain: NextPage = () => {
 
 
 
-              {reduxGraphPoints[0].length > 0 ? (<div className="w-full flex flex-col items-center gap-5 justify-center">
+              {!preloader ? (<div className="w-full flex flex-col items-center gap-5 justify-center">
 
 
 
@@ -2760,6 +2946,7 @@ const AccountMain: NextPage = () => {
 
                         <div className='mb-2'>
                           <span className="block text-2xl font-bold">{currentPayments}</span>
+
                           <span className="block text-gray-500">in Credit</span>
                         </div>
 
@@ -2778,10 +2965,25 @@ const AccountMain: NextPage = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                       </div>
-                      <div>
-                        <span className="block text-2xl font-bold">{percentageAttestations.toString().slice(0, 5)}%</span>
-                        <span className="block text-gray-500">Sucessful Attestations</span>
-                      </div>
+
+
+                      {totalValidators !== "0" ? (
+
+                        <div>
+
+                          <span className="block text-2xl font-bold">{percentageAttestations.toString().slice(0, 5)}%</span>
+                          <span className="block text-gray-500">Successful Attestations</span>
+                        </div>
+
+                      ) : (
+                        <div>
+                          <span className="block text-2xl font-bold">0</span>
+                          <span className="block text-gray-500">Attestations</span>
+                        </div>
+
+                      )}
+
+
                     </div>
                     <div className="flex w-auto items-center p-6 bg-white shadow border  rounded-lg">
                       <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
@@ -2867,179 +3069,226 @@ const AccountMain: NextPage = () => {
                 </div>
 
 
+                {totalValidators !== "0" ?
+
+                  (<div className="w-[] overflow-hidden shadow border rounded-lg mb-10 ">
 
 
-                <div className="w-[] overflow-hidden shadow border rounded-lg mb-10 ">
-                  <table className="w-full">
-                    <tbody>
+                    <table className="w-full">
+                      <tbody>
 
-                      {reduxData.map((data, index) => (
-                        <tr key={index} className="border-b-2 hover:bg-gray-100 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
+                        {reduxData.map((data, index) => (
+                          <tr key={index} className="border-b-2 hover:bg-gray-100 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
 
-                          <td className="px-4 pl-10 py-3 text-xs w-[180px]">
+                            <td className="px-4 pl-10 py-3 text-xs w-[180px]">
 
-                            {data.statusResult === "Prelaunch" &&
-                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+                              {data.statusResult === "Prelaunch" &&
+                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
 
-
-                            }
-
-
-                            {data.statusResult === "Initialised" &&
-
-                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                            }
-
-                            {data.statusResult === "Staking" &&
-
-                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                            }
-
-
-                            {data.statusResult === "Withdrawable" &&
-
-                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                            }
-
-
-                            {data.statusResult === "Dissolved" &&
-
-                              <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
-
-
-                            }
-
-
-                            {data.statusResult === "Empty" &&
-
-                              <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                            }
-
-
-                          </td>
-
-                          <td className="px-4 py-3 w-[200px] ">
-                            <span className='text-green-500 self-center font-bold text-lg ' >
-
-                              {data.valBalance}
-                            </span>
-                          </td>
-
-                          <td className="px-4 py-3 w-[200px]">
-                            <div className="flex items-center text-lg">
-
-
-                              <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                {Number(data.valDayVariance) > 0 ? (
-                                  <div className='flex items-center justify-center'>
-                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
-                                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                      </svg>
-
-                                    </div>
-                                    <p> {data.valDayVariance}</p>
-
-                                  </div>
-
-
-                                ) : (
-                                  <div className='flex items-center justify-center'>
-                                    {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                                      <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                      </svg>
-                                    </div>}
-                                    <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
-                                  </div>
-                                )}
-
-                              </span>
-
-
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-3 w-[180px]">
-                            <div className="flex items-center flex-col gap-1 text-l ">
-                              {data.beaconStatus !== "" && <>
-                                <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
-                                <GrSatellite /></>}
-                              {data.beaconStatus}
-                            </div>
-                          </td>
-
-                          <td className="px-4 pr-10 py-3 w-[auto]">
-                            <div className="flex items-center text-l  flex-col gap-1">
-                              {data.valProposals !== "" &&
-
-                                <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
 
                               }
 
-                              <p>{data.valProposals}</p>
+
+                              {data.statusResult === "Initialised" &&
+
+                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                              }
+
+                              {data.statusResult === "Staking" &&
+
+                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                              }
+
+
+                              {data.statusResult === "Withdrawable" &&
+
+                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                              }
+
+
+                              {data.statusResult === "Dissolved" &&
+
+                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
+
+
+                              }
+
+
+                              {data.statusResult === "Empty" &&
+
+                                <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                              }
+
+
+                            </td>
+
+                            <td className="px-4 py-3 w-[200px] ">
+                              <span className='text-green-500 self-center font-bold text-lg ' >
+
+                                {data.valBalance}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3 w-[200px]">
+                              <div className="flex items-center text-lg">
+
+
+                                <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                  {Number(data.valDayVariance) > 0 ? (
+                                    <div className='flex items-center justify-center'>
+                                      <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
+                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                        </svg>
+
+                                      </div>
+                                      <p> {data.valDayVariance}</p>
+
+                                    </div>
+
+
+                                  ) : (
+                                    <div className='flex items-center justify-center'>
+                                      {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                        </svg>
+                                      </div>}
+                                      <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
+                                    </div>
+                                  )}
+
+                                </span>
+
+
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-3 w-[180px]">
+                              <div className="flex items-center flex-col gap-1 text-l ">
+                                {data.beaconStatus !== "" && <>
+                                  <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
+                                  <GrSatellite /></>}
+                                {data.beaconStatus}
+                              </div>
+                            </td>
+
+                            <td className="px-4 pr-10 py-3 w-[auto]">
+                              <div className="flex items-center text-l  flex-col gap-1">
+                                {data.valProposals !== "" &&
+
+                                  <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
+
+                                }
+
+                                <p>{data.valProposals}</p>
+                              </div>
+                            </td>
+
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>)
+
+                  : (
+                    <>
+
+                    </>
+                  )
+
+                }
+
+
+
+<div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+
+<table className="w-full">
+  <tbody>
+
+    <tr className="border-b-2 ">
+      <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+        <p>Batch Change Graffiti</p>
+      </td>
+      <td className="px-5  py-3 text-s w-auto text-center">
+        <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+
+
+                {totalValidators !== "0" ? (
+
+
+                  <div className="w-full h-[90vh] flex flex-col items-center justify-center">
+
+                    <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
+
+                      <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
+
+                        <div className="flex items-center  h-full justify-center p-8 bg-white ">
+
+
+                          {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                            <div className="w-[500px] h-[auto] py-3">
+
+
+                              <Line
+
+                                data={graphData}
+                                options={options}
+                                onClick={onClick}
+                                ref={charRef}
+
+                              >
+
+
+
+                              </Line>
+
+                              <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                              </div>
                             </div>
-                          </td>
 
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex items-center  justify-center p-8 bg-white shadow border border-b-2 rounded-lg my-8">
-
-
-                  {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
-
-                    <div className="w-[500px] h-[auto] py-3">
-
-
-                      <Line
-
-                        data={graphData}
-                        options={options}
-                        onClick={onClick}
-                        ref={charRef}
-
-                      >
+                          }
 
 
 
-                      </Line>
-
-                      <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
-
-                        <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                        <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                        <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                        <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
-
-
-
+                        </div>
                       </div>
                     </div>
+                  </div>) : (<>
+                  </>)}
 
-                  }
 
-
-
-                </div>
-
+              
 
 
 
 
-                <div className="w-full py-8 my-8 flex flex-col justify-center items-center">
-                <RPLBlock /> 
+
+                <div className="w-full  h-[100vh]  flex flex-col justify-center items-center">
+                  <RPLBlock />
                 </div>
 
 
@@ -3108,15 +3357,17 @@ const AccountMain: NextPage = () => {
                     <AiOutlineClose onClick={() => {
                       setShowForm(false)
                     }} />
+
                     <h2>Graffiti Update</h2>
 
 
                     <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
 
-                    <div >
+                    <div>
                       <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
                       <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                     </div>
+
                   </div>
                 </Modal>
                 <Modal
@@ -3251,6 +3502,12 @@ const AccountMain: NextPage = () => {
                       <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
                     </div>
                   </div>
+
+
+
+
+
+
                 </Modal>
                 <Modal
                   isOpen={showForm4}

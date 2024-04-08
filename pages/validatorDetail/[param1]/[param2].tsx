@@ -30,6 +30,8 @@ import type { RootState } from '../../../globalredux/store';
 import { getData } from "../../../globalredux/Features/validator/valDataSlice"
 import { attestationsData } from '../../../globalredux/Features/attestations/attestationsDataSlice';
 import { getGraphPointsData } from "../../../globalredux/Features/graphpoints/graphPointsDataSlice"
+import Link
+    from 'next/link';
 
 import Image from 'next/image';
 
@@ -43,6 +45,7 @@ import {
     Tooltip,
     Legend
 } from "chart.js"
+import Footer from '../../../components/footer';
 
 
 ChartJS.register(
@@ -65,7 +68,7 @@ if (process.browser) {
 interface MyComponentProps {
     param1: string | string[] | undefined;
     param2: string | string[] | undefined;
-  }
+}
 
 const ValidatorDetail: NextPage = () => {
 
@@ -73,19 +76,22 @@ const ValidatorDetail: NextPage = () => {
     const router = useRouter();
     const { param1, param2 } = router.query;
 
-   
+
     const params: MyComponentProps = {
         param1: param1,
         param2: param2
 
     } // Accessing the 'id' parameter from the URL
 
- 
+
 
 
     const { address } = useAccount({
         onConnect: ({ address }) => {
             console.log("Ethereum Wallet Connected!")
+           
+        
+
 
         }
     })
@@ -94,6 +100,22 @@ const ValidatorDetail: NextPage = () => {
 
 
     const currentChain = useChainId();
+
+    const [isInitialRender, setIsInitialRender] = useState(true);
+
+    useEffect(() => {
+      if (!isInitialRender && address !== undefined) {
+        // This block will run after the initial render
+        
+
+   
+        
+      } else {
+        // This block will run only on the initial render
+       
+        setIsInitialRender(false);
+      }
+    }, [currentChain, address]);
 
     const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
 
@@ -109,13 +131,13 @@ const ValidatorDetail: NextPage = () => {
 
     //Ace
 
-      
+
     const reduxData = useSelector((state: RootState) => state.valData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0]);
     const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0]);
     const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data[params.param1 !== null && params.param2 !== null ? Number(params.param2) : 0])
 
 
-    
+
 
 
 
@@ -188,6 +210,7 @@ const ValidatorDetail: NextPage = () => {
         graffiti: string
         isEnabled: boolean
         valIndex: string
+        nodeAddress: string
     };
 
 
@@ -221,30 +244,23 @@ const ValidatorDetail: NextPage = () => {
     };
 
 
-    const [currentData, setCurrentData] = useState<rowObject>({
 
-        address: "",
-        statusResult: "Empty",
-        statusTimeResult: "",
-        timeRemaining: "",
-        graffiti: "",
-        beaconStatus: "",
-        beaconLogs: [emptyValidatorData],
-        pubkey: "",
-        valBalance: "",
-        valProposals: "",
-        valDayVariance: "",
-        isEnabled: false,
-        valIndex: ""
 
-    })
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     const getMinipoolTruth = async (pubkey: string) => {
-
-
-
-
 
 
         try {
@@ -305,8 +321,7 @@ const ValidatorDetail: NextPage = () => {
             headers: {
                 "Content-Type": "application/json"
             },
-        })
-            .then(async response => {
+        }).then(async response => {
 
                 var jsonString = await response.json()
 
@@ -316,8 +331,7 @@ const ValidatorDetail: NextPage = () => {
 
                 return jsonString;
 
-            })
-            .catch(error => {
+            }).catch(error => {
 
                 console.log(error);
             });
@@ -493,7 +507,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                 seperateMinipoolObjects.push({
-                    address: "",
+                    address: "NO VALIDATORS checked",
                     statusResult: "Empty",
                     statusTimeResult: "",
                     timeRemaining: "",
@@ -507,6 +521,7 @@ const ValidatorDetail: NextPage = () => {
                     pubkey: pubkey,
                     isEnabled: false,
                     valIndex: "",
+                    nodeAddress: ""
 
                 })
 
@@ -636,7 +651,8 @@ const ValidatorDetail: NextPage = () => {
                     valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
                     isEnabled: isEnabled,
                     valIndex: valIndex,
-                    pubkey: pubkey
+                    pubkey: pubkey,
+                    nodeAddress: address !== undefined ? address.toString() : ""
                 })
 
 
@@ -661,196 +677,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    const getValidatorData = async () => {
-
-
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        let signer = await browserProvider.getSigner()
-
-
-
-
-
-
-
-
-
-
-        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-        //Get latest index
-
-
-
-
-
-
-        //Get all pubkeys
-
-
-
-
-
-
-
-        let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(params.param1);
-
-
-
-
-
-
-
-
-
-
-
-        let minipoolObject: rowObject;
-
-        if (minipoolAddress === nullAddress) {
-
-            minipoolObject = {
-
-                address: "",
-                statusResult: "Empty",
-                statusTimeResult: "",
-                timeRemaining: "",
-                graffiti: "",
-                beaconStatus: "",
-                beaconLogs: [emptyValidatorData],
-                pubkey: typeof params.param1 === "string" ? params.param1 : "",
-                valBalance: "",
-                valProposals: "",
-                valDayVariance: "",
-                isEnabled: false,
-                valIndex: ""
-
-            };
-
-
-        } else {
-
-
-            const minipool = new ethers.Contract(minipoolAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
-
-
-            const statusResult = await minipool.getStatus();
-            const statusTimeResult = await minipool.getStatusTime();
-            const numStatusTime = Number(statusTimeResult) * 1000;
-
-            console.log("Status Result:" + statusResult)
-
-            console.log("Status Time Result:" + statusTimeResult)
-
-            console.log(Date.now());
-            console.log(numStatusTime);
-
-
-
-            const MinipoolStatus = [
-                "Initialised",
-                "Prelaunch",
-                "Staking",
-                "Withdrawable",
-                "Dissolved"
-            ];
-
-
-            const currentStatus = MinipoolStatus[statusResult];
-
-
-
-
-            const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
-
-            const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
-
-            const scrubPeriod: any = await DAOContract.getScrubPeriod();
-
-            const numScrub = Number(scrubPeriod) * 1000;
-            console.log(numScrub);
-
-            const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
-
-
-            const string = formatTime(timeRemaining);
-
-            console.log("Time Remaining:" + string);
-
-
-            const printGraff = typeof params.param1 === "string" ? await getGraffiti(params.param1) : "";
-            const beaconStatus = typeof params.param1 === "string" ? await getBeaconchainStatus(params.param1) : ""
-
-            const isEnabled = typeof params.param1 === "string" ? await getEnabled(params.param1) : ""
-            const valIndex = typeof params.param1 === "string" ? await getValIndex(params.param1) : ""
-
-
-            setEnChecked(isEnabled)
-
-            const beaconStatistics: beaconLogs = typeof params.param1 === "string" ? await getValBeaconStats(params.param1) : [emptyValidatorData]
-
-            console.log(printGraff)
-
-
-            console.log(beaconStatistics)
-
-
-            console.log(printGraff)
-
-            const newValBalance = beaconStatistics[0].end_balance
-
-            let newValProposals = 0;
-
-            for (const beaconLog of beaconStatistics) {
-
-                let blocks = beaconLog.proposed_blocks
-
-                newValProposals += blocks
-            }
-
-            const newValVariance = beaconStatistics[0].end_balance - beaconStatistics[0].start_balance
-
-
-
-
-            minipoolObject = {
-                address: minipoolAddress,
-                statusResult: currentStatus,
-                statusTimeResult: statusTimeResult.toString(),
-                timeRemaining: timeRemaining.toString(),
-                graffiti: typeof printGraff === "string" ? printGraff : "",
-                beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-                beaconLogs: beaconStatistics,
-                pubkey: typeof params.param1 === "string" ? params.param1 : "",
-                valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-                valProposals: newValProposals.toString(),
-                valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-                isEnabled: isEnabled,
-                valIndex: valIndex
-            }
-
-            let newInputIndex = Number(params.param2)
-            let newObject = { newInputIndex, minipoolObject }
-
-          
-
-
-
-        }
-
-
-        setCurrentData(minipoolObject)
-
-
-
-
-    }
-
-
+  
 
 
 
@@ -1212,6 +1039,7 @@ const ValidatorDetail: NextPage = () => {
         const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
         await minipool.distributeBalance(false)
 
+        getMinipoolData();
 
 
 
@@ -1739,11 +1567,19 @@ const ValidatorDetail: NextPage = () => {
                 var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
                 console.log("POST exit message response" + jsonString)
+
+                getMinipoolData();
+                setShowForm4(false)
             })
             .catch(error => {
                 // Handle error here
                 console.log(error);
+
+                alert(error)
             });
+
+
+
 
 
     }
@@ -1977,8 +1813,13 @@ const ValidatorDetail: NextPage = () => {
 
     useEffect(() => {
 
-        if (reduxData.address !== "") {
+
+        console.log(reduxData)
+
+        if (reduxData.address !== "" && reduxData.address !== "NO VALIDATORS") {
             convertToGraphPlotPoints();
+
+            setEnChecked(reduxData.isEnabled)
         }
 
     }, [reduxData])
@@ -2008,12 +1849,10 @@ const ValidatorDetail: NextPage = () => {
 
 
         if (typeof params.param1 === "string" && typeof params.param2 === "string") {
-           
-
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        let signer = await browserProvider.getSigner()
 
 
+            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+            let signer = await browserProvider.getSigner()
 
 
 
@@ -2022,54 +1861,61 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const types = {
-            SetEnabled: [
-                { name: 'timestamp', type: 'uint256' },
-                { name: 'pubkeys', type: 'bytes[]' },
-                { name: 'enabled', type: 'bool' },
-
-            ]
-        }
 
 
-        const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-        const APItype = "SetEnabled"
+            const types = {
+                SetEnabled: [
+                    { name: 'timestamp', type: 'uint256' },
+                    { name: 'pubkeys', type: 'bytes[]' },
+                    { name: 'enabled', type: 'bool' },
 
-        const date = Math.floor(Date.now() / 1000);
-
-        const value = { timestamp: date, pubkeys: [params.param1], enabled: enChecked }
-
-
-        let signature = await signer.signTypedData(EIP712Domain, types, value);
-
+                ]
+            }
 
 
+            const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+            const APItype = "SetEnabled"
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
-            method: "POST",
+            const date = Math.floor(Date.now() / 1000);
 
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                type: APItype,
-                data: value,
-                signature: signature,
-                indices: [params.param2]
+            const value = { timestamp: date, pubkeys: [params.param1], enabled: enChecked }
+
+
+            let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+            await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    type: APItype,
+
+                    data: value,
+
+                    signature: signature,
+
+                    indices: [params.param2]
+                })
             })
-        })
-            .then(async response => {
+                .then(async response => {
 
-                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+                    var jsonString = await response.text()// Note: response will be opaque, won't contain data
 
-                console.log("Get Deposit Data response" + jsonString)
+                    console.log("Get Deposit Data response" + jsonString)
 
-                alert("Enable/Disable sucessful")
-            })
-            .catch(error => {
-                // Handle error here
-                console.log(error);
-            });
+                    getMinipoolData();
+
+                    alert("Enable/Disable sucessful")
+                })
+                .catch(error => {
+                    // Handle error here
+                    console.log(error);
+                });
 
 
 
@@ -2091,7 +1937,7 @@ const ValidatorDetail: NextPage = () => {
 
 
     return (
-        <div className="flex w-full flex-col gap-2 items-center justify-center ">
+        <div className="flex w-full flex-col gap-2 items-center justify-center  pb-8 ">
             <Head>
                 <title>Vrün | Nodes & Staking</title>
                 <meta
@@ -2102,689 +1948,738 @@ const ValidatorDetail: NextPage = () => {
             </Head>
             <Navbar />
 
-            {xAxisData.length > 0 ? (<>
-                <div className="w-full h-[auto] flex flex-col items-center justify-center py-10">
-                    <div className="w-[50%] flex flex-col justify-center items-center">
-                        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
 
-                        <p className="mt-4 text-gray-500 sm:text-xl">
 
-                            <ContractTag pubkey={params?.param1} />
-                        </p>
-                    </div>
+
+            {address === undefined  || reduxData.nodeAddress !== address ? (
+
+                <div className='h-[100vh] w-full flex items-center gap-2 py-6 justify-center flex-col'>
+
+                    <h1>Looks like you&apos;re not signed in or this link is expired! </h1>
+
+
+                    <Link href="/">
+
+
+
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                            Back to Home
+                        </button>
+
+
+
+
+                    </Link>
+
+
+
                 </div>
 
 
 
 
-                <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
+            ) : (
 
+                <>
 
+                    {xAxisData.length > 0 ? (<>
 
+                        <div className="w-full h-[auto] flex flex-col items-center justify-center py-10">
+                            <div className="w-[50%] flex flex-col justify-center items-center">
+                                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
 
+                                <p className="mt-4 text-gray-500 sm:text-xl">
 
-
-                    <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
-
-                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
-                            <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                                <FaEthereum className="text-2xl text-blue-500" />
-                            </div>
-                            <div>
-
-                                <span className="block text-xl mb-1 font-bold">Validator Status:</span>
-                                <span className="block text-gray-500 mb-1">
-
-
-                                    {reduxData.statusResult === "Prelaunch" &&
-                                        <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-
-
-                                    {reduxData.statusResult === "Initialised" &&
-
-                                        <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-
-                                    {reduxData.statusResult === "Staking" &&
-
-                                        <span className="py-1 font-semibold text-md leading-tight text-green-700 rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-
-
-                                    {reduxData.statusResult === "Withdrawable" &&
-
-                                        <span className="py-1 font-semibold text-md leading-tight text-green-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-
-
-                                    {reduxData.statusResult === "Dissolved" &&
-
-                                        <span className="py-1 font-semibold text-md leading-tight text-red-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-
-
-                                    {reduxData.statusResult === "Empty" &&
-
-                                        <span className="py-1 font-semibold  text-md leading-tight text-greay-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                    }
-                                </span>
-
-
-                                {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
-                                    <CountdownComponent milliseconds={reduxData.timeRemaining} />}
-
-                                {reduxData.statusResult === "Prelaunch" &&
-
-                                    <button onClick={() => { stakeMinipool() }} className="bg-green-500 mt-1  text-xs  hover:bg-green-700 text-white font-bold  py-2 px-4 rounded-md">Stake Minipool</button>
-
-
-                                }
-                                {reduxData.statusResult === "Dissolved" &&
-                                    <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-1  text-xs  hover:bg-red-700 text-white font-bold  py-2 px-4 rounded-md">Close Minipool</button>
-                                }
-
-
+                                    <ContractTag pubkey={params?.param1} />
+                                </p>
                             </div>
                         </div>
 
-                        <div className="flex w-auto items-center p-6 bg-white shadow border rounded-lg">
-                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                                <VscActivateBreakpoints className="text-blue-500 text-2xl" />
 
-                            </div>
-                            <div className='flex flex-col items-start justify-center w-full'>
 
-                                <div className='flex items-center gap-2 justify-start w-full'>
 
-                                    <span className="block text-xl font-bold">Enabled?</span>
-
-                                    <label className="self-center">
+                        <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
 
-                                        <input
-                                            type="checkbox"
-                                            className="self-center"
-                                            checked={enChecked}
-                                            onChange={handleEnCheckedInput}
-                                        />
-                                    </label>
+
+
+                            <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
+
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                        <FaEthereum className="text-2xl text-blue-500" />
+                                    </div>
+                                    <div>
+
+                                        <span className="block text-xl mb-1 font-bold">Validator Status:</span>
+                                        <span className="block text-gray-500 mb-1">
+
+
+                                            {reduxData.statusResult === "Prelaunch" &&
+                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Initialised" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+                                            }
+
+                                            {reduxData.statusResult === "Staking" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-green-700 rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Withdrawable" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-green-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Dissolved" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-red-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Empty" &&
+
+                                                <span className="py-1 font-semibold  text-md leading-tight text-greay-700  rounded-sm">{reduxData.statusResult}</span>
+
+                                            }
+
+                                        </span>
+
+
+                                        {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
+
+                                            <CountdownComponent milliseconds={reduxData.timeRemaining} />}
+
+                                        {reduxData.statusResult === "Prelaunch" &&
+
+                                            <button onClick={() => { stakeMinipool() }} className="bg-green-500 mt-1  text-xs  hover:bg-green-700 text-white font-bold  py-2 px-4 rounded-md">Stake Minipool</button>
+
+                                        }
+                                        {reduxData.statusResult === "Dissolved" &&
+
+                                            <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-1  text-xs  hover:bg-red-700 text-white font-bold  py-2 px-4 rounded-md">Close Minipool</button>
+
+                                        }
+
+
+                                    </div>
                                 </div>
 
-                                <div className='w-full flex gap-2 text-xs items-start justify-start'>
-                                    <button onClick={() => { toggleEnableDisable() }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
-                                        Confirm Changes
-                                    </button>
-                                </div>
+                                <div className="flex w-auto items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                        <VscActivateBreakpoints className="text-blue-500 text-2xl" />
 
+                                    </div>
+                                    <div className='flex flex-col items-start justify-center w-full'>
 
-                            </div>
+                                        <div className='flex items-center gap-2 justify-start w-full'>
 
-                        </div>
-                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                            <span className="block text-xl font-bold">Enabled?</span>
 
-                            <div>
+                                            <label className="self-center">
 
-                                <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                    {Number(reduxData.valDayVariance) > 0 ? (
-                                        <div className='flex items-center justify-center'>
-                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-green-100 rounded-full mr-3">
-                                                <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                                </svg>
+                                                <input
+                                                    type="checkbox"
+                                                    className="self-center"
+                                                    checked={enChecked}
+                                                    onChange={handleEnCheckedInput}
+                                                />
 
-                                            </div>
+                                            </label>
+                                        </div>
 
-                                            <div className="px-3">
-                                                <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
-
-                                                <p className="text-green-600"> {reduxData.valDayVariance}</p>
-
-                                            </div>
-
+                                        <div className='w-full flex gap-2 text-xs items-start justify-start'>
+                                            <button onClick={() => { toggleEnableDisable() }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
+                                                Confirm Changes
+                                            </button>
                                         </div>
 
 
-                                    ) : (
-                                        <div className='flex items-center justify-center'>
-                                            {reduxData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-red-100 rounded-full mr-6">
-                                                <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                                </svg>
-                                            </div>}
+                                    </div>
 
-                                            <div>
-                                                <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
+                                </div>
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
 
-                                                <p className='text-red-600'>{reduxData.valDayVariance !== "" && reduxData.valDayVariance}</p>
+                                    <div>
 
-                                            </div>
+                                        <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                            {Number(reduxData.valDayVariance) > 0 ? (
+                                                <div className='flex items-center justify-center'>
+                                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-green-100 rounded-full mr-3">
+                                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                        </svg>
+
+                                                    </div>
+
+                                                    <div className="px-3">
+                                                        <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
+
+                                                        <p className="text-green-600"> {reduxData.valDayVariance}</p>
+
+                                                    </div>
+
+                                                </div>
+
+
+                                            ) : (
+                                                <div className='flex items-center justify-center'>
+                                                    {reduxData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  bg-red-100 rounded-full mr-6">
+                                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                                        </svg>
+                                                    </div>}
+
+                                                    <div>
+                                                        <span className="block text-xl font-bold text-black">Daily ETH Tracker:</span>
+
+                                                        <p className='text-red-600'>{reduxData.valDayVariance !== "" && reduxData.valDayVariance}</p>
+
+                                                    </div>
+
+                                                </div>
+                                            )}
+
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
+                                        <GrSatellite className="text-yellow-500 text-2xl" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-start flex-col gap-0.5 text-l ">
+                                            {reduxData.beaconStatus !== "" &&
+                                                <h3 className='block text-xl mb-1 font-bold'>Beaconchain</h3>
+                                            }
+
+                                            <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
+                                            <a className="text-black-500  hover:text-blue-300  text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">
+                                        <Image
+                                            width={70}
+                                            height={70}
+                                            alt="Rocket Pool Logo"
+                                            src={"/images/rocketPlogo.png"} />
+                                    </div>
+                                    <div>
+                                        <div className='flex items-start flex-col gap-1 text-l '>
+                                            <span className="text-xl font-bold">Minipool Address:</span>
+                                            <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(reduxData.address)} /></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
+                                        <PiSignatureBold className="text-purple-500 text-3xl" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-start flex-col gap-1 text-l ">
+                                            <p className="text-xs text-gray-600">    {reduxData.graffiti}</p>
+
+
+
+
+                                            <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
+                                                Change
+                                            </button>
 
                                         </div>
-                                    )}
-
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
-                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
-                                <GrSatellite className="text-yellow-500 text-2xl" />
-                            </div>
-                            <div>
-                                <div className="flex items-start flex-col gap-0.5 text-l ">
-                                    {reduxData.beaconStatus !== "" &&
-                                        <h3 className='block text-xl mb-1 font-bold'>Beaconchain</h3>
-                                    }
-
-                                    <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
-                                    <a className="text-black-500  hover:text-blue-300  text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
+                                    </div>
                                 </div>
-                            </div>
+                            </section>
+
                         </div>
 
 
-                        <div className="flex items-center p-6 bg-white shadow rounded-lg">
-                            <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">
-                                <Image
-                                    width={70}
-                                    height={70}
-                                    alt="Rocket Pool Logo"
-                                    src={"/images/rocketPlogo.png"} />
-                            </div>
-                            <div>
-                                <div className='flex items-start flex-col gap-1 text-l '>
-                                    <span className="text-xl font-bold">Minipool Address:</span>
-                                    <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(reduxData.address)} /></p>
-                                </div>
-                            </div>
+                        <div className="w-full flex flex-col items-center justify-center py-10">
+
+
+
+
                         </div>
 
 
 
+                        <div className=" w-full flex flex-col items-center justify-center gap-8  ">
 
-                        <div className="flex items-center p-6 bg-white shadow border rounded-lg">
-                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
-                                <PiSignatureBold className="text-purple-500 text-3xl" />
+
+                            <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+
+                                <table className="w-full">
+                                    <tbody>
+                                        <tr className="border-b-2">
+                                            <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+
+                                                <p className="text-black-500">Fee recipient</p>
+
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+
+                                            </td>
+                                        </tr>
+                                        <tr className="border-b-2 ">
+                                            <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+                                                <p>Graffiti</p>
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+
+                                                {reduxData.graffiti}
+
+                                            </td>
+                                        </tr>
+                                        <tr className="border-b-2 ">
+                                            <td className="px-5  bg-gray-100 py-3 text-s font-bold w-auto text-center">
+                                                <p>Balance</p>
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+                                                {reduxData.valBalance}
+                                            </td>
+                                        </tr>
+                                        <tr className="border-b-2 ">
+                                            <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
+                                                <p>Validator Index</p>
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+                                                {reduxData.valIndex}
+
+                                            </td>
+                                        </tr>
+                                        <tr className="border-b-2 ">
+                                            <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                <p>Minipool Address</p>
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+                                                <ContractTag pubkey={truncateString(reduxData.address)} />
+
+                                            </td>
+                                        </tr>
+
+                                        <tr className="border-b-2 ">
+                                            <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                <p>Active since</p>
+                                            </td>
+                                            <td className="px-5  py-3 text-s w-auto text-center">
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+
                             </div>
-                            <div>
-                                <div className="flex items-start flex-col gap-1 text-l ">
-                                    <p className="text-xs text-gray-600">    {reduxData.graffiti}</p>
 
 
 
 
-                                    <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
-                                        Change
-                                    </button>
+                            <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
 
-                                </div>
+                                <table className="w-full">
+                                    <tbody>
+
+                                        {reduxData.statusResult === "Dissolved" &&
+
+                                            <tr className="border-b-2 ">
+                                                <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                    <p>Close Failed Minipool Instance</p>
+                                                </td>
+                                                <td className="px-5  py-3 text-s w-auto text-center">
+                                                    <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
+                                                </td>
+                                            </tr>
+
+                                        }
+
+
+                                        {reduxData.statusResult === "Prelaunch" &&
+                                            <tr className="border-b-2 ">
+                                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                    <p>Stake Prelaunched Minipool</p>
+                                                </td>
+                                                <td className="px-5 py-3 text-s w-auto text-center">
+                                                    <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                        {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
+                                            <tr className="border-b-2 ">
+                                                <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                    <p>Close Active Minipool</p>
+                                                </td>
+                                                <td className="px-5  py-3 text-s w-auto text-center">
+                                                    <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
+                                                </td>
+                                            </tr>
+                                        }
+
+
+                                        {reduxData.beaconStatus === "withdrawal_done" &&
+                                            <tr className="border-b-2 ">
+                                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center" >
+                                                    <p >Distribute balance of  &quot;Withdrawn&quot; Minipool</p>
+                                                </td>
+                                                <td className="px-5  py-3 text-s w-auto text-center">
+                                                    <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                        {reduxData.statusResult !== "Empty" && reduxData.beaconStatus === "active_ongoing" &&
+                                            <tr className="border-b-2 ">
+                                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                                                    <p>Get Presigned Exit Message</p>
+                                                </td>
+                                                <td className="px-5 py-3 text-s w-auto text-center">
+                                                    <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
+                                                </td>
+                                            </tr>
+                                        }
+
+
+
+                                    </tbody>
+                                </table>
+
+
                             </div>
+
                         </div>
-                    </section>
-
-                </div>
-
-
-                <div className="w-full flex flex-col items-center justify-center py-10">
 
 
 
+                        <div className="w-full h-[90vh] flex flex-col items-center justify-center">
 
-                </div>
+                  <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
 
+                    <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
 
+                      <div className="flex items-center  h-full justify-center p-8 bg-white ">
+                            {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
 
-                <div className=" w-full flex flex-col items-center justify-center gap-8  ">
-
-
-                <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
-
-                    <table className="w-full">
-                        <tbody>
-                            <tr className="border-b-2">
-                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
-
-                                    <p className="text-black-500">Fee recipient</p>
-
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-
-                                </td>
-                            </tr>
-                            <tr className="border-b-2 ">
-                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
-                                    <p>Graffiti</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-
-                                    {reduxData.graffiti}
-
-                                </td>
-                            </tr>
-                            <tr className="border-b-2 ">
-                                <td className="px-5  bg-gray-100 py-3 text-s font-bold w-auto text-center">
-                                    <p>Balance</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-                                    {reduxData.valBalance}
-                                </td>
-                            </tr>
-                            <tr className="border-b-2 ">
-                                <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
-                                    <p>Validator Index</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-                                    {reduxData.valIndex}
-
-                                </td>
-                            </tr>
-                            <tr className="border-b-2 ">
-                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                    <p>Minipool Address</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-                                    <ContractTag pubkey={truncateString(reduxData.address)} />
-
-                                </td>
-                            </tr>
-
-                            <tr className="border-b-2 ">
-                                <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                    <p>Active since</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <div className="w-[500px] h-[auto]  flex flex-col items-center justify-center py-3">
 
 
-                </div>
+                                    <Line
+
+                                        data={graphData}
+                                        options={options}
+                                        onClick={onClick}
+                                        ref={charRef}
+
+                                    >
 
 
 
+                                    </Line>
 
-                <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+                                    <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
 
-                    <table className="w-full">
-                        <tbody>
-
-                            {reduxData.statusResult === "Dissolved" &&
-
-                             <tr className="border-b-2 ">
-                                <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                    <p>Close Failed Minipool Instance</p>
-                                </td>
-                                <td className="px-5  py-3 text-s w-auto text-center">
-                                <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Close Minipool</button>
-                                </td>
-                            </tr>
-                                
-                            }
-
-
-                            {reduxData.statusResult === "Prelaunch" &&
-                               <tr className="border-b-2 ">
-                               <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                   <p>Stake Prelaunched Minipool</p>
-                               </td>
-                               <td className="px-5 py-3 text-s w-auto text-center">
-                                <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Stake Minipool</button>
-                                </td>
-                            </tr>
-                            }
-
-                            {reduxData.statusResult === "Staking" &&
-                             <tr className="border-b-2 ">
-                             <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                 <p>Close Active Minipool</p>
-                             </td>
-                             <td className="px-5  py-3 text-s w-auto text-center">
-                                <button onClick={handlePostExitModal} className="bg-red-500 mt-2  text-xs  hover:bg-red-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Initiate Close</button>
-                                </td>
-                            </tr>
-                            }
-
-
-                            {reduxData.beaconStatus === "withdrawal_done" &&
-                             <tr className="border-b-2 ">
-                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center" >
-                                 <p >Distribute balance of  &quot;Withdrawn&quot; Minipool</p>
-                             </td>
-                             <td className="px-5  py-3 text-s w-auto text-center">
-                                <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Distribute Balance</button>
-                                </td>
-                            </tr>
-                            }
-
-                            {reduxData.statusResult !== "Empty" &&
-                             <tr className="border-b-2 ">
-                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                 <p>Get Presigned Exit Message</p>
-                             </td>
-                             <td className="px-5 py-3 text-s w-auto text-center">
-                                <button onClick={() => { handleGetPresignedModal() }} className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Get Exit Message</button>
-                                </td>
-                            </tr>
-                            }
+                                        <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                        <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                        <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                        <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
 
 
 
-                        </tbody>
-                    </table>
-
-
-                </div>
-
-                </div>
-
-
-                
-                <div className="flex items-center  justify-center p-8 bg-white shadow border border-b-2 rounded-lg mb-5 my-8">
-                        {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
-
-                            <div className="w-[500px] h-[auto]  flex flex-col items-center justify-center py-3">
-
-
-                                <Line
-
-                                    data={graphData}
-                                    options={options}
-                                    onClick={onClick}
-                                    ref={charRef}
-
-                                >
-
-
-
-                                </Line>
-
-                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
-
-                                    <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                    <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                    <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                    <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
-
-
+                                    </div>
+                                    <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className=" text-blue-400 hover:text-blue-200" href="rocketsweep.app">rocketsweep.app</a></p>
 
                                 </div>
-                                <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className=" text-blue-400 hover:text-blue-200" href="rocketsweep.app">rocketsweep.app</a></p>
 
+                            }
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+
+
+
+
+
+
+
+
+                        <Modal
+                            isOpen={showForm}
+                            onRequestClose={() => setShowForm(false)}
+                            contentLabel="Delete User Modal"
+                            className="modal"
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                },
+                                content: {
+                                    width: '50%',
+                                    height: '200px',
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                                <AiOutlineClose onClick={() => {
+                                    setShowForm(false)
+                                }} />
+                                <h2>Graffiti Update</h2>
+
+
+                                <input value={currentEditGraffiti} className="border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
+
+                                <div >
+                                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
+                                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+                                </div>
                             </div>
+                        </Modal>
+                        <Modal
+                            isOpen={showForm2}
+                            onRequestClose={() => setShowForm2(false)}
+                            contentLabel="Delete User Modal"
+                            className="modal"
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                },
+                                content: {
+                                    width: '50%',
+                                    height: '700px',
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                                <AiOutlineClose onClick={() => {
+                                    setShowForm2(false)
+                                }} />
+                                <h2>Get Presigned Exit Message</h2>
 
-                        }
-                    </div>
+                                <input
+
+                                    className="w-[60%] self-center border border-black-200 text-black-500"
+                                    type="datetime-local"
+                                    id="datetime"
+                                    value={dateTime}
+                                    onChange={(e) => setDateTime(e.target.value)}
+                                />
+
+
+                                <label className="w-full flex items-center justify-center gap-2">
+                                    <span className="font-bold">Encrypt your Exit Message?</span>
+                                    <input
+                                        type="checkbox"
+
+                                        checked={checked}
+                                        onChange={handleChecked}
+                                    />
+                                </label>
+
+                                {checked && <>
+                                    <h4>Enter Public Key:</h4>
+
+                                    <textarea className="border " value={publicKeyArmored} onChange={handlePublicKeyArmored} />
+                                </>}
+
+
+                                <div >
+                                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
+                                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
+                                </div>
+                            </div>
+                        </Modal>
+
+                        <Modal
+                            isOpen={showForm3}
+                            onRequestClose={() => setShowForm3(false)}
+                            contentLabel="Delete User Modal"
+                            className="modal"
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                },
+                                content: {
+                                    width: '50%',
+                                    height: '300px',
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                                <AiOutlineClose onClick={() => {
+                                    setShowForm3(false)
+                                }} />
+                                <h2>Add Credit to your Vrun account</h2>
+
+                                <input
+
+                                    className="w-[60%] self-center border border-black-200 text-black-500"
+                                    type="text"
+
+                                    value={feeETHInput}
+                                    onChange={handleETHInput}
+                                />
+
+
+
+                                <div >
+                                    <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+                                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
+                                </div>
+                            </div>
+                        </Modal>
+
+
+                        <Modal
+                            isOpen={showForm4}
+                            onRequestClose={() => setShowForm4(false)}
+                            contentLabel="Delete User Modal"
+                            className="modal"
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                },
+                                content: {
+                                    width: '50%',
+                                    height: '700px',
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
+                                <AiOutlineClose onClick={() => {
+                                    setShowForm4(false)
+                                }} />
+                                <h2>Post Presigned Exit Message</h2>
+
+
+                                <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
 
 
 
 
 
+                                <textarea className="border h-[200px] " value={exitMessage} onChange={handleChangeExitMessage} />
 
 
 
-                <Modal
-                    isOpen={showForm}
-                    onRequestClose={() => setShowForm(false)}
-                    contentLabel="Delete User Modal"
-                    className="modal"
-                    style={{
-                        overlay: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            zIndex: "999999999999999999999999999999999999",
-                        },
-                        content: {
-                            width: '50%',
-                            height: '200px',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: 'black',
-                            backgroundColor: "#fff",
-                            border: "0",
-                            borderRadius: "20px",
-                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                            overflow: "auto",
-                            WebkitOverflowScrolling: "touch", // For iOS Safari
-                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                        },
-                    }}
-                >
-                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                        <AiOutlineClose onClick={() => {
-                            setShowForm(false)
-                        }} />
-                        <h2>Graffiti Update</h2>
+                                <div >
+                                    <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
+                                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
+                                </div>
+                            </div>
+                        </Modal>
+
+                    </>) : (
+
+                        <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
+
+                            <h3>Please wait while we retrieve your validator detail...</h3>
+
+                            <BounceLoader />
 
 
-                        <input value={currentEditGraffiti} className="border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
-
-                        <div >
-                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
-                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                         </div>
-                    </div>
-                </Modal>
-                <Modal
-                    isOpen={showForm2}
-                    onRequestClose={() => setShowForm2(false)}
-                    contentLabel="Delete User Modal"
-                    className="modal"
-                    style={{
-                        overlay: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            zIndex: "999999999999999999999999999999999999",
-                        },
-                        content: {
-                            width: '50%',
-                            height: '700px',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: 'black',
-                            backgroundColor: "#fff",
-                            border: "0",
-                            borderRadius: "20px",
-                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                            overflow: "auto",
-                            WebkitOverflowScrolling: "touch", // For iOS Safari
-                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                        },
-                    }}
-                >
-                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                        <AiOutlineClose onClick={() => {
-                            setShowForm2(false)
-                        }} />
-                        <h2>Get Presigned Exit Message</h2>
-
-                        <input
-
-                            className="w-[60%] self-center border border-black-200 text-black-500"
-                            type="datetime-local"
-                            id="datetime"
-                            value={dateTime}
-                            onChange={(e) => setDateTime(e.target.value)}
-                        />
-
-                        
-                        <label className="w-full flex items-center justify-center gap-2">
-                            <span className="font-bold">Encrypt your Exit Message?</span>
-                            <input
-                                type="checkbox"
-
-                                checked={checked}
-                                onChange={handleChecked}
-                            />
-                        </label>
-
-                      { checked && <>
-                        <h4>Enter Public Key:</h4>
-
-                        <textarea className="border " value={publicKeyArmored} onChange={handlePublicKeyArmored} />
-                        </>  }
-
-
-                        <div >
-                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
-                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </Modal>
-
-                <Modal
-                    isOpen={showForm3}
-                    onRequestClose={() => setShowForm3(false)}
-                    contentLabel="Delete User Modal"
-                    className="modal"
-                    style={{
-                        overlay: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            zIndex: "999999999999999999999999999999999999",
-                        },
-                        content: {
-                            width: '50%',
-                            height: '300px',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: 'black',
-                            backgroundColor: "#fff",
-                            border: "0",
-                            borderRadius: "20px",
-                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                            overflow: "auto",
-                            WebkitOverflowScrolling: "touch", // For iOS Safari
-                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                        },
-                    }}
-                >
-                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                        <AiOutlineClose onClick={() => {
-                            setShowForm3(false)
-                        }} />
-                        <h2>Add Credit to your Vrun account</h2>
-
-                        <input
-
-                            className="w-[60%] self-center border border-black-200 text-black-500"
-                            type="text"
-
-                            value={feeETHInput}
-                            onChange={handleETHInput}
-                        />
-
-
-
-                        <div >
-                            <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
-                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </Modal>
-
-
-                <Modal
-                    isOpen={showForm4}
-                    onRequestClose={() => setShowForm4(false)}
-                    contentLabel="Delete User Modal"
-                    className="modal"
-                    style={{
-                        overlay: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            zIndex: "999999999999999999999999999999999999",
-                        },
-                        content: {
-                            width: '50%',
-                            height: '700px',
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            color: 'black',
-                            backgroundColor: "#fff",
-                            border: "0",
-                            borderRadius: "20px",
-                            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                            overflow: "auto",
-                            WebkitOverflowScrolling: "touch", // For iOS Safari
-                            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                        },
-                    }}
-                >
-                    <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                        <AiOutlineClose onClick={() => {
-                            setShowForm4(false)
-                        }} />
-                        <h2>Post Presigned Exit Message</h2>
-
-
-                        <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
 
 
 
 
+                    )}
 
-                        <textarea className="border " value={exitMessage} onChange={handleChangeExitMessage} />
-
-
-
-                        <div >
-                            <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
-                            <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
-                        </div>
-                    </div>
-                </Modal>
-
-            </>) : (
-
-                <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
-
-                    <h3>Please wait while we retrieve your validator detail...</h3>
-
-                    <BounceLoader />
-
-
-                </div>
-
+                </>
 
 
 
             )}
+
+
 
 
 
@@ -2831,7 +2726,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        </div>
+      <Footer/>  </div>
     )
 }
 

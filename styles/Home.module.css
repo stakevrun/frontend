@@ -68,7 +68,9 @@
 .card {
   margin: 1rem;
   padding: 1.5rem;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: inherit;
   text-decoration: none;
   border: 1px solid #eaeaea;
