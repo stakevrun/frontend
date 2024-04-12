@@ -323,7 +323,7 @@ const CreateValidator: NextPage = () => {
 
     if (typeof (window as any).ethereum !== "undefined") {
 
-      console.log("Reg Spot 1")
+
 
       try {
 
@@ -334,7 +334,6 @@ const CreateValidator: NextPage = () => {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
-
 
 
 
@@ -361,10 +360,13 @@ const CreateValidator: NextPage = () => {
         const amount = await rocketNodeStaking.getNodeRPLStake(add)
 
 
-        console.log("Amount" + amount)
+        console.log(typeof amount)
 
 
         setStakeRPL(amount);
+
+
+        
 
         console.log("Stake RPL amount:" + amount);
 
@@ -375,39 +377,45 @@ const CreateValidator: NextPage = () => {
         const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
 
         console.log("rplRequiredPerLEB8: " + rplRequiredPerLEB8)
-        const LEB8sPossible = amount / rplRequiredPerLEB8
+
+
+        
+        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+
+        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer);
+
+        const activeMinipools = await MinipoolManager.getNodeMinipoolCount(address);
+        setDisplayActiveMinipools(activeMinipools);
+
+
+      
+
+
+        if (Number(ethers.formatEther(amount)) < 1) {
+
+          setNewMinipools(BigInt(0))
+
+
+        } else {
+
+        let LEB8sPossible = amount / rplRequiredPerLEB8
+        let possibleNewMinpools = LEB8sPossible - ethers.parseEther(activeMinipools.toString());
+
+        
+
         console.log(" LEB8sPossible: " + LEB8sPossible);
         // getNodeActiveMinipoolCount
 
 
-        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
+      
 
 
-
-
-        const activeMinipools = await MinipoolManager.getNodeMinipoolCount(address);
-
-
-
-
-
-
-
-
-
-        const possibleNewMinpools = LEB8sPossible - parseEther(activeMinipools.toString());
-
-
-
-        setDisplayActiveMinipools(activeMinipools);
-
-        console.log("Possible new:" + LEB8sPossible);
-        console.log("Active minipools:" + activeMinipools)
 
         setNewMinipools(possibleNewMinpools)
+
+
+        }
 
 
         return amount;
@@ -433,7 +441,6 @@ const CreateValidator: NextPage = () => {
     }
 
   }
-
 
 
 
@@ -1628,8 +1635,8 @@ const CreateValidator: NextPage = () => {
                           <span className='text-green-500 font-bold'> <RollingNumber n={Number(formatEther(stakeRPL))} /> </span>
                           staked RPL.
                           You have
-                          <span className='text-green-500 font-bold' style={newMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
-                          one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={newMinipools < 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Math.floor(Number(formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
+                          <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
+        one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={ Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" }: { color: "rgb(34 197 94)" } }> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} /></span> new LEB8s (Minipools)
 
                         </p>
                         <input value={RPLinput} placeholder='RPL Value' className=" border border-black-200 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />

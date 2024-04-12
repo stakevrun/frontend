@@ -4,11 +4,11 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const NoConnection = () => {
     return (
-        <div className='w-full py-50 h-auto flex flex-col items-center justify-center '>
+        <div className='w-full  h-[90vh] flex flex-col items-center justify-center '>
 
 
 
-            <div className="flex flex-col w-auto gap-2 rounded-lg mt-40 border border-gray-100 px-4 py-4 text-center items-center justify-center">
+            <div className="flex flex-col w-auto gap-2 rounded-lg  border border-gray-100 px-4 py-4 text-center items-center justify-center shadow">
 
 
                 <MdNoAccounts className='text-7xl' />

@@ -25,6 +25,7 @@ import feeABI from "../json/feeABI.json"
 import { GrSatellite } from "react-icons/gr";
 import { FaEthereum } from "react-icons/fa";
 import { FaCoins } from "react-icons/fa";
+import { IoMdAddCircle } from "react-icons/io";
 import BounceLoader from "react-spinners/BounceLoader";
 import Image from 'next/image';
 
@@ -205,7 +206,7 @@ const AccountMain: NextPage = () => {
 
 
 
-  const getMinipoolTruth = async (pubkey: string) => {
+  const getMinipoolTruth = async () => {
 
 
 
@@ -234,13 +235,18 @@ const AccountMain: NextPage = () => {
       console.log("Bool:" + bool)
 
 
-      return bool;
+      if (typeof bool === "boolean") {
+        setChecked2(bool);
+  
+  
+      }
 
     } catch (error) {
 
       console.log(error)
+      setChecked2(false)
 
-      return false;
+   
 
     }
 
@@ -972,14 +978,20 @@ const AccountMain: NextPage = () => {
       fetchData();
       dispatch(getGraphPointsData([]));
       dispatch(attestationsData([]));
+      getMinipoolTruth();
       getMinipoolData();
       getPayments();
+      getCharges();
     } else {
       // This block will run only on the initial render
       setPreloader(true)
       setIsInitialRender(false);
     }
   }, [currentChain, address]);
+
+
+
+
 
 
 
@@ -1197,6 +1209,14 @@ const AccountMain: NextPage = () => {
 
 
 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
   const [preloader, setPreloader] = useState(true)
 
 
@@ -1547,17 +1567,14 @@ const AccountMain: NextPage = () => {
           const isEnabled = await getEnabled(pubkey)
           const valIndex = await getValIndex(pubkey)
 
-          const charges = await getCharges(pubkey);
 
 
 
-          const smoothingBool = await getMinipoolTruth(pubkey)
-
-          if (typeof smoothingBool === "boolean") {
-            setChecked2(smoothingBool);
 
 
-          }
+
+
+         
 
 
           const beaconObject = await getValBeaconStats(pubkey)
@@ -1926,11 +1943,11 @@ const AccountMain: NextPage = () => {
 
 
     const types = {
-        SetGraffiti: [
-            { name: 'timestamp', type: 'uint256' },
-            { name: 'pubkeys', type: 'bytes[]' },
-            { name: 'graffiti', type: 'string' },
-        ]
+      SetGraffiti: [
+        { name: 'timestamp', type: 'uint256' },
+        { name: 'pubkeys', type: 'bytes[]' },
+        { name: 'graffiti', type: 'string' },
+      ]
     }
 
     let pubkeyArray = [];
@@ -1969,28 +1986,28 @@ const AccountMain: NextPage = () => {
 
 
     await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
-        method: "POST",
+      method: "POST",
 
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            type: APItype,
-            data: value,
-            signature: signature,
-            indices: indexArray
-        })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        type: APItype,
+        data: value,
+        signature: signature,
+        indices: indexArray
+      })
     })
-        .then(async response => {
+      .then(async response => {
 
-            var jsonString = await response.json()// Note: response will be opaque, won't contain data
+        var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
-            console.log("Get Deposit Data response" + jsonString)
-        })
-        .catch(error => {
-            // Handle error here
-            console.log(error);
-        });
+        console.log("Get Deposit Data response" + jsonString)
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+      });
 
 
     await getMinipoolData();
@@ -2209,11 +2226,20 @@ const AccountMain: NextPage = () => {
 
 
   useEffect(() => {
+    if (address !== undefined) {
 
 
-    getPayments();
+
+    getMinipoolTruth();
+      getPayments();
+      getCharges();
+
+    }
 
   }, [])
+
+
+
 
 
 
@@ -2386,6 +2412,7 @@ const AccountMain: NextPage = () => {
 
 
   const [currentPayments, setCurrentPayments] = useState<number>(0)
+  const [currentCharges, setCurrentCharges] = useState<number>(0)
 
 
 
@@ -2393,30 +2420,76 @@ const AccountMain: NextPage = () => {
 
 
 
-  const getCharges = async (pubkey: string) => {
+  const getCharges = async () => {
 
 
-    const charges: string = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/${pubkey}/charges`, {
-      method: "GET",
+    setCurrentCharges(0);
 
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
 
-        var jsonObject = await response.json()
 
-        console.log("Charges object:" + jsonObject);
+    let totalCharges = 0;
 
-        return jsonObject.toString();
 
+
+
+
+    for (const data of reduxData) {
+
+
+
+      const charges: number = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/${data.pubkey}/charges`, {
+        method: "GET",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
       })
-      .catch(error => {
+        .then(async response => {
 
-        console.log(error);
-        return "";
-      });
+          var jsonObject = await response.json()
+
+          let numDays = 0;
+
+
+
+          for (const object of jsonObject) {
+
+            console.log("Charges object:" + Object.entries(object));
+
+            numDays += object.numDays
+
+
+          }
+
+
+
+          return numDays;
+
+        })
+        .catch(error => {
+
+          console.log(error);
+          return 0;
+        });
+
+
+
+
+
+
+      totalCharges += charges
+
+    }
+
+
+
+
+    let totalETH = totalCharges * 0.0001
+
+
+
+
+    setCurrentCharges(totalETH);
 
 
 
@@ -2596,8 +2669,8 @@ const AccountMain: NextPage = () => {
 
   const handleGraffitiModal = () => {
     setShowForm(true);
-  
-   
+
+
   }
 
 
@@ -2874,7 +2947,7 @@ const AccountMain: NextPage = () => {
 
 
 
- 
+
 
 
 
@@ -2944,11 +3017,11 @@ const AccountMain: NextPage = () => {
 
 
 
-                        <div className='mb-2'>
-                          <span className="block text-2xl font-bold">{currentPayments}</span>
-
-                          <span className="block text-gray-500">in Credit</span>
+                        <div className='mb-2 flex flex-col justify-center items-center'>
+                          <span className="block text-2xl font-bold">{currentPayments - currentCharges}</span>
+                          <span className="block text-gray-500 ">in Credit</span>
                         </div>
+
 
 
                         <button onClick={handlePaymentModal} className="bg-green-500 text-xs hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Top-up</button>
@@ -3046,20 +3119,11 @@ const AccountMain: NextPage = () => {
                       <h3 className="text-2xl font-bold text-gray-900 ">Active Validators</h3>
                       <Link href="/createValidator">
 
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  rounded-full ">
 
+                          <IoMdAddCircle className="text-green-500 hover:text-green-700 cursor-pointer w-full h-full" />
 
-
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                          <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" viewBox="0 0 50 50" xmlSpace="preserve">
-                            <circle style={{ fill: '#43B05C' }} cx="25" cy="25" r="25" />
-                            <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="25" y1="13" x2="25" y2="38" />
-                            <line style={{ fill: 'none', stroke: '#FFFFFF', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round', strokeMiterlimit: 10 }} x1="37.5" y1="25" x2="12.5" y2="25" />
-                          </svg>
                         </div>
-
-
-
-
 
                       </Link>
 
@@ -3071,7 +3135,7 @@ const AccountMain: NextPage = () => {
 
                 {totalValidators !== "0" ?
 
-                  (<div className="w-[] overflow-hidden shadow border rounded-lg mb-10 ">
+                  (<div className="w-auto overflow-hidden shadow border rounded-lg mb-10 ">
 
 
                     <table className="w-full">
@@ -3207,31 +3271,32 @@ const AccountMain: NextPage = () => {
 
                 }
 
+                {totalValidators !== "0" ? (
 
+                  <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
 
-<div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+                    <table className="w-full">
+                      <tbody>
 
-<table className="w-full">
-  <tbody>
+                        <tr className="border-b-2 ">
+                          <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
+                            <p>Batch Change Graffiti</p>
+                          </td>
+                          <td className="px-5  py-3 text-s w-auto text-center">
+                            <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
+                          </td>
+                        </tr>
 
-    <tr className="border-b-2 ">
-      <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
-        <p>Batch Change Graffiti</p>
-      </td>
-      <td className="px-5  py-3 text-s w-auto text-center">
-        <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
-      </td>
-    </tr>
-
-  </tbody>
-</table>
-</div>
+                      </tbody>
+                    </table>
+                  </div>) : (<>
+                  </>)}
 
 
                 {totalValidators !== "0" ? (
 
 
-                  <div className="w-full h-[90vh] flex flex-col items-center justify-center">
+                  <div className="w-full h-[50vh] flex flex-col items-center justify-center">
 
                     <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
 
@@ -3281,13 +3346,13 @@ const AccountMain: NextPage = () => {
                   </>)}
 
 
-              
 
 
 
 
 
-                <div className="w-full  h-[100vh]  flex flex-col justify-center items-center">
+
+                <div className="w-full  h-[70vh]  flex flex-col justify-center items-center">
                   <RPLBlock />
                 </div>
 

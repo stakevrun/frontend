@@ -6,7 +6,9 @@ import { AiFillCopy, AiOutlineCheck } from "react-icons/ai";
 const ContractTag = ({pubkey}) => {
   
   const [copied, setCopied] = useState(false);
-  const [styles, setStyles] = useState({opacity: "0"});
+  const [styles, setStyles] = useState({opacity: "0", transition: "0.2s all ease-in-out"});
+
+
 
   const handleCopyClick = () => {
     const textElement = document.getElementById('addressText');
@@ -35,34 +37,36 @@ const ContractTag = ({pubkey}) => {
   }, [copied]);
 
   const changeStyles = () => {
-    setStyles({opacity: "1"});
+    setStyles({opacity: "1",
+    transition: "0.2s all ease-in-out"});
     console.log("Change works!");
   };
 
   const revertStyles = () => {
-    setStyles({opacity: "0"});
+    setStyles({opacity: "0",
+    transition: "0.2s all ease-in-out"});
     console.log("Revert works!");
   };
 
   return (
-    <div className='flex items-center gap-2 w-auto'>
+    <span className='flex items-center flex-col gap-2 justify-center  text-center text-wrap w-full xl:flex-row '>
     
     
-        <p id="addressText"  aria-disabled>{pubkey}</p>
+        <p id="addressText" className='text-wrap word-break break-all' aria-disabled>{pubkey}</p>
         {!copied && (
-       <div className='relative cursor-pointer'>
-            <div className="absolute top-7  bg-green-100 p-2 text-xs" style={styles}><span>Copy Address</span></div>
+       <span className='relative cursor-pointer'>
+            <span className="absolute top-7  bg-green-100 shadow border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copy Address</span></span>
             <AiFillCopy className="text-xl" onClick={handleCopyClick} onMouseEnter={changeStyles} onMouseLeave={revertStyles}/>
-          </div>
+          </span>
         )}
         {copied && (
-          <div className='relative cursor-pointer'>
-            <div className="absolute top-7  bg-green-100 p-2 text-xs" style={styles}><span>Copied!</span></div>
+          <span className='relative cursor-pointer'>
+            <span className="absolute top-7  bg-green-100 shadow border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copied!</span></span>
             <AiOutlineCheck className="text-xl" onMouseEnter={changeStyles} onMouseLeave={revertStyles} />
-          </div>
+          </span>
         )}
     
-    </div>
+    </span>
   );
 };
 

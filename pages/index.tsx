@@ -63,11 +63,11 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center lg:h-[90vh] '>
-          <div className=" w-[65%] h-auto flex flex-col-reverse justify-center items-center lg:flex-row ">
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh] '>
+          <div className=" w-[65%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row   ">
 
 
-            <div className="w-full flex h-full  flex-col justify-center items-end p-9 gap-6 lg:w-[50%]">
+            <div className="w-full flex h-full  flex-col justify-center items-end p-4 gap-6 lg:w-[50%] ">
 
               <h1 className='text-4xl  md:text-5xl  lg:text-6xl  xl:text-7xl  self-start  font-bold'>
                 Welcome to Vrün!
@@ -179,122 +179,122 @@ const Home: NextPage = () => {
 
         </div>
 
-        <div className='w-full h-[100vh] flex items-center justify-center '>
+        <div className='w-full h-[90vh] flex items-center justify-center '>
 
-<div className="max-w-screen-xl w-full  px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-  <div className="max-w-xl">
-    <h2 className="text-3xl font-bold sm:text-4xl">Why stake with Vrün?</h2>
+          <div className="max-w-screen-xl w-full  px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+            <div className="max-w-xl">
+              <h2 className="text-3xl font-bold sm:text-4xl">Why stake with Vrün?</h2>
 
-    <p className="mt-4 text-gray-500">
-      Premium Validator management service powered by experts in Cryptography
-    </p>
-  </div>
+              <p className="mt-4 text-gray-500">
+                Premium Validator management service powered by experts in Cryptography
+              </p>
+            </div>
 
-  <div className="mt-8 grid grid-cols-1 gap-8 md:mt-16 md:grid-cols-2 md:gap-12 lg:grid-cols-3">
-    <div className="flex items-start gap-4">
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <VscActivateBreakpoints className="text-blue-300 text-2xl" />
-      </span>
+            <div className="mt-8 grid grid-cols-1 gap-8 md:mt-16 md:grid-cols-2 md:gap-12 lg:grid-cols-3">
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <VscActivateBreakpoints className="text-blue-300 text-2xl" />
+                </span>
 
-      <div>
-        <h2 className="text-lg font-bold">Secure and reliable</h2>
+                <div>
+                  <h2 className="text-lg font-bold">Secure and reliable</h2>
 
-        <p className="mt-1 text-md text-gray-500 ">
-          Efficient and secure service, discreet management of secrets and 99% attestations guaranteed.
-          
-        </p>
+                  <p className="mt-1 text-md text-gray-500 ">
+                    Efficient and secure service, discreet management of secrets and 99% attestations guaranteed.
+
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <ImPower className="text-yellow-600 text-2xl" />
+                </span>
+
+                <div>
+                  <h2 className="text-lg font-bold">Live UI/UX Interface</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                    Watch your Validators progress with the live interface. All actions, countdowns and updates are picked-up as they happen, allowing you to feel secure.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <FaCoins className="text-yellow-500 text-xl" />
+                </span>
+
+                <div>
+                  <h2 className="text-lg font-bold">Rewards</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                    For a small fee of ETH each day, reap the lucrative rewards of the Rocket Pool Staking
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6 text-blue-500">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </span>
+
+                <div>
+                  <h2 className="text-lg font-bold">Community Building</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                    By staking with Vrun (and Rocket Pool), you are allowing small-time investors to reap rewards with the rETH token.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <BsSignStopFill className="text-red-400 text-xl" />
+                </span>
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Stop at anytime</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                    You may stop the charges to your account at any time with our Enable/Disable function. Able to be toggled  for each Validator in the <Link className="font-bold hover:text-blue-300 cursor-pointer" href={"/account"}> account page.</Link>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <FaEthereum className="text-2xl text-blue-500" />
+                </span>
+
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Made with Expertise</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                    The core functionality of our service was produced by seasoned developers with many years experience with the EVM.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+
       </div>
-    </div>
-
-    <div className="flex items-start gap-4">
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <ImPower className="text-yellow-600 text-2xl" />
-      </span>
-
-      <div>
-        <h2 className="text-lg font-bold">Live UI/UX Interface</h2>
-
-        <p className="mt-1 text-md text-gray-500">
-          Watch your Validators progress with the live interface. All actions, countdowns and updates are picked-up as they happen, allowing you to feel secure. 
-        </p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4">
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <FaCoins className="text-yellow-500 text-xl" />
-      </span>
-
-      <div>
-        <h2 className="text-lg font-bold">Rewards</h2>
-
-        <p className="mt-1 text-md text-gray-500">
-          For a small fee of ETH each day, reap the lucrative rewards of the Rocket Pool Staking
-        </p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4">
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6 text-blue-500">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      </span>
-
-      <div>
-        <h2 className="text-lg font-bold">Community Building</h2>
-
-        <p className="mt-1 text-md text-gray-500">
-          By staking with Vrun (and Rocket Pool), you are allowing small-time investors to reap rewards with the rETH token. 
-        </p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4">
-
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <BsSignStopFill className="text-red-400 text-xl" />
-      </span>
-
-
-      <div>
-        <h2 className="text-lg font-bold">Stop at anytime</h2>
-
-        <p className="mt-1 text-md text-gray-500">
-          You may stop the charges to your account at any time with our Enable/Disable function. Able to be toggled  for each Validator in the <Link className="font-bold hover:text-blue-300 cursor-pointer" href={"/account"}> account page.</Link>
-        </p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4">
-      <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-        <FaEthereum className="text-2xl text-blue-500" />
-      </span>
-
-
-
-      <div>
-        <h2 className="text-lg font-bold">Made with Expertise</h2>
-
-        <p className="mt-1 text-md text-gray-500">
-          The core functionality of our service was produced by seasoned developers with many years experience with the EVM.
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
-
-
-
-      </div>
 
 
 
 
 
-     
+
 
 
 

@@ -1564,9 +1564,11 @@ const ValidatorDetail: NextPage = () => {
         })
             .then(async response => {
 
-                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+                var resString = await response.text()// Note: response will be opaque, won't contain data
 
-                console.log("POST exit message response" + jsonString)
+                console.log("POST exit message response" + resString)
+
+                alert(resString)
 
                 getMinipoolData();
                 setShowForm4(false)
@@ -1937,7 +1939,7 @@ const ValidatorDetail: NextPage = () => {
 
 
     return (
-        <div className="flex w-full flex-col gap-2 items-center justify-center  pb-8 ">
+        <div className="flex w-full flex-col gap-2 items-center justify-center  ">
             <Head>
                 <title>Vrün | Nodes & Staking</title>
                 <meta
@@ -1984,16 +1986,20 @@ const ValidatorDetail: NextPage = () => {
 
                     {xAxisData.length > 0 ? (<>
 
-                        <div className="w-full h-[auto] flex flex-col items-center justify-center py-10">
-                            <div className="w-[50%] flex flex-col justify-center items-center">
-                                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Pubkey: </h2>
+                     
+                            <div className="w-full flex flex-col justify-center items-center py-10">
+                                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-2">Pubkey: </h2>
 
-                                <p className="mt-4 text-gray-500 sm:text-xl">
+                               
+                            <span className='w-[80%] overflow-wrap break-word'>
 
-                                    <ContractTag pubkey={params?.param1} />
-                                </p>
+                            <ContractTag pubkey={params?.param1} />
+
+                            </span>
+                                   
+                             
                             </div>
-                        </div>
+                     
 
 
 
@@ -2186,7 +2192,7 @@ const ValidatorDetail: NextPage = () => {
                                     <div>
                                         <div className='flex items-start flex-col gap-1 text-l '>
                                             <span className="text-xl font-bold">Minipool Address:</span>
-                                            <p className=" w-[50%] text-wrap text-gray-500"> <ContractTag pubkey={truncateString(reduxData.address)} /></p>
+                                            <p className=" text-wrap text-gray-500"> <ContractTag pubkey={truncateString(reduxData.address)} /></p>
                                         </div>
                                     </div>
                                 </div>
@@ -2270,15 +2276,7 @@ const ValidatorDetail: NextPage = () => {
 
                                             </td>
                                         </tr>
-                                        <tr className="border-b-2 ">
-                                            <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                                <p>Minipool Address</p>
-                                            </td>
-                                            <td className="px-5  py-3 text-s w-auto text-center">
-                                                <ContractTag pubkey={truncateString(reduxData.address)} />
-
-                                            </td>
-                                        </tr>
+                                      
 
                                         <tr className="border-b-2 ">
                                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">

@@ -20,7 +20,7 @@ const Navbar: NextPage = () => {
   return (
 
 
-    <header className="p-2 w-full h-auto bg-white flex items-center justify-center sticky top-0 z-50 shadow">
+    <header className="p-2 w-full h-auto bg-white flex flex-col items-center justify-center sticky top-0 z-50 shadow lg:h-[8vh]">
      
         <div className="mx-auto w-[90%] flex items-center justify-center gap-5">
           <div className="flex h-14 items-center justify-between w-full rounded-lg md:px-3">
