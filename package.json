@@ -25,6 +25,7 @@
     "chia-bls": "^1.0.1",
     "date-fns": "^3.6.0",
     "ethers": "^6.11.1",
+    "ethers-multicall": "^0.2.3",
     "next": "^14.0.4",
     "openpgp": "^5.11.1",
     "prop-types": "^15.8.1",

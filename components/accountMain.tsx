@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { PieChart, LineChart } from '@mui/x-charts'
 import { BarChart } from '@mui/x-charts/BarChart';
 import { NextPage } from 'next';
@@ -9,6 +9,7 @@ import miniManagerABI from "../json/miniManagerABI.json"
 import managerABI from "../json/managerABI.json"
 import daoABI from "../json/daoABI.json"
 import distributorABI from "../json/distributorABI.json"
+import styles from '../styles/Home.module.css';
 import CountdownComponent from './countdown.jsx';
 import QuickNode from '@quicknode/sdk';
 import Modal from 'react-modal';
@@ -37,6 +38,8 @@ import { increment, decrement, incrementByAmount } from "../globalredux/Features
 import { getData } from "../globalredux/Features/validator/valDataSlice"
 import { attestationsData } from '../globalredux/Features/attestations/attestationsDataSlice';
 import { getGraphPointsData } from "../globalredux/Features/graphpoints/graphPointsDataSlice"
+import { getPaymentsData } from "../globalredux/Features/payments/paymentSlice"
+import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
 
 
 
@@ -120,6 +123,8 @@ const AccountMain: NextPage = () => {
   const reduxData = useSelector((state: RootState) => state.valData.data);
   const reduxGraphPoints = useSelector((state: RootState) => state.graphPointsData.data);
   const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data)
+  const reduxPayments = useSelector((state: RootState) => state.paymentsData.data)
+  const reduxCharges = useSelector((state: RootState) => state.chargesData.data)
 
 
 
@@ -186,6 +191,80 @@ const AccountMain: NextPage = () => {
 
 
         newString = jsonString.data.status
+        console.log("Activation Epoch:" + jsonString.data.validator.activation_epoch)
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+      });
+
+
+
+
+
+    return newString
+
+
+  }
+
+
+
+  const getBeaconchainStatusObject = async (pubkey: string) => {
+
+
+    let newObject;
+
+    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
+
+
+    await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
+      method: "GET",
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+
+
+        newObject = jsonString.data
+
+      })
+      .catch(error => {
+        // Handle error here
+        console.log(error);
+      });
+
+
+
+
+
+    return newObject
+
+
+  }
+
+
+
+
+  const getBeaconchainActivation = async (pubkey: string) => {
+
+
+    let newString;
+
+    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
+
+
+    await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
+      method: "GET",
+    })
+      .then(async response => {
+
+        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+
+
+        newString = jsonString.data.validator.activation_epoch
+
       })
       .catch(error => {
         // Handle error here
@@ -209,7 +288,7 @@ const AccountMain: NextPage = () => {
   const getMinipoolTruth = async () => {
 
 
-
+    let newBool = false
 
 
 
@@ -218,15 +297,20 @@ const AccountMain: NextPage = () => {
 
 
       let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+
+
       let signer = await browserProvider.getSigner()
 
+      // Only required when `chainId` is not provided in the `Provider` constructor
+
+
       const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-      console.log("Storage Contract:" + storageContract)
+
 
       const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
 
       const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
-      console.log("Rocket Node Manager:" + rocketNodeManager)
+
       const bool = await rocketNodeManager.getSmoothingPoolRegistrationState(address)
 
 
@@ -237,8 +321,10 @@ const AccountMain: NextPage = () => {
 
       if (typeof bool === "boolean") {
         setChecked2(bool);
-  
-  
+
+        newBool = bool
+
+
       }
 
     } catch (error) {
@@ -246,9 +332,12 @@ const AccountMain: NextPage = () => {
       console.log(error)
       setChecked2(false)
 
-   
+
 
     }
+
+
+    return newBool
 
 
 
@@ -263,7 +352,6 @@ const AccountMain: NextPage = () => {
 
 
   const getValBeaconBalance = async (pubkey: string) => {
-
 
     let newString
 
@@ -316,44 +404,7 @@ const AccountMain: NextPage = () => {
   }
 
 
-  const postPresignedExitMessage = async () => {
 
-
-
-
-    //   /eth/v1/beacon/pool/voluntary_exits
-
-
-    //https://holesky.beaconcha.in//eth/v1/beacon/pool/voluntary_exits
-
-    const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
-
-
-
-    await fetch(`'${currentRPC}eth/v1/beacon/pool/voluntary_exits`, {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: exitMessage
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
-
-        console.log("POST exit message response" + jsonString)
-
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-      });
-
-
-
-
-  }
 
 
 
@@ -621,317 +672,21 @@ const AccountMain: NextPage = () => {
     return timeString.trim();
   }
 
-  const stakeMinipool = async (index: number) => {
 
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
 
-    const pubkey = await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${index}`, {
-      method: "GET",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
 
-        var jsonString = await response.json()
 
 
-        console.log("Result of Logs GET" + jsonString)
 
 
 
-        return jsonString;
 
 
-      })
-      .catch(error => {
 
-        console.log(error);
-      });
 
-
-
-
-
-
-
-
-
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey);
-
-
-    console.log("Mini Address:" + minipoolAddress)
-    const minipool = new ethers.Contract(minipoolAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
-
-
-    const canStakeResult = await minipool.canStake()
-
-    console.log(canStakeResult);
-
-
-    const types = {
-      GetDepositData: [
-        { name: 'pubkey', type: 'bytes' },
-        { name: 'withdrawalCredentials', type: 'bytes32' },
-        { name: 'amountGwei', type: 'uint256' }
-      ]
-    }
-
-
-    //ACCOUNT UI BRANCH
-
-
-    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-    const APItype = "GetDepositData"
-
-    console.log("Minipool Address:" + minipoolAddress);
-
-    let newAddress = ethers.concat(['0x01', ethers.zeroPadValue(minipoolAddress, 31)])
-
-    const value = { pubkey: pubkey, withdrawalCredentials: newAddress, amountGwei: (ethers.parseEther('31') / ethers.parseUnits('1', 'gwei')).toString() }
-
-
-    let signature = await signer.signTypedData(EIP712Domain, types, value);
-
-    let depositSignature;
-    let depositDataRoot;
-
-
-
-
-    await fetch(`https://db.vrün.com/${currentChain}/${address}/0`, {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        type: APItype,
-        data: value,
-        signature: signature
-      })
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
-
-        let newJSON = Object.entries(jsonString);
-
-        console.log(newJSON);
-
-        depositDataRoot = newJSON[0][1]
-        depositSignature = newJSON[1][1]
-
-
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-      });
-
-    if (canStakeResult) {
-
-
-
-
-      await minipool.stake(depositSignature, depositDataRoot);
-
-
-    } else {
-      const statusResult = await minipool.getStatus();
-      const statusTimeResult = await minipool.getStatusTime();
-      const numStatusTime = Number(statusTimeResult) * 1000;
-
-      console.log("Status Result:" + statusResult)
-
-      console.log("Status Time Result:" + statusTimeResult)
-
-      console.log(Date.now());
-      console.log(numStatusTime);
-
-
-
-
-
-
-
-      const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
-
-      const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
-
-      const scrubPeriod: any = await DAOContract.getScrubPeriod();
-
-      const numScrub = Number(scrubPeriod) * 1000;
-      console.log(numScrub);
-
-      const timeRemaining: any = numScrub - (Date.now() - numStatusTime)
-
-
-      const string = formatTime(timeRemaining);
-
-      console.log("Time Remaining:" + string);
-
-
-      await minipool.stake(depositSignature, depositDataRoot);
-
-
-
-
-    }
-
-  }
-
-
-
-  const distributeBalanceOfMinipool = async (pubkey: string) => {
-
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-
-
-
-
-
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey);
-
-
-    console.log("Mini Address:" + minipoolAddress)
-    const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
-    await minipool.distributeBalance(false)
-
-
-
-
-  }
-
-
-
-
-
-
-
-
-  const closeMinipool = async (index: number) => {
-
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-
-
-
-    const pubkey = await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${index}`, {
-      method: "GET",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()
-
-
-        console.log("Result of Logs GET" + jsonString)
-
-
-
-        return jsonString;
-
-
-      })
-      .catch(error => {
-
-        console.log(error);
-      });
-
-
-
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey);
-
-
-    console.log("Mini Address:" + minipoolAddress)
-    const minipool = new ethers.Contract(minipoolAddress, ['function close()'], signer)
-    await minipool.close()
-
-
-
-
-  }
-
-
-
-  const dissolveMinipool = async (index: number) => {
-
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-
-
-
-    const pubkey = await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${index}`, {
-      method: "GET",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()
-
-
-        console.log("Result of Logs GET" + jsonString)
-
-
-
-        return jsonString;
-
-
-      })
-      .catch(error => {
-
-        console.log(error);
-      });
-
-
-
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey);
-
-
-    console.log("Mini Address:" + minipoolAddress)
-    const minipool = new ethers.Contract(minipoolAddress, ['function dissolve()'], signer)
-    await minipool.dissolve()
-
-
-
-
-  }
 
 
 
@@ -958,6 +713,9 @@ const AccountMain: NextPage = () => {
           if (reg === true) {
             getMinipoolData();
             getPayments();
+            getMinipoolTruth();
+            getCharges();
+
           }
 
         } catch (error) {
@@ -1209,15 +967,115 @@ const AccountMain: NextPage = () => {
 
 
 
- 
- 
- 
- 
- 
- 
- 
- 
+
+  const getFeeRecipient = async (pubkey: string, bool: boolean) => {
+
+
+
+
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
+    const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
+
+
+
+
+
+
+
+
+
+
+
+    let feeRecipient;
+
+    if (bool) {
+
+
+      feeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
+
+
+
+
+
+
+
+    } else {
+
+
+      feeRecipient = await distributorContract.getProxyAddress(address);
+
+
+
+    }
+
+
+    return feeRecipient
+
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
   const [preloader, setPreloader] = useState(true)
+
+
+  const [validatorsInNeedOfAction, setValidatorsInNeedOfAction] = useState({
+    withdrawn: 0,
+    stake: 0,
+    close: 0
+  })
+
+
+
+
+  const getValidatorsInNeedOfAction = () => {
+
+    let withdrawnNum = 0;
+    let stakeNum = 0;
+    let closeNum = 0;
+
+
+
+    for (const object of reduxData) {
+
+      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) <= 0) {
+        withdrawnNum += 1
+      }
+
+      if (object.statusResult === "Prelaunch") {
+        stakeNum += 1
+
+      }
+
+      if (object.statusResult === "Dissolved") {
+        closeNum += 1
+      }
+
+    }
+
+    return {
+      withdrawn: withdrawnNum,
+      stake: stakeNum,
+      close: closeNum
+
+
+    }
+
+  }
 
 
 
@@ -1330,8 +1188,10 @@ const AccountMain: NextPage = () => {
         timeRemaining: "",
         graffiti: "",
         beaconStatus: "",
+        activationEpoch: "",
+        smoothingPoolTruth: false,
 
-
+        feeRecipient: "",
         valBalance: "",
         valProposals: "",
         valDayVariance: "",
@@ -1489,7 +1349,9 @@ const AccountMain: NextPage = () => {
             timeRemaining: "",
             graffiti: "",
             beaconStatus: "",
-
+            activationEpoch: "",
+            smoothingPoolTruth: false,
+            feeRecipient: "",
 
             valBalance: "",
             valProposals: "",
@@ -1563,9 +1425,54 @@ const AccountMain: NextPage = () => {
 
 
           const printGraff = await getGraffiti(pubkey);
-          const beaconStatus = await getBeaconchainStatus(pubkey)
+
+          type statusType = {
+
+            index: string,
+            balance: string,
+            status: string,
+            validator: {
+              pubkey: string,
+              withdrawal_credentials: string,
+              effective_balance: string,
+              slashed: boolean,
+              activation_eligibility_epoch: string,
+              activation_epoch: string,
+              exit_epoch: string,
+              withdrawable_epoch: string
+
+            }
+          }
+
+          let beaconStatusObject: statusType = {
+            index: "",
+            balance: "",
+            status: "",
+            validator: {
+              pubkey: "",
+              withdrawal_credentials: "",
+              effective_balance: "",
+              slashed: false,
+              activation_eligibility_epoch: "",
+              activation_epoch: "",
+              exit_epoch: "",
+              withdrawable_epoch: ""
+            }
+          }
+
+          let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
+
+          beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
+          const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
+          const epoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+          const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
+
+          const smoothingBool = await getMinipoolTruth()
+
           const isEnabled = await getEnabled(pubkey)
-          const valIndex = await getValIndex(pubkey)
+
+
+          const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
 
 
 
@@ -1574,7 +1481,11 @@ const AccountMain: NextPage = () => {
 
 
 
-         
+
+
+
+
+
 
 
           const beaconObject = await getValBeaconStats(pubkey)
@@ -1624,6 +1535,9 @@ const AccountMain: NextPage = () => {
             timeRemaining: timeRemaining.toString(),
             graffiti: typeof printGraff === "string" ? printGraff : "",
             beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+            activationEpoch: epoch !== undefined ? epoch : "",
+            smoothingPoolTruth: smoothingBool,
+            feeRecipient: newFeeRecipient,
 
 
             valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
@@ -1671,6 +1585,15 @@ const AccountMain: NextPage = () => {
     if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
 
       setPreloader(true)
+      getPayments();
+      getCharges();
+
+      getMinipoolTruth();
+
+      setValidatorsInNeedOfAction(getValidatorsInNeedOfAction())
+
+
+      setChecked2(reduxData[0].smoothingPoolTruth)
 
 
 
@@ -1695,7 +1618,7 @@ const AccountMain: NextPage = () => {
 
 
 
-        if (log.statusResult === "Staking") {
+        if (log.beaconStatus === "active_staking") {
 
           newRunningVals += 1;
           newTotalVals += 1;
@@ -1784,7 +1707,7 @@ const AccountMain: NextPage = () => {
 
     if (newNextIndex === 0) {
 
-      alert("No Validators to change the Fee Recipient for")
+      setErrorBoxTest2("No Validators to change the Fee Recipient for")
 
     } else {
 
@@ -1902,13 +1825,14 @@ const AccountMain: NextPage = () => {
           var resString = await response.text()// Note: response will be opaque, won't contain data
 
           console.log("Get Deposit Data response" + resString)
+          alert("Success! There should be Confetti here and preloader over buttons!")
 
           alert("setFeeRecipient success!")
         })
         .catch(error => {
           // Handle error here
           console.log(error);
-          alert("setFeeRecipient failed...")
+          setErrorBoxTest2(error.toString())
         });
 
 
@@ -1922,6 +1846,34 @@ const AccountMain: NextPage = () => {
 
 
 
+  const [graffitiError, setGraffitiError] = useState("");
+
+
+
+  useEffect(() => {
+
+
+    if (graffitiError !== "") {
+
+
+      const handleText = () => {
+        setGraffitiError("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 5000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [graffitiError])
+
+
 
 
 
@@ -1931,87 +1883,107 @@ const AccountMain: NextPage = () => {
 
   const setGraffiti = async (newGrafitti: string) => {
 
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner()
+
+    try {
+
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner()
 
 
-    /*  struct SetFeeRecipient {
-  uint256 timestamp;
-  bytes pubkey;
-  address feeRecipient;
-} */
+      /*  struct SetFeeRecipient {
+    uint256 timestamp;
+    bytes pubkey;
+    address feeRecipient;
+  } */
 
 
-    const types = {
-      SetGraffiti: [
-        { name: 'timestamp', type: 'uint256' },
-        { name: 'pubkeys', type: 'bytes[]' },
-        { name: 'graffiti', type: 'string' },
-      ]
-    }
+      const types = {
+        SetGraffiti: [
+          { name: 'timestamp', type: 'uint256' },
+          { name: 'pubkeys', type: 'bytes[]' },
+          { name: 'graffiti', type: 'string' },
+        ]
+      }
 
-    let pubkeyArray = [];
-    let indexArray = [];
-
-
-    let i = 0;
+      let pubkeyArray = [];
+      let indexArray = [];
 
 
-
-    for (const data of reduxData) {
-
-      indexArray.push(i)
-
-      pubkeyArray.push(data.pubkey)
-
-
-      i++
+      let i = 0;
 
 
 
-    }
+      for (const data of reduxData) {
+
+        indexArray.push(i)
+
+        pubkeyArray.push(data.pubkey)
 
 
-    const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-    const APItype = "SetGraffiti"
-
-    const date = Math.floor(Date.now() / 1000);
-
-    const value = { timestamp: date, pubkeys: pubkeyArray, graffiti: newGrafitti }
-
-
-    let signature = await signer.signTypedData(EIP712Domain, types, value);
+        i++
 
 
 
+      }
 
-    await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
-      method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        type: APItype,
-        data: value,
-        signature: signature,
-        indices: indexArray
+      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+      const APItype = "SetGraffiti"
+
+      const date = Math.floor(Date.now() / 1000);
+
+      const value = { timestamp: date, pubkeys: pubkeyArray, graffiti: newGrafitti }
+
+
+      let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+      await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          type: APItype,
+          data: value,
+          signature: signature,
+          indices: indexArray
+        })
       })
-    })
-      .then(async response => {
+        .then(async response => {
 
-        var jsonString = await response.json()// Note: response will be opaque, won't contain data
+          var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
-        console.log("Get Deposit Data response" + jsonString)
-      })
-      .catch(error => {
-        // Handle error here
-        console.log(error);
-      });
+          console.log("Get Deposit Data response" + jsonString)
+        })
+        .catch(error => {
+          // Handle error here
+          console.log(error);
+
+          setGraffitiError(error.toString())
 
 
-    await getMinipoolData();
-    setShowForm(false);
+        });
+
+
+      await getMinipoolData();
+      alert("Success! There should be Confetti here and preloader over buttons!")
+      setShowForm(false);
+
+    } catch (e: any) {
+      if (e.reason === "rejected") {
+        setGraffitiError(e.info.error.message.toString())
+
+      }
+      else {
+        setGraffitiError(e.error["message"].toString())
+      }
+
+
+    }
 
 
 
@@ -2101,6 +2073,23 @@ const AccountMain: NextPage = () => {
     let average = totalSum / totalCount;
     return average;
   }
+
+
+
+
+
+  const targetRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollToElement = () => {
+   
+    if (targetRef.current) {
+      setShowForm5(false);
+      window.scrollTo({
+        top: targetRef.current.offsetTop,
+        behavior: 'smooth',
+      });
+    }
+  };
 
 
 
@@ -2212,31 +2201,9 @@ const AccountMain: NextPage = () => {
 
 
 
-  useEffect(() => {
-
-    if (address !== undefined) {
-
-      getMinipoolData();
-
-
-    }
-
-
-  }, [])
-
-
-  useEffect(() => {
-    if (address !== undefined) {
 
 
 
-    getMinipoolTruth();
-      getPayments();
-      getCharges();
-
-    }
-
-  }, [])
 
 
 
@@ -2306,6 +2273,9 @@ const AccountMain: NextPage = () => {
     valBalance: string
     valProposals: string
     valDayVariance: string
+    activationEpoch: string
+    smoothingPoolTruth: boolean
+    feeRecipient: string
 
     graffiti: string
     isEnabled: boolean
@@ -2353,6 +2323,9 @@ const AccountMain: NextPage = () => {
       .then(async response => {
 
         var jsonString = await response.json()
+
+
+        console.log()
 
 
 
@@ -2423,7 +2396,7 @@ const AccountMain: NextPage = () => {
   const getCharges = async () => {
 
 
-    setCurrentCharges(0);
+
 
 
 
@@ -2434,6 +2407,9 @@ const AccountMain: NextPage = () => {
 
 
     for (const data of reduxData) {
+
+
+      console.log("Deffo here...")
 
 
 
@@ -2448,6 +2424,8 @@ const AccountMain: NextPage = () => {
 
           var jsonObject = await response.json()
 
+
+          console.log("An Object of Power:" + Object.entries(jsonObject))
           let numDays = 0;
 
 
@@ -2468,7 +2446,7 @@ const AccountMain: NextPage = () => {
         })
         .catch(error => {
 
-          console.log(error);
+          console.log("Charges" + error);
           return 0;
         });
 
@@ -2489,14 +2467,32 @@ const AccountMain: NextPage = () => {
 
 
 
-    setCurrentCharges(totalETH);
+
+    dispatch(getChargesData(totalETH))
 
 
 
   }
 
 
+
+  useEffect(() => {
+
+    console.log("Current Charges:" + currentCharges)
+
+  }, [currentCharges])
+
+
   const getPayments = async () => {
+
+
+
+    type RowType = {
+      payments: number; // Assuming payments are numbers for calculation
+    }
+
+
+    let paymentData: Array<RowType> = [];
 
 
     const payments: string = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/payments`, {
@@ -2546,6 +2542,7 @@ const AccountMain: NextPage = () => {
 
 
     setCurrentPayments(Number(payments));
+    dispatch(getPaymentsData(Number(payments)))
 
 
 
@@ -2726,6 +2723,36 @@ const AccountMain: NextPage = () => {
   }
 
 
+  const [paymentErrorMessage, setPaymentErrorMessage] = useState("")
+
+
+
+  useEffect(() => {
+
+
+    if (paymentErrorMessage !== "") {
+
+
+      const handleText = () => {
+        setPaymentErrorMessage("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 6000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [paymentErrorMessage])
+
+
+
+
 
   const makePayment = async () => {
 
@@ -2748,23 +2775,40 @@ const AccountMain: NextPage = () => {
       // Check if the transaction was successful (status === 1)
       if (receipt.status === 1) {
         // If successful, setShowForm3(false)
+
+        setFeeETHInput("")
+        getPayments();
+
+        alert("Success! There should be Confetti here and preloader over buttons!")
         setShowForm3(false);
-        console.log("Transaction successful:", result);
+        console.log("Transaction successful:", receipt);
       } else {
-        console.error("Transaction failed:", receipt);
+        console.error("Transaction failed:", result);
         // Handle the failure if needed
 
-        alert(receipt)
 
-        setShowForm3(false)
+
+        setPaymentErrorMessage(result)
+
+
       }
 
 
 
-    } catch (e) {
-      alert(e)
+    } catch (e: any) {
 
-      setShowForm3(false);
+      if (e.reason === "rejected") {
+        setPaymentErrorMessage(e.reason.toString())
+
+      }
+      else {
+        setPaymentErrorMessage(e.error["message"].toString())
+      }
+
+
+
+
+
     }
 
 
@@ -2857,9 +2901,7 @@ const AccountMain: NextPage = () => {
   }
 
 
-  const handleOptSmoothingPool2 = async () => {
-    setFeeRecipient(false);
-  }
+
 
 
   const handleOptSmoothingPool = async () => {
@@ -2892,12 +2934,14 @@ const AccountMain: NextPage = () => {
         if (checked2 === false) {
 
           alert("Opt-out of Smoothing Pool Successful")
+          alert("Success! There should be Confetti here and preloader over buttons!")
 
 
         } else {
 
 
           alert("Opt-in to Smoothing Pool Successful")
+          alert("Success! There should be Confetti here and preloader over buttons!")
 
         }
 
@@ -2911,6 +2955,15 @@ const AccountMain: NextPage = () => {
         let input: any = error
 
         setErrorBoxTest2(input.reason.toString());
+
+        if (input.reason === "rejected") {
+          setErrorBoxTest2(input.info.error.message.toString())
+
+        }
+        else {
+          setErrorBoxTest2(input.error["message"].toString())
+        }
+
 
       }
     }
@@ -2941,6 +2994,52 @@ const AccountMain: NextPage = () => {
   }, [errorBoxText2])
 
 
+  const [showForm5, setShowForm5] = useState(false)
+
+
+
+  useEffect(() => {
+
+    if ((Number(totalValidators) - Number(runningValidators)) > 0) {
+
+      setShowForm5(true)
+
+    }
+
+  }, [totalValidators])
+
+
+  const [showFormEffect, setShowFormEffect] = useState(false);
+  const [showFormEffect3, setShowFormEffect3] = useState(false);
+  const [showFormEffect5, setShowFormEffect5] = useState(false);
+
+  useEffect(() => {
+
+
+    setShowFormEffect(showForm);
+
+
+  }, [showForm]);
+
+
+  useEffect(() => {
+
+
+    setShowFormEffect3(showForm3);
+
+
+  }, [showForm3]);
+
+
+  useEffect(() => {
+
+
+    setShowFormEffect5(showForm5);
+
+
+  }, [showForm5]);
+
+
 
 
 
@@ -2956,7 +3055,7 @@ const AccountMain: NextPage = () => {
 
 
   return (
-    <section className="flex w-full flex-col items-center justify-center ">
+    <section className="flex w-full flex-col items-center bg-white pb-10 justify-center ">
 
       {address !== undefined ? (
         <>
@@ -3018,8 +3117,22 @@ const AccountMain: NextPage = () => {
 
 
                         <div className='mb-2 flex flex-col justify-center items-center'>
-                          <span className="block text-2xl font-bold">{currentPayments - currentCharges}</span>
-                          <span className="block text-gray-500 ">in Credit</span>
+                          <span className="block text-2xl font-bold">
+
+                            <span style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
+                              {reduxPayments - reduxCharges}
+                            </span> ETH
+
+
+                          </span>
+                          {reduxPayments - reduxCharges > 0 ? (
+                            <span className="block text-gray-500 ">in Credit</span>
+                          ) : (
+                            <span className="block text-gray-500 ">in Arrears</span>
+
+                          )
+
+                          }
                         </div>
 
 
@@ -3064,7 +3177,7 @@ const AccountMain: NextPage = () => {
                           width={70}
                           height={70}
                           alt="Rocket Pool Logo"
-                          src={"/images/rocketPlogo.png"} />
+                          src={"/images/rocketlogo.webp"} />
                       </div>
                       <div className='flex flex-col items-center justify-start w-full'>
 
@@ -3135,66 +3248,18 @@ const AccountMain: NextPage = () => {
 
                 {totalValidators !== "0" ?
 
-                  (<div className="w-auto overflow-hidden shadow border rounded-lg mb-10 ">
+                  (<div ref={targetRef} className="w-auto overflow-hidden shadow border rounded-lg mb-10 ">
 
 
-                    <table className="w-full">
+                    <table className="w-full bg-white">
                       <tbody>
 
                         {reduxData.map((data, index) => (
-                          <tr key={index} className="border-b-2 hover:bg-gray-100 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
-
-                            <td className="px-4 pl-10 py-3 text-xs w-[180px]">
-
-                              {data.statusResult === "Prelaunch" &&
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+                          <tr key={index} className="border-b-2 hover:bg-gray-200 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
 
 
-                              }
 
-
-                              {data.statusResult === "Initialised" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                              }
-
-                              {data.statusResult === "Staking" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                              }
-
-
-                              {data.statusResult === "Withdrawable" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                              }
-
-
-                              {data.statusResult === "Dissolved" &&
-
-                                <span className="px-2 py-1 font-semibold text-lg leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
-
-
-                              }
-
-
-                              {data.statusResult === "Empty" &&
-
-                                <span className="px-2 py-1 font-semibold  text-lg leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                              }
-
-
-                            </td>
-
-                            <td className="px-4 py-3 w-[200px] ">
+                            <td className=" px-4 pl-10 w-[200px] ">
                               <span className='text-green-500 self-center font-bold text-lg ' >
 
                                 {data.valBalance}
@@ -3239,10 +3304,65 @@ const AccountMain: NextPage = () => {
                             <td className="px-4 py-3 w-[180px]">
                               <div className="flex items-center flex-col gap-1 text-l ">
                                 {data.beaconStatus !== "" && <>
-                                  <h3 className='text-center font-semibold text-lg'>Status on Beaconchain</h3>
+                                  <h3 className='text-center font-semibold text-[18px]'>Status on Beaconchain</h3>
                                   <GrSatellite /></>}
                                 {data.beaconStatus}
                               </div>
+                            </td>
+
+                            <td className="px-4 py-3 text-xs w-[180px]">
+                              <div className="flex items-center flex-col gap-1 text-l ">
+
+                                <h3 className='text-center font-semibold text-[18px] mb-2'>Minipool Status:</h3>
+
+                                {data.statusResult === "Prelaunch" &&
+                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+
+                                {data.statusResult === "Initialised" &&
+
+                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+                                {data.statusResult === "Staking" &&
+
+                                  <span className="px-2 py-1 font-semibold text-[15px] leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+
+                                {data.statusResult === "Withdrawable" &&
+
+                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+
+                                {data.statusResult === "Dissolved" &&
+
+                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+
+                                {data.statusResult === "Empty" &&
+
+                                  <span className="px-2 py-1 font-semibold  text-s leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                }
+
+                              </div>
+
+
                             </td>
 
                             <td className="px-4 pr-10 py-3 w-[auto]">
@@ -3273,7 +3393,7 @@ const AccountMain: NextPage = () => {
 
                 {totalValidators !== "0" ? (
 
-                  <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
+                  <div className="w-[auto] h-[auto] bg-white overflow-hidden shadow border rounded-lg mb-10 ">
 
                     <table className="w-full">
                       <tbody>
@@ -3296,7 +3416,7 @@ const AccountMain: NextPage = () => {
                 {totalValidators !== "0" ? (
 
 
-                  <div className="w-full h-[50vh] flex flex-col items-center justify-center">
+                  <div className="w-full h-[70vh] flex flex-col items-center justify-center">
 
                     <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
 
@@ -3333,6 +3453,7 @@ const AccountMain: NextPage = () => {
 
 
                               </div>
+                              <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
                             </div>
 
                           }
@@ -3352,34 +3473,16 @@ const AccountMain: NextPage = () => {
 
 
 
-                <div className="w-full  h-[70vh]  flex flex-col justify-center items-center">
+                <div className="w-full  h-auto py-[10vh]  flex flex-col justify-center items-center">
                   <RPLBlock />
                 </div>
 
 
+           
 
 
-                {/* <div className='w-auto p-8 border shadow rounded-lg'>
 
-                  <span>{count}</span>
 
-                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
-                    onClick={() => dispatch(increment())
-
-                    }
-                  >Increment</button>
-                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
-                    onClick={() => dispatch(decrement())
-
-                    }
-                  >Decrement</button>
-                  <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md"
-                    onClick={() => dispatch(incrementByAmount(2))
-
-                    }
-                  >Increment By 2</button>
-
-                </div> */}
 
 
 
@@ -3388,8 +3491,8 @@ const AccountMain: NextPage = () => {
                 <Modal
                   isOpen={showForm}
                   onRequestClose={() => setShowForm(false)}
-                  contentLabel="Delete User Modal"
-                  className="modal"
+                  contentLabel="Batch Graffiti Modal"
+                  className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                   ariaHideApp={false}
                   style={{
                     overlay: {
@@ -3398,14 +3501,16 @@ const AccountMain: NextPage = () => {
                       justifyContent: 'center',
                       alignItems: 'center',
                       zIndex: "999999999999999999999999999999999999",
+                      transition: "0.2s transform ease-in-out",
                     },
                     content: {
-                      width: '50%',
-                      height: '200px',
+                      width: 'auto',
+                      height: 'auto',
+                      minWidth: "280px",
                       position: 'absolute',
                       top: '50%',
                       left: '50%',
-                      transform: 'translate(-50%, -50%)',
+
                       color: 'black',
                       backgroundColor: "#fff",
                       border: "0",
@@ -3418,12 +3523,17 @@ const AccountMain: NextPage = () => {
                     },
                   }}
                 >
-                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                      setShowForm(false)
-                    }} />
+                  <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                    <h2>Graffiti Update</h2>
+                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                        setShowForm(false)
+                      }} />
+
+                    </div>
+
+
+                    <h2 className="text-[20px] font-bold">Graffiti Update</h2>
 
 
                     <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
@@ -3433,91 +3543,18 @@ const AccountMain: NextPage = () => {
                       <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                     </div>
 
-                  </div>
-                </Modal>
-                <Modal
-                  isOpen={showForm2}
-                  onRequestClose={() => setShowForm2(false)}
-                  contentLabel="Delete User Modal"
-                  className="modal"
-
-                  style={{
-                    overlay: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      zIndex: "999999999999999999999999999999999999",
-                    },
-                    content: {
-                      width: '50%',
-                      height: '700px',
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      color: 'black',
-                      backgroundColor: "#fff",
-                      border: "0",
-                      borderRadius: "20px",
-                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                      overflow: "auto",
-                      WebkitOverflowScrolling: "touch", // For iOS Safari
-                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                  }}
-                >
-                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                      setShowForm2(false)
-                    }} />
-                    <h2>Get Presigned Exit Message</h2>
-
-                    <input
-
-                      className="w-[60%] self-center border border-black-200 text-black-500"
-                      type="datetime-local"
-                      id="datetime"
-                      value={dateTime}
-                      onChange={(e) => setDateTime(e.target.value)}
-                    />
-
-
-                    <label className="w-[80%] ">
-                      Encrypted?
-                      <input
-                        type="checkbox"
-
-                        checked={checked}
-                        onChange={handleChecked}
-                      />
-                    </label>
-
-
-                    {checked && <>
-
-                      <h4>Enter Public Key:</h4>
-
-                      <textarea className="border-2" value={publicKeyArmored} onChange={handlePublicKeyArmored} />
-                    </>
+                    {graffitiError !== "" &&
+                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
                     }
 
-
-
-
-
-                    <div >
-                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGetPresigned}>Generate</button>
-                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm2(false)}>Cancel</button>
-                    </div>
                   </div>
                 </Modal>
+
                 <Modal
                   isOpen={showForm3}
                   onRequestClose={() => setShowForm3(false)}
-                  contentLabel="Delete User Modal"
-                  className="modal"
+                  contentLabel="Top-up Credit Modal"
+                  className={`${styles.modal} ${showFormEffect3 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`}
 
                   style={{
                     overlay: {
@@ -3528,11 +3565,13 @@ const AccountMain: NextPage = () => {
                       zIndex: 999, // Increase the z-index if needed
                     },
                     content: {
-                      width: '280px', // Adjust as per your modal's width
+                      minWidth: '280px', // Adjust as per your modal's width
+                      width: "auto",
+                      height: "auto",
                       position: 'absolute',
                       top: '50%',
                       left: '50%',
-                      transform: 'translate(-50%, -50%)',
+
                       backgroundColor: '#fff',
                       border: '0',
                       borderRadius: '20px',
@@ -3545,11 +3584,14 @@ const AccountMain: NextPage = () => {
                     },
                   }}
                 >
-                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                      setShowForm3(false)
-                    }} />
-                    <h2>Add Credit to your Vrun account</h2>
+                  <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                        setShowForm3(false)
+                      }} />
+
+                    </div>
+                    <h2 className="text-[20px] font-bold mb-2">Add ETH Credit</h2>
 
                     <input
 
@@ -3566,69 +3608,95 @@ const AccountMain: NextPage = () => {
                       <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
                       <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
                     </div>
+
+                    {paymentErrorMessage !== "" &&
+                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
+                    }
                   </div>
 
-
-
-
-
-
                 </Modal>
-                <Modal
-                  isOpen={showForm4}
-                  onRequestClose={() => setShowForm4(false)}
-                  contentLabel="Delete User Modal"
-                  className="modal"
 
+
+
+
+
+                <Modal
+                  isOpen={showForm5}
+                  onRequestClose={() => setShowForm5(false)}
+                  contentLabel="Alert Validators Modal"
+                  className={`${styles.modal} ${showFormEffect5 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                  ariaHideApp={false}
                   style={{
                     overlay: {
                       backgroundColor: 'rgba(0, 0, 0, 0.5)',
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      zIndex: 999, // Increase the z-index if needed
+                      zIndex: "999999999999999999999999999999999999",
+                      transition: "0.2s transform ease-in-out",
                     },
                     content: {
-                      width: '280px', // Adjust as per your modal's width
+                      width: 'auto',
+                      height: 'auto',
+                      minWidth: "280px",
                       position: 'absolute',
                       top: '50%',
                       left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      backgroundColor: '#fff',
-                      border: '0',
-                      borderRadius: '20px',
-                      boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
-                      overflow: 'auto',
-                      WebkitOverflowScrolling: 'touch', // For iOS Safari
-                      scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
-                      scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
-                      animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
+
+                      color: 'black',
+                      backgroundColor: "#fff",
+                      border: "0",
+                      borderRadius: "20px",
+                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                      overflow: "auto",
+                      WebkitOverflowScrolling: "touch", // For iOS Safari
+                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
                     },
                   }}
                 >
-                  <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                    <AiOutlineClose onClick={() => {
-                      setShowForm4(false)
-                    }} />
-                    <h2>Post Presigned Exit Message</h2>
+                  <div className="flex relative w-full h-full items-center justify-center flex-col  rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
+                    <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                        setShowForm5(false)
+                      }} />
 
-                    <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
-
-
-
-
-
-                    <textarea value={exitMessage} onChange={handleChangeExitMessage} />
-
-
-
-                    <div >
-                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
-                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
                     </div>
+
+                    <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">VALIDATORS IN NEED OF ACTION!</h2>
+
+                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                      You have {validatorsInNeedOfAction.stake} in Prelaunch and ready to STAKE!
+                    </p>
+                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                      You have {validatorsInNeedOfAction.withdrawn} withdrawn Validators, ready to distribute the balance of.
+                    </p>
+                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                      You have {validatorsInNeedOfAction.close} dissolved Minipools that need closing.
+                    </p>
+
+
+
+                    <div className='w-full flex gap-2 items-center justify-center'>
+                      <button onClick={handleScrollToElement} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        SEE VALIDATORS
+                      </button>
+                    </div>
+
+
+
+
+
                   </div>
+
+
                 </Modal>
+
+
 
               </div>) : (
 

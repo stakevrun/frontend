@@ -7,6 +7,8 @@ import counterReducer from "./Features/counter/counterSlice"
 import valDataReducer from "./Features/validator/valDataSlice"
 import attestationsDataReducer from "./Features/attestations/attestationsDataSlice"
 import graphPointsDataReducer from "./Features/graphpoints/graphPointsDataSlice"
+import paymentsReducer from "./Features/payments/paymentSlice"
+import chargesReducer from "./Features/charges/chargesSlice"
 
 
 export const store = configureStore({
@@ -14,7 +16,9 @@ export const store = configureStore({
         counter: counterReducer,
         valData: valDataReducer,
         attestationsData: attestationsDataReducer,
-        graphPointsData: graphPointsDataReducer
+        graphPointsData: graphPointsDataReducer,
+        paymentsData: paymentsReducer,
+        chargesData: chargesReducer
     }
 })
 

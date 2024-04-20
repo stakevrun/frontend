@@ -24,7 +24,7 @@ const RPLBlock: NextPage = () => {
   const [isRegistered, setIsRegistered] = useState(true)
   const [RPL, setRPL] = useState(BigInt(0));
   const [stakeRPL, setStakeRPL] = useState(BigInt(0));
-  const [newMinipools, setNewMinipools] = useState(0)
+  const [newMinipools, setNewMinipools] = useState(BigInt(0))
   const [RPLinput, setRPLinput] = useState("")
   const [displayActiveMinipools, setDisplayActiveMinipools] = useState(0)
   const [registrationResult, setRegistrationResult] = useState({ result: "" });
@@ -230,7 +230,6 @@ const RPLBlock: NextPage = () => {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
 
-        const provider = new ethers.JsonRpcProvider(currentChain === 17000 ? 'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/' : "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/");
 
 
         const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
@@ -352,7 +351,11 @@ const RPLBlock: NextPage = () => {
 
         const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer);
 
-        const activeMinipools = await MinipoolManager.getNodeMinipoolCount(address);
+      
+
+        const activeMinipools = await MinipoolManager.getNodeStakingMinipoolCount(address);
+
+       
         setDisplayActiveMinipools(activeMinipools);
 
 
@@ -362,9 +365,9 @@ const RPLBlock: NextPage = () => {
 
 
 
-        if (Number(ethers.formatEther(amount)) <  rplRequiredPerLEB8) {
+        if (Number(ethers.formatEther(amount)) <  Number(rplRequiredPerLEB8)) {
 
-          setNewMinipools(0)
+          setNewMinipools(BigInt(0))
 
 
         } else {
@@ -378,7 +381,7 @@ const RPLBlock: NextPage = () => {
 
 
           console.log(" Possible New: " + possibleNewMinpools);
-          // getNodeActiveMinipoolCount
+      
 
 
 
@@ -386,7 +389,7 @@ const RPLBlock: NextPage = () => {
 
 
 
-          ///setNewMinipools(possibleNewMinpools)
+        setNewMinipools(possibleNewMinpools)
 
 
         }
@@ -577,7 +580,15 @@ const RPLBlock: NextPage = () => {
 
       let input: any = error
 
-      setErrorBoxTest(input.reason.toString());
+      if(input.reason !== undefined) {
+        setErrorBoxTest(input.reason.toString());
+
+
+      } else {
+        setErrorBoxTest("Rejected. Did you enter an RPL value?")
+      }
+
+   
 
       setStakeButtonBool(true);
 
@@ -634,18 +645,18 @@ const RPLBlock: NextPage = () => {
 
 
   return (
-    <div className="flex flex-col  h-auto gap-2 text-center items-center justify-center rounded-lg border shadow border-b-4 border-black-100 px-2 py-8 ">
+    <div className="flex flex-col  h-auto gap-2 text-center items-center justify-center rounded-xl bg-white border shadow border-b-4 border-black-100 px-2 py-8 ">
       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
         You have
-        <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} /> </span>
+        <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
         unstaked RPL in your Wallet and
-        <span className='text-green-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} /> </span>
+        <span style={Number(ethers.formatEther(stakeRPL)) >= 1? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true}/> </span>
         staked RPL.
         You have
-        <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} /> </span>
-        one active Minipool and are able to create <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={ Math.floor(Number(ethers.formatEther(newMinipools))) } /></span> new LEB8s (Minipools)
+        <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} bool={true} /> </span>
+        active Minipool(s) and are able to create <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={ Math.floor(Number(ethers.formatEther(newMinipools))) } bool={true} /></span> new LEB8s (Minipools)
 
 
       </p>
@@ -657,7 +668,7 @@ const RPLBlock: NextPage = () => {
 
           <div className="flex flex-col items-center justify-center gap-2">
             
-            <p className="mb-2 font-bold text-blue-200">{stakingMessage}</p>
+            <p className="mb-2 font-bold">{stakingMessage}</p>
 
             <BounceLoader />
           </div>
@@ -666,8 +677,8 @@ const RPLBlock: NextPage = () => {
         }
 
 
-        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
-        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
+        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
+        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
 
 
 

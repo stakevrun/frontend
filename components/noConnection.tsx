@@ -4,7 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const NoConnection = () => {
     return (
-        <div className='w-full  h-[90vh] flex flex-col items-center justify-center '>
+        <div className='w-full min-h-[92vh]  h-auto flex flex-col items-center justify-center '>
 
 
 

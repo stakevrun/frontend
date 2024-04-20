@@ -63,8 +63,8 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh] '>
-          <div className=" w-[65%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row   ">
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh]'>
+          <div className=" w-[65%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
             <div className="w-full flex h-full  flex-col justify-center items-end p-4 gap-6 lg:w-[50%] ">
@@ -72,6 +72,7 @@ const Home: NextPage = () => {
               <h1 className='text-4xl  md:text-5xl  lg:text-6xl  xl:text-7xl  self-start  font-bold'>
                 Welcome to Vrün!
               </h1>
+
               <p className="text-md  md:text-lg  lg:text-xl  xl:text-2xl  self-start">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
               </p>
@@ -81,14 +82,8 @@ const Home: NextPage = () => {
                 <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                   Create Validator
                 </button>
+
               </Link>
-
-
-
-
-
-
-
 
             </div>
 
@@ -106,24 +101,34 @@ const Home: NextPage = () => {
 
         </div>
 
-        <div className='h-[110vh] w-full flex justify-center items-center' style={{ backgroundColor: "#8A2BE2" }}>
+        <div className='h-auto w-full flex flex-col gap-[10vh] py-[10vh] justify-center items-center ' style={{ backgroundColor: "#8A2BE2" }}>
 
-          <div className="mx-auto h-[50%] w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-[40rem] lg:max-w-5xl">
+          <h2 className="text-2xl  md:text-3xl  lg:text-4xl  xl:text-5xl  self-center  font-bold text-white">Resources & Documentation</h2>
+
+          <div className="mx-auto h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-[40rem] lg:max-w-5xl">
 
             <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-gray-100">
 
               <div className={styles.grid}>
-                <a className={styles.card} href="https://rainbowkit.com">
+                <div className={styles.card} >
                   <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                     <FaMoneyBillWave className="text-3xl text-green-500  w-[70px]" />
                   </div>
                   <div>
                     <h2 className="font-bold">Stake RPL for your Minipools &rarr;</h2>
                     <p>We provide an onsite service for staking your RPL</p>
-                  </div>
-                </a>
 
-                <a className={styles.card} href="https://wagmi.sh">
+                    <Link href="/account" className='self-start mt-3'>
+
+                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        Stake RPL
+                      </button>
+                    </Link>
+
+                  </div>
+                </div>
+
+                <div className={styles.card}>
 
                   <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                     <FaEthereum className="text-3xl text-blue-500  w-[70px]" />
@@ -132,12 +137,20 @@ const Home: NextPage = () => {
                   <div>
                     <h2 className="font-bold">New to Validators & Staking? &rarr;</h2>
                     <p>Learn how to interact with Ethereum and the beacon chain</p>
-                  </div>
-                </a>
+                    <a href="https://ethereum.org/en/developers/docs/" target='_blank' className='self-start mt-3'>
+                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
-                <a
+                       Get Started!
+
+                      </button>
+                    </a>
+
+                  </div>
+                </div>
+
+                <div
                   className={styles.card}
-                  href="https://github.com/rainbow-me/rainbowkit/tree/main/examples"
+
                 >
                   <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                     <Image
@@ -149,20 +162,35 @@ const Home: NextPage = () => {
                   <div>
                     <h2 className="font-bold">Rocket Pool Docs &rarr;</h2>
                     <p>Learn about the under the hood functions which help to power Vrün!</p>
-                  </div>
-                </a>
 
-                <a className={styles.card} href="https://nextjs.org/docs">
+                    <a href="https://docs.rocketpool.net/overview/contracts-integrations" target='_blank' className='self-start mt-3'>
+                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+
+                        Go to Docs
+
+                      </button>
+                    </a>
+                  </div>
+                </div>
+
+                <div className={styles.card} >
                   <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
 
                     <GrSatellite className="text-yellow-500 text-2xl" />
 
                   </div>
                   <div>
-                    <h2 className="font-bold">Swagger UI documentation &rarr;</h2>
-                    <p>Find in-depth information about Swagger UI and the various routes used.</p>
+                    <h2 className="font-bold text-lg mb-1">Swagger UI documentation &rarr;</h2>
+                    <p className='mb-3'>Find in-depth information about Swagger UI and the various routes used.</p>
+                    <a href="https://beaconcha.in/api/v1/docs/index.html" target='_blank' className='self-start mt-3'>
+                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+
+                        Go to Swagger
+
+                      </button>
+                    </a>
                   </div>
-                </a>
+                </div>
 
 
 
@@ -179,7 +207,7 @@ const Home: NextPage = () => {
 
         </div>
 
-        <div className='w-full h-[90vh] flex items-center justify-center '>
+        <div className='w-full h-auto py-7 flex items-center justify-center '>
 
           <div className="max-w-screen-xl w-full  px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
             <div className="max-w-xl">

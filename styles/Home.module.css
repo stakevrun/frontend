@@ -79,12 +79,6 @@
   max-width: 350px;
 }
 
-.card:hover,
-.card:focus,
-.card:active {
-  color: #0d76fc;
-  border-color: #0d76fc;
-}
 
 .card h2 {
   margin: 0 0 1rem 0;
@@ -93,8 +87,84 @@
 
 .card p {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1.5;
+  font-weight: 500;
+  color: gray;
+  margin-bottom: 2vh;
+}
+
+
+.modal {
+  opacity: 0;
+  transform: translate(-50%, 10%);
+  transition: 0.25s all ease-in-out;
+}
+
+.modalOpen {
+  opacity: 1;
+
+  transform: translate(-50%, -50%);
+}
+
+.modalClosed {
+  opacity: 0;
+
+  transform: translate(-50%, 10%) ;
+}
+
+#icon {
+  transition: 0.2 all ease-in-out;
+}
+
+.stepItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+   justify-content: center;
+   align-items:center;
+    width: 36px;
+}
+.stepItem:not(:first-child):before {
+  content: '';
+  background-color: var(--slate-200);
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  right: 50%;
+  top: 33.33%;
+  transform: translateY(-50%);
+}
+
+.step {
+  width: 10rem;
+  height: 10rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  position: relative;
+  background-color: var(--slate-700);
+  border-radius: 50%;
+  font-weight: bold;
+  color: white;
+}
+
+.active .step {
+  background-color: var(--sky-600);
+}
+
+.complete .step {
+  background-color: var(--green-600);
+}
+
+.complete p {
+  color: white;
+}
+
+.complete:not(:first-child):before,
+.active:not(:first-child):before {
+  background-color: var(--green-600);
 }
 
 @media (max-width: 600px) {

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Navbar from '../../../components/navbar';
+import styles from '../../../styles/Home.module.css';
 import { useAccount, useChainId } from 'wagmi';
 import { useRouter } from 'next/router';
 import { ethers } from 'ethers';
@@ -16,7 +17,7 @@ import Modal from 'react-modal';
 import ContractTag from "../../../components/contractTag"
 import { GrSatellite } from "react-icons/gr";
 import { AiOutlineClose } from 'react-icons/ai'
-import { useParams } from 'next/navigation'
+
 import { PieChart, LineChart } from '@mui/x-charts'
 import { Line, getElementsAtEvent } from 'react-chartjs-2';
 import { PiSignatureBold } from "react-icons/pi";
@@ -25,7 +26,7 @@ import { VscActivateBreakpoints } from "react-icons/vsc";
 import managerABI from "../../../json/managerABI.json"
 import BounceLoader from "react-spinners/BounceLoader";
 import { useSelector, useDispatch } from 'react-redux';
-import { increment, decrement, incrementByAmount } from "../../../globalredux/Features/counter/counterSlice"
+
 import type { RootState } from '../../../globalredux/store';
 import { getData } from "../../../globalredux/Features/validator/valDataSlice"
 import { attestationsData } from '../../../globalredux/Features/attestations/attestationsDataSlice';
@@ -34,7 +35,7 @@ import Link
     from 'next/link';
 
 import Image from 'next/image';
-
+import distributorABI from "../../../json/distributorABI.json"
 
 import {
     Chart as ChartJS,
@@ -89,8 +90,8 @@ const ValidatorDetail: NextPage = () => {
     const { address } = useAccount({
         onConnect: ({ address }) => {
             console.log("Ethereum Wallet Connected!")
-           
-        
+
+
 
 
         }
@@ -104,17 +105,17 @@ const ValidatorDetail: NextPage = () => {
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     useEffect(() => {
-      if (!isInitialRender && address !== undefined) {
-        // This block will run after the initial render
-        
+        if (!isInitialRender && address !== undefined) {
+            // This block will run after the initial render
 
-   
-        
-      } else {
-        // This block will run only on the initial render
-       
-        setIsInitialRender(false);
-      }
+
+
+
+        } else {
+            // This block will run only on the initial render
+
+            setIsInitialRender(false);
+        }
     }, [currentChain, address]);
 
     const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
@@ -187,6 +188,7 @@ const ValidatorDetail: NextPage = () => {
         valProposals: string
         valDayVariance: string
 
+
         graffiti: string
         isEnabled: boolean
         valIndex: string
@@ -206,6 +208,9 @@ const ValidatorDetail: NextPage = () => {
         valBalance: string
         valProposals: string
         valDayVariance: string
+        activationEpoch: string
+        smoothingPoolTruth: boolean
+        feeRecipient: string
 
         graffiti: string
         isEnabled: boolean
@@ -303,6 +308,46 @@ const ValidatorDetail: NextPage = () => {
     }
 
 
+
+    const getBeaconchainStatusObject = async (pubkey: string) => {
+
+
+        let newObject;
+
+        const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
+
+
+        await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
+            method: "GET",
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+
+
+                newObject = jsonString.data
+
+            })
+            .catch(error => {
+                // Handle error here
+                console.log(error);
+            });
+
+
+
+
+
+        return newObject
+
+
+    }
+
+
+
+    const [checked2, setChecked2] = useState(false)
+
+
     const getMinipoolData = async () => {
 
 
@@ -323,18 +368,18 @@ const ValidatorDetail: NextPage = () => {
             },
         }).then(async response => {
 
-                var jsonString = await response.json()
+            var jsonString = await response.json()
 
 
-                console.log("Result of get next index" + jsonString)
+            console.log("Result of get next index" + jsonString)
 
 
-                return jsonString;
+            return jsonString;
 
-            }).catch(error => {
+        }).catch(error => {
 
-                console.log(error);
-            });
+            console.log(error);
+        });
 
 
 
@@ -513,7 +558,9 @@ const ValidatorDetail: NextPage = () => {
                     timeRemaining: "",
                     graffiti: "",
                     beaconStatus: "",
-
+                    activationEpoch: "",
+                    smoothingPoolTruth: false,
+                    feeRecipient: "",
 
                     valBalance: "",
                     valProposals: "",
@@ -587,11 +634,59 @@ const ValidatorDetail: NextPage = () => {
 
 
                 const printGraff = await getGraffiti(pubkey);
-                const beaconStatus = await getBeaconchainStatus(pubkey)
+
                 const isEnabled = await getEnabled(pubkey)
-                const valIndex = await getValIndex(pubkey)
+
+
+
+                type statusType = {
+
+                    index: string,
+                    balance: string,
+                    status: string,
+                    validator: {
+                        pubkey: string,
+                        withdrawal_credentials: string,
+                        effective_balance: string,
+                        slashed: boolean,
+                        activation_eligibility_epoch: string,
+                        activation_epoch: string,
+                        exit_epoch: string,
+                        withdrawable_epoch: string
+
+                    }
+                }
+
+                let beaconStatusObject: statusType = {
+                    index: "",
+                    balance: "",
+                    status: "",
+                    validator: {
+                        pubkey: "",
+                        withdrawal_credentials: "",
+                        effective_balance: "",
+                        slashed: false,
+                        activation_eligibility_epoch: "",
+                        activation_epoch: "",
+                        exit_epoch: "",
+                        withdrawable_epoch: ""
+                    }
+                }
+
+                let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
+
+                beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
+                const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
+                const epoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+                const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
+
 
                 const smoothingBool = await getMinipoolTruth(pubkey)
+
+                const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
+
+
+                setChecked2(smoothingBool)
 
 
 
@@ -646,11 +741,15 @@ const ValidatorDetail: NextPage = () => {
                     beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
 
 
+
                     valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
                     valProposals: newValProposals.toString(),
                     valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
                     isEnabled: isEnabled,
                     valIndex: valIndex,
+                    activationEpoch: epoch !== undefined ? epoch : "",
+                    smoothingPoolTruth: smoothingBool,
+                    feeRecipient: newFeeRecipient,
                     pubkey: pubkey,
                     nodeAddress: address !== undefined ? address.toString() : ""
                 })
@@ -677,7 +776,109 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-  
+    const [currentFeeRecipient, setCurrentFeeRecipient] = useState("")
+    const [currentActivationEpoch, setCurrentActivationEpoch] = useState("")
+
+
+
+    const getFeeRecipient = async (pubkey: string, bool: boolean) => {
+
+
+
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+        const distributorAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeDistributorFactory"))
+        const distributorContract = new ethers.Contract(distributorAddress, distributorABI, signer);
+
+
+
+
+
+
+
+
+
+
+
+        let feeRecipient;
+
+        if (bool) {
+
+
+            feeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
+
+
+
+
+
+
+
+        } else {
+
+
+            feeRecipient = await distributorContract.getProxyAddress(address);
+
+
+
+        }
+
+
+        return feeRecipient
+
+
+
+    }
+
+    const getBeaconchainActivation = async (pubkey: string) => {
+
+
+        let newString;
+
+        const currentRPC = currentChain === 17000 ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/` : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`
+
+
+        await fetch(`${currentRPC}eth/v1/beacon/states/finalized/validators/${pubkey}`, {
+            method: "GET",
+        })
+            .then(async response => {
+
+                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+
+
+                newString = jsonString.data.validator.activation_epoch
+
+            })
+            .catch(error => {
+                // Handle error here
+                console.log(error);
+            });
+
+
+
+
+        if (newString !== undefined) {
+
+            return newString
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -802,6 +1003,8 @@ const ValidatorDetail: NextPage = () => {
 
 
                 newString = jsonString.data.status
+
+                console.log("Activation Epoch:" + jsonString)
             })
             .catch(error => {
                 // Handle error here
@@ -1016,30 +1219,75 @@ const ValidatorDetail: NextPage = () => {
     }
 
 
+    const [distributeErrorBoxText, setDistributeErrorBoxText] = useState("")
+
+
+    
+  useEffect(() => {
+
+
+    if (distributeErrorBoxText !== "") {
+
+
+      const handleText = () => {
+        setDistributeErrorBoxText("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 6000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [distributeErrorBoxText])
+
+
 
     const distributeBalanceOfMinipool = async () => {
 
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        let signer = await browserProvider.getSigner()
-        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        try {
+
+            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+            let signer = await browserProvider.getSigner()
+            const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
 
 
 
-        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+            const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-        const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(params.param1);
+            const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
-        console.log("Mini Address:" + minipoolAddress)
-        const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
-        await minipool.distributeBalance(false)
+            const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(params.param1);
 
-        getMinipoolData();
+
+            console.log("Mini Address:" + minipoolAddress)
+            const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
+            await minipool.distributeBalance(false)
+
+            getMinipoolData();
+
+        } catch (e: any) {
+
+            if (e.reason === "rejected") {
+                setDistributeErrorBoxText(e.reason.toString())
+
+            }
+            else {
+                setDistributeErrorBoxText(e.error["message"].toString())
+            }
+
+
+
+        }
 
 
 
@@ -1150,8 +1398,40 @@ const ValidatorDetail: NextPage = () => {
     }, [currentEditGraffiti])
 
 
+    const [graffitiError, setGraffitiError] = useState("");
+
+
+
+  useEffect(() => {
+
+
+    if (graffitiError !== "") {
+
+
+      const handleText = () => {
+        setGraffitiError("")
+
+      }
+
+
+      const timeoutId = setTimeout(handleText, 5000);
+
+      return () => clearTimeout(timeoutId);
+
+
+
+
+    }
+
+  }, [graffitiError])
+
+
+
 
     const setGraffiti = async (index: number, pubkey: string, newGrafitti: string) => {
+
+
+        try {
 
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
         let signer = await browserProvider.getSigner()
@@ -1215,7 +1495,17 @@ const ValidatorDetail: NextPage = () => {
         await getMinipoolData();
         setShowForm(false);
 
+        } catch (error: any) {
 
+            if (error.reason === "rejected") {
+                setGraffitiError(error.info.error.message.toString())
+        
+              }
+              else {
+                setGraffitiError(error.error["message"].toString())
+              }
+
+        }
 
     }
 
@@ -1267,52 +1557,6 @@ const ValidatorDetail: NextPage = () => {
     }
 
 
-
-    const makePayment = async () => {
-
-
-
-        try {
-            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-            let signer = await browserProvider.getSigner()
-
-
-            const feeAddress = "0x272347F941fb5f35854D8f5DbDcEdef1A515dB41";
-
-
-            const FeeContract = new ethers.Contract(feeAddress, feeABI, signer);
-
-            let result = await FeeContract.payEther({ value: ethers.parseEther(feeETHInput) });
-
-            let receipt = await result.wait();
-
-            // Check if the transaction was successful (status === 1)
-            if (receipt.status === 1) {
-                // If successful, setShowForm3(false)
-                setShowForm3(false);
-                console.log("Transaction successful:", result);
-            } else {
-                console.error("Transaction failed:", receipt);
-                // Handle the failure if needed
-
-                alert(receipt)
-
-                setShowForm3(false)
-            }
-
-
-
-        } catch (e) {
-            alert(e)
-
-            setShowForm3(false);
-        }
-
-
-
-
-
-    }
 
 
 
@@ -1932,6 +2176,36 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    const [showFormEffect, setShowFormEffect] = useState(false);
+    const [showFormEffect2, setShowFormEffect2] = useState(false);
+    const [showFormEffect4, setShowFormEffect4] = useState(false);
+
+    useEffect(() => {
+
+
+        setShowFormEffect(showForm);
+
+
+    }, [showForm]);
+
+
+    useEffect(() => {
+
+
+        setShowFormEffect2(showForm3);
+
+
+    }, [showForm2]);
+
+    useEffect(() => {
+
+
+        setShowFormEffect4(showForm4);
+
+
+    }, [showForm4]);
+
+
 
 
 
@@ -1939,7 +2213,7 @@ const ValidatorDetail: NextPage = () => {
 
 
     return (
-        <div className="flex w-full flex-col gap-2 items-center justify-center  ">
+        <div className="flex w-full flex-col gap-2 items-center bg-white justify-center  ">
             <Head>
                 <title>Vrün | Nodes & Staking</title>
                 <meta
@@ -1953,7 +2227,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            {address === undefined  || reduxData.nodeAddress !== address ? (
+            {address === undefined || reduxData.nodeAddress !== address ? (
 
                 <div className='h-[100vh] w-full flex items-center gap-2 py-6 justify-center flex-col'>
 
@@ -1986,20 +2260,20 @@ const ValidatorDetail: NextPage = () => {
 
                     {xAxisData.length > 0 ? (<>
 
-                     
-                            <div className="w-full flex flex-col justify-center items-center py-10">
-                                <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-2">Pubkey: </h2>
 
-                               
+                        <div className="w-full flex flex-col justify-center items-center py-10">
+                            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl mb-2">Pubkey: </h2>
+
+
                             <span className='w-[80%] overflow-wrap break-word'>
 
-                            <ContractTag pubkey={params?.param1} />
+                                <ContractTag pubkey={params?.param1} />
 
                             </span>
-                                   
-                             
-                            </div>
-                     
+
+
+                        </div>
+
 
 
 
@@ -2013,78 +2287,6 @@ const ValidatorDetail: NextPage = () => {
 
                             <section className="grid md:grid-cols-2 xl:grid-cols-2 gap-6">
 
-                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
-                                    <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                                        <FaEthereum className="text-2xl text-blue-500" />
-                                    </div>
-                                    <div>
-
-                                        <span className="block text-xl mb-1 font-bold">Validator Status:</span>
-                                        <span className="block text-gray-500 mb-1">
-
-
-                                            {reduxData.statusResult === "Prelaunch" &&
-                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
-
-                                            }
-
-
-                                            {reduxData.statusResult === "Initialised" &&
-
-                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
-                                            }
-
-                                            {reduxData.statusResult === "Staking" &&
-
-                                                <span className="py-1 font-semibold text-md leading-tight text-green-700 rounded-sm">{reduxData.statusResult}</span>
-
-
-                                            }
-
-
-                                            {reduxData.statusResult === "Withdrawable" &&
-
-                                                <span className="py-1 font-semibold text-md leading-tight text-green-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                            }
-
-
-                                            {reduxData.statusResult === "Dissolved" &&
-
-                                                <span className="py-1 font-semibold text-md leading-tight text-red-700  rounded-sm">{reduxData.statusResult}</span>
-
-
-                                            }
-
-
-                                            {reduxData.statusResult === "Empty" &&
-
-                                                <span className="py-1 font-semibold  text-md leading-tight text-greay-700  rounded-sm">{reduxData.statusResult}</span>
-
-                                            }
-
-                                        </span>
-
-
-                                        {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
-
-                                            <CountdownComponent milliseconds={reduxData.timeRemaining} />}
-
-                                        {reduxData.statusResult === "Prelaunch" &&
-
-                                            <button onClick={() => { stakeMinipool() }} className="bg-green-500 mt-1  text-xs  hover:bg-green-700 text-white font-bold  py-2 px-4 rounded-md">Stake Minipool</button>
-
-                                        }
-                                        {reduxData.statusResult === "Dissolved" &&
-
-                                            <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-1  text-xs  hover:bg-red-700 text-white font-bold  py-2 px-4 rounded-md">Close Minipool</button>
-
-                                        }
-
-
-                                    </div>
-                                </div>
 
                                 <div className="flex w-auto items-center p-6 bg-white shadow border rounded-lg">
                                     <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
@@ -2180,6 +2382,79 @@ const ValidatorDetail: NextPage = () => {
                                     </div>
                                 </div>
 
+                                <div className="flex items-center p-6 bg-white shadow border rounded-lg">
+                                    <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                        <FaEthereum className="text-2xl text-blue-500" />
+                                    </div>
+                                    <div className="flex item-start justify-center flex-col">
+
+                                        <span className="text-xl font-bold mb-2">Minipool Status:</span>
+                                        <span className="text-gray-500 mb-1">
+
+
+                                            {reduxData.statusResult === "Prelaunch" &&
+                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Initialised" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-orange-700  rounded-sm">{reduxData.statusResult}</span>
+                                            }
+
+                                            {reduxData.statusResult === "Staking" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-green-700 rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Withdrawable" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-green-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Dissolved" &&
+
+                                                <span className="py-1 font-semibold text-md leading-tight text-red-700  rounded-sm">{reduxData.statusResult}</span>
+
+
+                                            }
+
+
+                                            {reduxData.statusResult === "Empty" &&
+
+                                                <span className="py-1 font-semibold  text-md leading-tight text-greay-700  rounded-sm">{reduxData.statusResult}</span>
+
+                                            }
+
+                                        </span>
+
+
+                                        {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
+
+                                            <CountdownComponent milliseconds={reduxData.timeRemaining} />}
+
+                                        {reduxData.statusResult === "Prelaunch" &&
+
+                                            <button onClick={() => { stakeMinipool() }} className="bg-green-500 mt-1  text-xs  hover:bg-green-700 text-white font-bold  py-2 px-4 rounded-md">Stake Minipool</button>
+
+                                        }
+                                        {reduxData.statusResult === "Dissolved" &&
+
+                                            <button onClick={() => { closeMinipool() }} className="bg-red-500 mt-1  text-xs  hover:bg-red-700 text-white font-bold  py-2 px-4 rounded-md">Close Minipool</button>
+
+                                        }
+
+
+                                    </div>
+                                </div>
+
 
                                 <div className="flex items-center p-6 bg-white shadow border rounded-lg">
                                     <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">
@@ -2187,7 +2462,7 @@ const ValidatorDetail: NextPage = () => {
                                             width={70}
                                             height={70}
                                             alt="Rocket Pool Logo"
-                                            src={"/images/rocketPlogo.png"} />
+                                            src={"/images/rocketlogo.webp"} />
                                     </div>
                                     <div>
                                         <div className='flex items-start flex-col gap-1 text-l '>
@@ -2206,12 +2481,13 @@ const ValidatorDetail: NextPage = () => {
                                     </div>
                                     <div>
                                         <div className="flex items-start flex-col gap-1 text-l ">
-                                            <p className="text-xs text-gray-600">    {reduxData.graffiti}</p>
+                                            <span className="text-xl font-bold">Change Graffiti:</span>
+                                            <p className="text-s text-gray-600">    {reduxData.graffiti}</p>
 
 
 
 
-                                            <button className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
+                                            <button className="bg-blue-500 self-start mt-2 text-xs hover:bg-blue-700 text-white font-bold  py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
                                                 Change
                                             </button>
 
@@ -2237,7 +2513,7 @@ const ValidatorDetail: NextPage = () => {
 
                             <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
 
-                                <table className="w-full">
+                                <table className="w-full bg-white">
                                     <tbody>
                                         <tr className="border-b-2">
                                             <td className="px-5  py-3 bg-gray-100 text-s font-bold w-auto text-center">
@@ -2246,6 +2522,8 @@ const ValidatorDetail: NextPage = () => {
 
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
+                                                <a className="text-black-500 font-bold hover:text-blue-300  text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}etherscan.io/address/${reduxData.feeRecipient}`} target="_blank">{truncateString(reduxData.feeRecipient)}</a>
+
 
                                             </td>
                                         </tr>
@@ -2276,13 +2554,14 @@ const ValidatorDetail: NextPage = () => {
 
                                             </td>
                                         </tr>
-                                      
+
 
                                         <tr className="border-b-2 ">
                                             <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                                                <p>Active since</p>
+                                                <p>Activation Epoch</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
+                                                {reduxData.activationEpoch}
 
                                             </td>
                                         </tr>
@@ -2297,7 +2576,7 @@ const ValidatorDetail: NextPage = () => {
 
                             <div className="w-[auto] h-[auto] overflow-hidden shadow border rounded-lg mb-10 ">
 
-                                <table className="w-full">
+                                <table className="w-full bg-white">
                                     <tbody>
 
                                         {reduxData.statusResult === "Dissolved" &&
@@ -2348,6 +2627,8 @@ const ValidatorDetail: NextPage = () => {
                                             </tr>
                                         }
 
+                                       
+
                                         {reduxData.statusResult !== "Empty" && reduxData.beaconStatus === "active_ongoing" &&
                                             <tr className="border-b-2 ">
                                                 <td className="px-5  py-3 bg-gray-100 font-bold text-s w-auto text-center">
@@ -2364,8 +2645,16 @@ const ValidatorDetail: NextPage = () => {
                                     </tbody>
                                 </table>
 
+                             
+
 
                             </div>
+
+                            <div className='w-full h-[30px] mt-4 flex gap-2 items-center justify-center'>
+                                            {distributeErrorBoxText !== "" &&
+                                                <p className="my-4 w-[80%] font-bold text-2xl text-center text-red-500 sm:text-l">{distributeErrorBoxText}</p>
+                                            }
+                                        </div>
 
                         </div>
 
@@ -2373,47 +2662,47 @@ const ValidatorDetail: NextPage = () => {
 
                         <div className="w-full h-[90vh] flex flex-col items-center justify-center">
 
-                  <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
+                            <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
 
-                    <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
+                                <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
 
-                      <div className="flex items-center  h-full justify-center p-8 bg-white ">
-                            {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+                                    <div className="flex items-center  h-full justify-center p-8 bg-white ">
+                                        {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
 
-                                <div className="w-[500px] h-[auto]  flex flex-col items-center justify-center py-3">
-
-
-                                    <Line
-
-                                        data={graphData}
-                                        options={options}
-                                        onClick={onClick}
-                                        ref={charRef}
-
-                                    >
+                                            <div className="w-[500px] h-[auto]  flex flex-col items-center justify-center py-3">
 
 
+                                                <Line
 
-                                    </Line>
+                                                    data={graphData}
+                                                    options={options}
+                                                    onClick={onClick}
+                                                    ref={charRef}
 
-                                    <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
-
-                                        <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                        <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                        <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                        <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+                                                >
 
 
 
+                                                </Line>
+
+                                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                                    <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                                    <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                                    <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                                    <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                                                </div>
+                                                <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app</a></p>
+
+                                            </div>
+
+                                        }
                                     </div>
-                                    <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className=" text-blue-400 hover:text-blue-200" href="rocketsweep.app">rocketsweep.app</a></p>
-
                                 </div>
-
-                            }
-                        </div>
-                        </div>
-                        </div>
+                            </div>
                         </div>
 
 
@@ -2426,8 +2715,9 @@ const ValidatorDetail: NextPage = () => {
                         <Modal
                             isOpen={showForm}
                             onRequestClose={() => setShowForm(false)}
-                            contentLabel="Delete User Modal"
-                            className="modal"
+                            contentLabel="Single Graffiti Modal"
+                            className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+
                             style={{
                                 overlay: {
                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -2437,12 +2727,13 @@ const ValidatorDetail: NextPage = () => {
                                     zIndex: "999999999999999999999999999999999999",
                                 },
                                 content: {
-                                    width: '50%',
-                                    height: '200px',
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
                                     position: 'absolute',
                                     top: '50%',
                                     left: '50%',
-                                    transform: 'translate(-50%, -50%)',
+
                                     color: 'black',
                                     backgroundColor: "#fff",
                                     border: "0",
@@ -2455,11 +2746,14 @@ const ValidatorDetail: NextPage = () => {
                                 },
                             }}
                         >
-                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                                <AiOutlineClose onClick={() => {
-                                    setShowForm(false)
-                                }} />
-                                <h2>Graffiti Update</h2>
+                            <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                                <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowForm(false)
+                                    }} />
+
+                                </div>
+                                <h2 className="text-[20px] font-bold">Graffiti Update</h2>
 
 
                                 <input value={currentEditGraffiti} className="border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
@@ -2468,13 +2762,20 @@ const ValidatorDetail: NextPage = () => {
                                     <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
                                     <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                                 </div>
+
+                                {graffitiError !== "" &&
+                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
+                    }
                             </div>
                         </Modal>
+
+
+
                         <Modal
                             isOpen={showForm2}
                             onRequestClose={() => setShowForm2(false)}
-                            contentLabel="Delete User Modal"
-                            className="modal"
+                            contentLabel="Get Presigned Exit Modal"
+                            className={`${styles.modal} ${showFormEffect2 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`}
                             style={{
                                 overlay: {
                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -2484,12 +2785,13 @@ const ValidatorDetail: NextPage = () => {
                                     zIndex: "999999999999999999999999999999999999",
                                 },
                                 content: {
-                                    width: '50%',
-                                    height: '700px',
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
                                     position: 'absolute',
                                     top: '50%',
                                     left: '50%',
-                                    transform: 'translate(-50%, -50%)',
+
                                     color: 'black',
                                     backgroundColor: "#fff",
                                     border: "0",
@@ -2502,11 +2804,14 @@ const ValidatorDetail: NextPage = () => {
                                 },
                             }}
                         >
-                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                                <AiOutlineClose onClick={() => {
-                                    setShowForm2(false)
-                                }} />
-                                <h2>Get Presigned Exit Message</h2>
+                            <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                                <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowForm2(false)
+                                    }} />
+
+                                </div>
+                                <h2 className="text-[20px] font-bold">Get Presigned Exit Message</h2>
 
                                 <input
 
@@ -2542,68 +2847,14 @@ const ValidatorDetail: NextPage = () => {
                             </div>
                         </Modal>
 
-                        <Modal
-                            isOpen={showForm3}
-                            onRequestClose={() => setShowForm3(false)}
-                            contentLabel="Delete User Modal"
-                            className="modal"
-                            style={{
-                                overlay: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'center',
-                                    zIndex: "999999999999999999999999999999999999",
-                                },
-                                content: {
-                                    width: '50%',
-                                    height: '300px',
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    color: 'black',
-                                    backgroundColor: "#fff",
-                                    border: "0",
-                                    borderRadius: "20px",
-                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                                    overflow: "auto",
-                                    WebkitOverflowScrolling: "touch", // For iOS Safari
-                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                                },
-                            }}
-                        >
-                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                                <AiOutlineClose onClick={() => {
-                                    setShowForm3(false)
-                                }} />
-                                <h2>Add Credit to your Vrun account</h2>
 
-                                <input
-
-                                    className="w-[60%] self-center border border-black-200 text-black-500"
-                                    type="text"
-
-                                    value={feeETHInput}
-                                    onChange={handleETHInput}
-                                />
-
-
-
-                                <div >
-                                    <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
-                                    <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
-                                </div>
-                            </div>
-                        </Modal>
 
 
                         <Modal
                             isOpen={showForm4}
                             onRequestClose={() => setShowForm4(false)}
-                            contentLabel="Delete User Modal"
-                            className="modal"
+                            contentLabel="Post Presigned Exit Modal"
+                            className={`${styles.modal} ${showFormEffect4 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`}
                             style={{
                                 overlay: {
                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -2613,8 +2864,9 @@ const ValidatorDetail: NextPage = () => {
                                     zIndex: "999999999999999999999999999999999999",
                                 },
                                 content: {
-                                    width: '50%',
-                                    height: '700px',
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
                                     position: 'absolute',
                                     top: '50%',
                                     left: '50%',
@@ -2631,11 +2883,14 @@ const ValidatorDetail: NextPage = () => {
                                 },
                             }}
                         >
-                            <div className="flex flex-col rounded-lg gap-2  px-4 py-8 text-center">
-                                <AiOutlineClose onClick={() => {
-                                    setShowForm4(false)
-                                }} />
-                                <h2>Post Presigned Exit Message</h2>
+                            <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                                <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowForm4(false)
+                                    }} />
+
+                                </div>
+                                <h2 className="text-[20px] font-bold">Post Presigned Exit Message</h2>
 
 
                                 <p>WARNING!: Submitting this exit message will mean this validator will begin the exit process. </p>
@@ -2648,7 +2903,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                                <div >
+                                <div>
                                     <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={postPresignedExitMessage}>Post</button>
                                     <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm4(false)}>Cancel</button>
                                 </div>
@@ -2724,7 +2979,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-      <Footer/>  </div>
+            <Footer />  </div>
     )
 }
 
