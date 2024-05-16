@@ -9,6 +9,8 @@ import miniManagerABI from "../json/miniManagerABI.json"
 import managerABI from "../json/managerABI.json"
 import daoABI from "../json/daoABI.json"
 import distributorABI from "../json/distributorABI.json"
+import networkABI from "../json/networkABI.json"
+import stakingABI from "../json/stakingABI.json"
 import styles from '../styles/Home.module.css';
 import CountdownComponent from './countdown.jsx';
 import QuickNode from '@quicknode/sdk';
@@ -40,7 +42,9 @@ import { attestationsData } from '../globalredux/Features/attestations/attestati
 import { getGraphPointsData } from "../globalredux/Features/graphpoints/graphPointsDataSlice"
 import { getPaymentsData } from "../globalredux/Features/payments/paymentSlice"
 import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
-
+import { TiTick } from "react-icons/ti";
+import confetti from 'canvas-confetti';
+import { PiSignatureBold } from "react-icons/pi";
 
 
 
@@ -81,6 +85,9 @@ const AccountMain: NextPage = () => {
 
 
 
+  const triggerConfetti = () => {
+    confetti();
+  };
 
 
 
@@ -713,8 +720,12 @@ const AccountMain: NextPage = () => {
           if (reg === true) {
             getMinipoolData();
             getPayments();
+            getNodeCollateral(address);
+
+
             getMinipoolTruth();
             getCharges();
+
 
           }
 
@@ -738,6 +749,7 @@ const AccountMain: NextPage = () => {
       dispatch(attestationsData([]));
       getMinipoolTruth();
       getMinipoolData();
+      getNodeCollateral(address);
       getPayments();
       getCharges();
     } else {
@@ -1052,7 +1064,7 @@ const AccountMain: NextPage = () => {
 
     for (const object of reduxData) {
 
-      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) <= 0) {
+      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) >= 0) {
         withdrawnNum += 1
       }
 
@@ -1626,7 +1638,7 @@ const AccountMain: NextPage = () => {
         } else {
 
 
-          if (reduxData[0].address !== "NO VALIDATORS" && reduxData[0].address !== "NO VALIDATORS checked") {
+          if (reduxData[0].address !== "NO VALIDATORS" && reduxData[0].address !== "NO VALIDATORS checked" && log.beaconStatus !== "withdrawal_done" && Number(log.valBalance) > 0) {
 
             console.log("Condition True")
             newTotalVals += 1;
@@ -2081,7 +2093,7 @@ const AccountMain: NextPage = () => {
   const targetRef = useRef<HTMLDivElement>(null);
 
   const handleScrollToElement = () => {
-   
+
     if (targetRef.current) {
       setShowForm5(false);
       window.scrollTo({
@@ -2929,12 +2941,14 @@ const AccountMain: NextPage = () => {
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
-        await setFeeRecipient(checked2);
+
 
         if (checked2 === false) {
 
           alert("Opt-out of Smoothing Pool Successful")
           alert("Success! There should be Confetti here and preloader over buttons!")
+          triggerConfetti();
+
 
 
         } else {
@@ -2942,6 +2956,8 @@ const AccountMain: NextPage = () => {
 
           alert("Opt-in to Smoothing Pool Successful")
           alert("Success! There should be Confetti here and preloader over buttons!")
+          triggerConfetti();
+
 
         }
 
@@ -2960,9 +2976,7 @@ const AccountMain: NextPage = () => {
           setErrorBoxTest2(input.info.error.message.toString())
 
         }
-        else {
-          setErrorBoxTest2(input.error["message"].toString())
-        }
+
 
 
       }
@@ -3009,6 +3023,9 @@ const AccountMain: NextPage = () => {
   }, [totalValidators])
 
 
+
+
+
   const [showFormEffect, setShowFormEffect] = useState(false);
   const [showFormEffect3, setShowFormEffect3] = useState(false);
   const [showFormEffect5, setShowFormEffect5] = useState(false);
@@ -3040,6 +3057,93 @@ const AccountMain: NextPage = () => {
   }, [showForm5]);
 
 
+  const [showFormEffect6, setShowFormEffect6] = useState(false);
+  const [showForm6, setShowForm6] = useState(false);
+
+
+
+  useEffect(() => {
+
+
+    setShowFormEffect6(showForm6);
+
+
+  }, [showForm6]);
+
+
+  const [nodeCollateral, setNodeCollateral] = useState(0)
+
+
+
+
+
+
+  const getNodeCollateral = async (add: string) => {
+
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+    const rocketNetworkPrices = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNetworkPrices"));
+    const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, networkABI, signer)
+
+    const rplPrice = await rocketNetworkContract.getRPLPrice()
+
+
+    const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+    const rocketNodeStaking = new ethers.Contract(
+      NodeStakingAddress, // Replace with your staking contract address
+      stakingABI, // Replace with your staking contract ABI
+      signer
+    );
+
+
+
+
+
+
+    const amount = await rocketNodeStaking.getNodeRPLStake(add)
+
+    console.log("Staked RPL" + amount)
+    const borrowed = await rocketNodeStaking.getNodeETHMatched(add)
+
+
+
+
+
+    if (borrowed > 0) {
+
+      const newNodeCollateral = (rplPrice / amount) / borrowed;
+
+
+      setNodeCollateral(newNodeCollateral)
+
+
+    } else {
+
+      setNodeCollateral(0)
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+
 
 
 
@@ -3060,411 +3164,401 @@ const AccountMain: NextPage = () => {
       {address !== undefined ? (
         <>
           {isRegistered ? (
-
-
-
-
-
             <>
+              {!preloader ? (
+
+                <div className="w-full flex flex-col items-center  justify-center">
 
 
+                  <div className="w-full h-auto lg:h-[90vh] flex flex-col items-center justify-center gap-[8vh]">
 
 
-
-              {!preloader ? (<div className="w-full flex flex-col items-center gap-5 justify-center">
-
-
-
-                <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
-                  <div className="mx-auto max-w-3xl text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Connected User: </h2>
-
-                    <p className="mt-4 text-gray-500 sm:text-xl">
-                      {address}
-                    </p>
-                  </div>
-                </div>
+                    <div className="w-full flex flex-col justify-center items-center gap-4 ">
+                      <h2 className="text-4xl font-bold text-gray-900 ">Account Overview</h2>
 
 
-
-
-                <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
-
-
-
-
-
-
-                  <section className="grid md:grid-cols-2 xl:grid-cols-2 xl:grid-rows-2 gap-6">
-
-                    <div className="flex w-auto items-center p-6 bg-white border shadow rounded-lg mb-5">
-                      <div className="inline-flex flex-shrink-4 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                        <FaEthereum className="text-2xl text-blue-500" />
-                      </div>
-                      <div>
-                        <span className="block text-2xl font-bold">{runningValidators} / {totalValidators}</span>
-                        <span className="block text-gray-500">Fully-running Validators</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center  p-6 bg-white border shadow rounded-lg mb-5">
-
-                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
-                        <FaCoins className="text-yellow-500 text-xl" />
-
-                      </div>
-                      <div className=" w-full max-w-3xl flex flex-col items-center justify-center gap-2 text-left">
-
-
-
-                        <div className='mb-2 flex flex-col justify-center items-center'>
-                          <span className="block text-2xl font-bold">
-
-                            <span style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
-                              {reduxPayments - reduxCharges}
-                            </span> ETH
-
-
-                          </span>
-                          {reduxPayments - reduxCharges > 0 ? (
-                            <span className="block text-gray-500 ">in Credit</span>
-                          ) : (
-                            <span className="block text-gray-500 ">in Arrears</span>
-
-                          )
-
-                          }
-                        </div>
-
-
-
-                        <button onClick={handlePaymentModal} className="bg-green-500 text-xs hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">Top-up</button>
-
-
-
-
-                      </div>
-
-                    </div>
-                    <div className="flex items-center p-6 bg-white shadow border rounded-lg">
-                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
-                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </div>
-
-
-                      {totalValidators !== "0" ? (
-
-                        <div>
-
-                          <span className="block text-2xl font-bold">{percentageAttestations.toString().slice(0, 5)}%</span>
-                          <span className="block text-gray-500">Successful Attestations</span>
-                        </div>
-
-                      ) : (
-                        <div>
-                          <span className="block text-2xl font-bold">0</span>
-                          <span className="block text-gray-500">Attestations</span>
-                        </div>
-
-                      )}
 
 
                     </div>
-                    <div className="flex w-auto items-center p-6 bg-white shadow border  rounded-lg">
-                      <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
-                        <Image
-                          width={70}
-                          height={70}
-                          alt="Rocket Pool Logo"
-                          src={"/images/rocketlogo.webp"} />
+
+
+                    <div className="w-full h-auto flex-col flex gap-[10vh] pt-8 items-center justify-center lg:flex-row lg:pt-0">
+
+                      <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
+
+                        <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
+
+                          <div className="w-auto h-[auto]  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+                            {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+                              <div className="w-auto h-auto py-3">
+
+
+                                <Line
+
+                                  data={graphData}
+                                  options={options}
+                                  onClick={onClick}
+                                  ref={charRef}
+
+                                >
+
+
+
+                                </Line>
+
+                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                  <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                  <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                  <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                  <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                                </div>
+                                <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
+                              </div>
+
+                            }
+
+
+
+                          </div>
+                        </div>
                       </div>
-                      <div className='flex flex-col items-center justify-start w-full'>
-
-                        <div className='flex flex-col items-center gap-1 justify-center w-full'>
-
-                          <span className="block text-xl font-bold">Smoothing Pool</span>
-
-                          <label className="self-center">
-                            <span className="text-gray-500 pr-2 "> Opt-in?</span>
-                            <input
-                              type="checkbox"
-                              className="self-center"
-                              checked={checked2}
-                              onChange={handleChecked2}
-                            />
-                          </label>
 
 
-
-                        </div>
-
-                        <div className='w-3/5 flex gap-2 items-center justify-center'>
-                          <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
-                            Confirm Changes
-                          </button>
-                        </div>
-
-
-                      </div>
-
-                    </div>
-                  </section>
-
-
-
-                </div>
-
-
-                <div className='w-full h-[30px] mt-4 flex gap-2 items-center justify-center'>
-                  {errorBoxText2 !== "" &&
-                    <p className="my-4 w-[80%] font-bold text-2xl text-center text-red-500 sm:text-l">{errorBoxText2}</p>
-                  }
-                </div>
+                      <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
 
-                <div className="w-full my-5 mx-5 mb-1 overflow-hidden rounded-lg ">
-                  <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
-
-                    <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                      <h3 className="text-2xl font-bold text-gray-900 ">Active Validators</h3>
-                      <Link href="/createValidator">
-
-                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  rounded-full ">
-
-                          <IoMdAddCircle className="text-green-500 hover:text-green-700 cursor-pointer w-full h-full" />
-
-                        </div>
-
-                      </Link>
-
-                    </div>
-
-                  </div>
-                </div>
 
 
-                {totalValidators !== "0" ?
+                        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 xl:grid-rows-2 gap-3">
 
-                  (<div ref={targetRef} className="w-auto overflow-hidden shadow border rounded-lg mb-10 ">
-
-
-                    <table className="w-full bg-white">
-                      <tbody>
-
-                        {reduxData.map((data, index) => (
-                          <tr key={index} className="border-b-2 hover:bg-gray-200 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
+                          <div className="flex w-auto items-center p-6 bg-white border shadow-xl rounded-lg mb-5">
+                            <div className="inline-flex flex-shrink-4 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
+                              <FaEthereum className="text-lg text-blue-500" />
+                            </div>
+                            <div>
+                              <span className="block text-lg font-bold">{runningValidators} / {totalValidators}</span>
 
 
 
-                            <td className=" px-4 pl-10 w-[200px] ">
-                              <span className='text-green-500 self-center font-bold text-lg ' >
+                              {
 
-                                {data.valBalance}
-                              </span>
-                            </td>
-
-                            <td className="px-4 py-3 w-[200px]">
-                              <div className="flex items-center text-lg">
+                                Number(totalValidators) > 0 ? (
 
 
-                                <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                  {Number(data.valDayVariance) > 0 ? (
-                                    <div className='flex items-center justify-center'>
-                                      <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
-                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                        </svg>
+                                  <span className="block text-gray-500">
 
-                                      </div>
-                                      <p> {data.valDayVariance}</p>
-
-                                    </div>
+                                    Fully-running Validators
 
 
-                                  ) : (
-                                    <div className='flex items-center justify-center'>
-                                      {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
-                                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                                        </svg>
-                                      </div>}
-                                      <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
-                                    </div>
-                                  )}
+                                  </span>
+
+
+
+
+
+                                ) : (
+
+                                  <span className="block text-gray-500">
+
+                                    No Active Validators
+
+
+                                  </span>
+
+                                )
+
+                              }
+
+
+
+
+                            </div>
+                          </div>
+                          <div className="flex items-center  p-6 bg-white border shadow-xl rounded-lg mb-5">
+
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-yellow-600 bg-yellow-100 rounded-full mr-6">
+                              <FaCoins className="text-yellow-500 text-xl" />
+
+                            </div>
+                            <div className=" w-full max-w-3xl flex  items-center justify-start gap-10 text-left">
+
+
+
+                              <div className='mb-2 flex flex-col justify-start items-start'>
+                                <span className="block text-lg font-bold">
+
+                                  <span style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
+                                    {reduxPayments - reduxCharges}
+                                  </span> ETH
+
 
                                 </span>
+                                {reduxPayments - reduxCharges > 0 ? (
+                                  <span className="block text-gray-500 ">Vrün Balance</span>
+                                ) : (
+                                  <span className="block text-gray-500 ">in Arrears</span>
 
-
-                              </div>
-                            </td>
-
-                            <td className="px-4 py-3 w-[180px]">
-                              <div className="flex items-center flex-col gap-1 text-l ">
-                                {data.beaconStatus !== "" && <>
-                                  <h3 className='text-center font-semibold text-[18px]'>Status on Beaconchain</h3>
-                                  <GrSatellite /></>}
-                                {data.beaconStatus}
-                              </div>
-                            </td>
-
-                            <td className="px-4 py-3 text-xs w-[180px]">
-                              <div className="flex items-center flex-col gap-1 text-l ">
-
-                                <h3 className='text-center font-semibold text-[18px] mb-2'>Minipool Status:</h3>
-
-                                {data.statusResult === "Prelaunch" &&
-                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
+                                )
 
                                 }
-
-
-                                {data.statusResult === "Initialised" &&
-
-                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                                }
-
-                                {data.statusResult === "Staking" &&
-
-                                  <span className="px-2 py-1 font-semibold text-[15px] leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                                }
-
-
-                                {data.statusResult === "Withdrawable" &&
-
-                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                                }
-
-
-                                {data.statusResult === "Dissolved" &&
-
-                                  <span className="px-2 py-1 font-semibold text-md leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
-
-
-                                }
-
-
-                                {data.statusResult === "Empty" &&
-
-                                  <span className="px-2 py-1 font-semibold  text-s leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                                }
-
                               </div>
 
 
-                            </td>
-
-                            <td className="px-4 pr-10 py-3 w-[auto]">
-                              <div className="flex items-center text-l  flex-col gap-1">
-                                {data.valProposals !== "" &&
-
-                                  <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
-
-                                }
-
-                                <p>{data.valProposals}</p>
-                              </div>
-                            </td>
-
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>)
-
-                  : (
-                    <>
-
-                    </>
-                  )
-
-                }
-
-                {totalValidators !== "0" ? (
-
-                  <div className="w-[auto] h-[auto] bg-white overflow-hidden shadow border rounded-lg mb-10 ">
-
-                    <table className="w-full">
-                      <tbody>
-
-                        <tr className="border-b-2 ">
-                          <td className="px-5 py-3 bg-gray-100 font-bold text-s w-auto text-center">
-                            <p>Batch Change Graffiti</p>
-                          </td>
-                          <td className="px-5  py-3 text-s w-auto text-center">
-                            <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>) : (<>
-                  </>)}
-
-
-                {totalValidators !== "0" ? (
-
-
-                  <div className="w-full h-[70vh] flex flex-col items-center justify-center">
-
-                    <div className="mx-auto h-auto w-[50%] rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-6 shadow-2xl md:h-auto ">
-
-                      <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
-
-                        <div className="flex items-center  h-full justify-center p-8 bg-white ">
-
-
-                          {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
-
-                            <div className="w-[500px] h-[auto] py-3">
-
-
-                              <Line
-
-                                data={graphData}
-                                options={options}
-                                onClick={onClick}
-                                ref={charRef}
-
-                              >
+                              <Link href="/payments">
+                              <button className="bg-green-500 text-xs hover:bg-green-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">Top-up</button>
+                              </Link>
 
 
 
-                              </Line>
-
-                              <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
-
-                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
-
-
-
-                              </div>
-                              <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
                             </div>
 
-                          }
+                          </div>
+                          <div className="flex w-auto items-center p-6 bg-white border shadow-xl rounded-lg mb-5">
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
+                              <Image
+                                width={70}
+                                height={70}
+                                alt="Rocket Pool Logo"
+                                src={"/images/rocketlogo.webp"} />
+                            </div>
+                            <div>
+                              <span className="block text-lg font-bold">{nodeCollateral}</span>
 
+
+
+
+
+
+
+                              <span className="block text-gray-500">
+
+                                Required Node Collateral
+
+
+                              </span>
+
+
+
+
+
+
+                            </div>
+                          </div>
+
+
+
+
+
+
+                        </section>
+
+
+
+                      </div>
+                    </div>
+
+
+                  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  <div className="w-full h-auto min-h-auto flex flex-col items-center justify-center gap-3 lg:min-h-[80vh] ">
+
+                    <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
+                      <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
+
+                        <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
+                          <h3 className="text-4xl font-bold text-gray-900 ">Validators</h3>
+                          <Link href="/createValidator">
+
+                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  rounded-full ">
+
+                              <IoMdAddCircle className="text-green-500 hover:text-green-700 cursor-pointer w-full h-full" />
+
+                            </div>
+
+                          </Link>
+
+                        </div>
+
+                      </div>
+                    </div>
+
+
+                    <div ref={targetRef} className="w-auto overflow-hidden shadow-xl border rounded-lg mb-10 ">
+
+
+                      <table className="w-full bg-white">
+                        <tbody>
+
+                          {reduxData.map((data, index) => (
+                            <tr key={index} className=" hover:bg-gray-200 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
+
+
+
+                              <td className=" px-4 pl-10 w-[200px] ">
+                                <span className='text-green-500 self-center font-bold text-lg ' >
+
+                                  {data.valBalance}
+                                </span>
+                              </td>
+
+                              <td className="px-4 py-3 w-[200px]">
+                                <div className="flex items-center text-lg">
+
+
+                                  <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                    {Number(data.valDayVariance) > 0 ? (
+                                      <div className='flex items-center justify-center'>
+                                        <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
+                                          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                          </svg>
+
+                                        </div>
+                                        <p> {data.valDayVariance}</p>
+
+                                      </div>
+
+
+                                    ) : (
+                                      <div className='flex items-center justify-center'>
+                                        {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                          </svg>
+                                        </div>}
+                                        <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
+                                      </div>
+                                    )}
+
+                                  </span>
+
+
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-3 w-[180px]">
+                                <div className="flex items-center flex-col gap-1 text-l ">
+                                  {data.beaconStatus !== "" && <>
+                                    <h3 className='text-center font-semibold text-[18px]'>Status on Beaconchain</h3>
+                                    <GrSatellite /></>}
+                                  {data.beaconStatus}
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-3 text-xs w-[180px]">
+                                <div className="flex items-center flex-col gap-1 text-l ">
+
+                                  <h3 className='text-center font-semibold text-[18px] mb-2'>Minipool Status:</h3>
+
+                                  {data.statusResult === "Prelaunch" &&
+                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+
+                                  {data.statusResult === "Initialised" &&
+
+                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+                                  {data.statusResult === "Staking" &&
+
+                                    <span className="px-2 py-1 font-semibold text-[15px] leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+
+                                  {data.statusResult === "Withdrawable" &&
+
+                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+
+                                  {data.statusResult === "Dissolved" &&
+
+                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+
+                                  {data.statusResult === "Empty" &&
+
+                                    <span className="px-2 py-1 font-semibold  text-s leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
+
+
+                                  }
+
+                                </div>
+
+
+                              </td>
+
+                              <td className="px-4 pr-10 py-3 w-[auto]">
+                                <div className="flex items-center text-l  flex-col gap-1">
+                                  {data.valProposals !== "" &&
+
+                                    <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
+
+                                  }
+
+                                  <p>{data.valProposals}</p>
+                                </div>
+                              </td>
+
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+
+                  </div>
+
+
+                  <div className='flex w-full h-auto flex-col justify-center items-center gap-4 lg:min-h-[90vh]'>
+
+                    <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
+                      <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
+
+                        <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
+                          <h3 className="text-4xl font-bold text-gray-900 ">Account Details</h3>
 
 
                         </div>
+
                       </div>
                     </div>
-                  </div>) : (<>
-                  </>)}
 
 
 
@@ -3473,12 +3567,119 @@ const AccountMain: NextPage = () => {
 
 
 
-                <div className="w-full  h-auto py-[10vh]  flex flex-col justify-center items-center">
+                    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 xl:grid-rows-2 gap-4">
+
+
+                      <div className="flex items-center p-6 bg-white shadow-xl border rounded-lg">
+
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
+                          <PiSignatureBold className="text-purple-500 text-3xl" />
+                        </div>
+
+                        <div className='flex flex-col items-center gap-1 justify-start w-full'>
+
+
+                          <p className="block text-lg font-bold">Batch Change Graffiti</p>
+
+                          <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white shadow-xl font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
+                        </div>
+                      </div>
+
+
+                      <div className="flex items-center p-6 bg-white shadow-xl border rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </div>
+
+
+                        {totalValidators !== "0" ? (
+
+                          <div>
+
+                            <span className="block text-lg font-bold" >Successful Attestations</span>
+
+                            <span className="block text-gray-500 mt-2 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
+
+                          </div>
+
+                        ) : (
+                          <div>
+                            <span className="block text-lg font-bold">Attestations</span>
+                            <span className="block text-gray-500 mt-2 text-[18px]" >0</span>
+
+                          </div>
+
+                        )}
+
+
+                      </div>
+
+                      <div className="flex w-auto items-center p-6 bg-white shadow-xl border  rounded-lg">
+                        <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                          <Image
+                            width={70}
+                            height={70}
+                            alt="Rocket Pool Logo"
+                            src={"/images/rocketlogo.webp"} />
+                        </div>
+                        <div className='flex flex-col items-center justify-start w-full'>
+
+                          <div className='flex flex-col items-center gap-1 justify-center w-full'>
+
+                            <span className="block text-lg font-bold">Smoothing Pool</span>
+
+
+
+                            {reduxData[0].smoothingPoolTruth ? (
+
+                              <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Opted-in</p> <TiTick /></div>
+
+                            ) : (
+                              <p className="text-red-400 text-[18px]">Opted-out</p>
+
+                            )}
+
+
+
+
+
+
+                          </div>
+
+                          <div className='w-3/5 flex gap-2 items-center justify-center'>
+                            <button onClick={() => { setShowForm6(true) }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 shadow-xl text-white font-bold py-2 px-2 rounded-md" >
+                              Change
+                            </button>
+                          </div>
+
+
+                        </div>
+
+                      </div>
+
+                    </section>
+
+
+                  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                  {/*<div className="w-full  h-auto py-[10vh]  flex flex-col justify-center items-center">
                   <RPLBlock />
-                </div>
-
-
-           
+                </div>*/}
 
 
 
@@ -3488,217 +3689,325 @@ const AccountMain: NextPage = () => {
 
 
 
-                <Modal
-                  isOpen={showForm}
-                  onRequestClose={() => setShowForm(false)}
-                  contentLabel="Batch Graffiti Modal"
-                  className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
-                  ariaHideApp={false}
-                  style={{
-                    overlay: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      zIndex: "999999999999999999999999999999999999",
-                      transition: "0.2s transform ease-in-out",
-                    },
-                    content: {
-                      width: 'auto',
-                      height: 'auto',
-                      minWidth: "280px",
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
 
-                      color: 'black',
-                      backgroundColor: "#fff",
-                      border: "0",
-                      borderRadius: "20px",
-                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                      overflow: "auto",
-                      WebkitOverflowScrolling: "touch", // For iOS Safari
-                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                  }}
-                >
-                  <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                        setShowForm(false)
-                      }} />
+
+                  <Modal
+                    isOpen={showForm}
+                    onRequestClose={() => setShowForm(false)}
+                    contentLabel="Batch Graffiti Modal"
+                    className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+
+                      <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                          setShowForm(false)
+                        }} />
+
+                      </div>
+
+
+                      <h2 className="text-[20px] font-bold">Graffiti Update</h2>
+
+
+                      <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
+
+                      <div>
+                        <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
+                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
+                      </div>
+
+                      {graffitiError !== "" &&
+                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
+                      }
+
+                    </div>
+                  </Modal>
+
+                  <Modal
+                    isOpen={showForm3}
+                    onRequestClose={() => setShowForm3(false)}
+                    contentLabel="Top-up Credit Modal"
+                    className={`${styles.modal} ${showFormEffect3 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`}
+
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 999, // Increase the z-index if needed
+                      },
+                      content: {
+                        minWidth: '280px', // Adjust as per your modal's width
+                        width: "auto",
+                        height: "auto",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        backgroundColor: '#fff',
+                        border: '0',
+                        borderRadius: '20px',
+                        boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
+                        overflow: 'auto',
+                        WebkitOverflowScrolling: 'touch', // For iOS Safari
+                        scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
+                        scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
+                        animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                      <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                          setShowForm3(false)
+                        }} />
+
+                      </div>
+                      <h2 className="text-[20px] font-bold mb-2">Add ETH Credit</h2>
+
+                      <input
+
+                        className="w-[60%] self-center border border-black-200 text-black-500"
+                        type="text"
+
+                        value={feeETHInput}
+                        onChange={handleETHInput}
+                      />
+
+
+
+                      <div >
+                        <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+                        <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
+                      </div>
+
+                      {paymentErrorMessage !== "" &&
+                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
+                      }
+                    </div>
+
+                  </Modal>
+
+
+
+
+
+                  <Modal
+                    isOpen={showForm5}
+                    onRequestClose={() => setShowForm5(false)}
+                    contentLabel="Alert Validators Modal"
+                    className={`${styles.modal} ${showFormEffect5 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full items-center justify-center flex-col  rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+
+                      <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                          setShowForm5(false)
+                        }} />
+
+                      </div>
+
+                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">VALIDATORS IN NEED OF ACTION!</h2>
+
+                      {validatorsInNeedOfAction.stake > 0 &&
+
+                        <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                          You have {validatorsInNeedOfAction.stake} in Prelaunch and ready to STAKE!
+                        </p>}
+
+                      {validatorsInNeedOfAction.withdrawn > 0 &&
+                        <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+
+                          You have {validatorsInNeedOfAction.withdrawn} withdrawn Validators, ready to distribute the balance of.
+                        </p>
+                      }
+
+                      {validatorsInNeedOfAction.close > 0 &&
+
+                        <p className="my-4 w-[90%] text-gray-500 sm:text-l">
+
+                          You have {validatorsInNeedOfAction.close} dissolved Minipools that need closing.
+                        </p>
+
+                      }
+
+
+
+                      <div className='w-full flex gap-2 items-center justify-center'>
+                        <button onClick={handleScrollToElement} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                          SEE VALIDATORS
+                        </button>
+                      </div>
+
+
+
+
 
                     </div>
 
 
-                    <h2 className="text-[20px] font-bold">Graffiti Update</h2>
-
-
-                    <input value={currentEditGraffiti} className=" border border-black-200 text-black-500" type="text" onChange={handleGraffitiChange} />
-
-                    <div>
-                      <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={confirmGraffiti}>Update</button>
-                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
-                    </div>
-
-                    {graffitiError !== "" &&
-                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
-                    }
-
-                  </div>
-                </Modal>
-
-                <Modal
-                  isOpen={showForm3}
-                  onRequestClose={() => setShowForm3(false)}
-                  contentLabel="Top-up Credit Modal"
-                  className={`${styles.modal} ${showFormEffect3 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`}
-
-                  style={{
-                    overlay: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      zIndex: 999, // Increase the z-index if needed
-                    },
-                    content: {
-                      minWidth: '280px', // Adjust as per your modal's width
-                      width: "auto",
-                      height: "auto",
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-
-                      backgroundColor: '#fff',
-                      border: '0',
-                      borderRadius: '20px',
-                      boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)',
-                      overflow: 'auto',
-                      WebkitOverflowScrolling: 'touch', // For iOS Safari
-                      scrollbarWidth: 'thin', // For modern browsers that support scrollbar customization
-                      scrollbarColor: 'rgba(255, 255, 255, 0.5) #2d2c2c', // For modern browsers that support scrollbar customization
-                      animation: `swoopIn 0.3s ease-in-out forwards`, // Add animation
-                    },
-                  }}
-                >
-                  <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
-                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                        setShowForm3(false)
-                      }} />
-
-                    </div>
-                    <h2 className="text-[20px] font-bold mb-2">Add ETH Credit</h2>
-
-                    <input
-
-                      className="w-[60%] self-center border border-black-200 text-black-500"
-                      type="text"
-
-                      value={feeETHInput}
-                      onChange={handleETHInput}
-                    />
+                  </Modal>
 
 
 
-                    <div >
-                      <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
-                      <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm3(false)}>Cancel</button>
-                    </div>
+                  <Modal
+                    isOpen={showForm6}
+                    onRequestClose={() => setShowForm6(false)}
+                    contentLabel="Smoothing Pool Opt Modal"
+                    className={`${styles.modal} ${showFormEffect6 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
 
-                    {paymentErrorMessage !== "" &&
-                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
-                    }
-                  </div>
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                </Modal>
+                      <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                          setShowForm6(false)
+                        }} />
+
+                      </div>
+
+                      <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Do you want to be in the Smoothing Pool?</h2>
 
 
 
 
 
-                <Modal
-                  isOpen={showForm5}
-                  onRequestClose={() => setShowForm5(false)}
-                  contentLabel="Alert Validators Modal"
-                  className={`${styles.modal} ${showFormEffect5 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
-                  ariaHideApp={false}
-                  style={{
-                    overlay: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      zIndex: "999999999999999999999999999999999999",
-                      transition: "0.2s transform ease-in-out",
-                    },
-                    content: {
-                      width: 'auto',
-                      height: 'auto',
-                      minWidth: "280px",
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
+                      <div className="flex items-center justify-center w-full gap-4">
+                        <span>Opt in?</span>
+                        <label className="flex items-center justify-center gap-1">
+                          <input
+                            type="radio"
+                            name="optIn"
+                            checked={checked2 === true}
+                            onChange={() => setChecked2(true)}
+                          />
+                          Yes
+                        </label>
+                        <label className="flex items-center justify-center gap-1">
+                          <input
+                            type="radio"
+                            name="optIn"
+                            checked={checked2 === false}
+                            onChange={() => setChecked2(false)}
+                          />
+                          No
+                        </label>
+                      </div>
 
-                      color: 'black',
-                      backgroundColor: "#fff",
-                      border: "0",
-                      borderRadius: "20px",
-                      boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                      overflow: "auto",
-                      WebkitOverflowScrolling: "touch", // For iOS Safari
-                      scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                      scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                    },
-                  }}
-                >
-                  <div className="flex relative w-full h-full items-center justify-center flex-col  rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                    <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                        setShowForm5(false)
-                      }} />
+                      <div className='w-full flex gap-2 items-center justify-center'>
+                        <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                          Confirm Changes
+                        </button>
+                      </div>
+
+                      {errorBoxText2 !== "" &&
+                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{errorBoxText2}</p>
+                      }
+
+
+
 
                     </div>
 
-                    <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">VALIDATORS IN NEED OF ACTION!</h2>
 
-                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
-
-                      You have {validatorsInNeedOfAction.stake} in Prelaunch and ready to STAKE!
-                    </p>
-                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
-
-                      You have {validatorsInNeedOfAction.withdrawn} withdrawn Validators, ready to distribute the balance of.
-                    </p>
-                    <p className="my-4 w-[90%] text-gray-500 sm:text-l">
-
-                      You have {validatorsInNeedOfAction.close} dissolved Minipools that need closing.
-                    </p>
-
-
-
-                    <div className='w-full flex gap-2 items-center justify-center'>
-                      <button onClick={handleScrollToElement} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                        SEE VALIDATORS
-                      </button>
-                    </div>
+                  </Modal>
 
 
 
 
-
-                  </div>
-
-
-                </Modal>
-
-
-
-              </div>) : (
+                </div>) : (
 
 
                 <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>

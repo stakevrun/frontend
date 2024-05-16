@@ -25,6 +25,12 @@ import depositABI from "../json/depositABI.json"
 import { AiOutlineClose } from 'react-icons/ai'
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
+import { FaEthereum } from "react-icons/fa";
+import { HiOutlinePaperAirplane } from "react-icons/hi";
+import { FaSignature } from "react-icons/fa";
+import { FaGripLinesVertical } from "react-icons/fa";
+import { TiTick } from "react-icons/ti";
+import confetti from 'canvas-confetti';
 
 
 import RollingNumber from '../components/rollingNumber';
@@ -153,11 +159,11 @@ const CreateValidator: NextPage = () => {
 
 
 
-const validatorAnimationPathway = () => {
+  const validatorAnimationPathway = () => {
 
-  
 
-}
+
+  }
 
 
 
@@ -336,6 +342,11 @@ const validatorAnimationPathway = () => {
 
   }
 
+
+
+  const goToAccount = () => {
+    router.push("/account")
+  }
 
 
   const handleCheckStakeRPL = async (add: string) => {
@@ -805,7 +816,7 @@ const validatorAnimationPathway = () => {
 
     //Get latest index
 
-    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
       method: "GET",
 
       headers: {
@@ -846,7 +857,7 @@ const validatorAnimationPathway = () => {
 
 
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+      await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
         method: "GET",
 
         headers: {
@@ -1036,6 +1047,10 @@ const validatorAnimationPathway = () => {
 
   const handleAddValidator = async () => {
 
+    setIncrementer(0)
+    setShowForm4(true);
+
+
 
 
 
@@ -1078,7 +1093,7 @@ const validatorAnimationPathway = () => {
         // Get acceptance sheet (currently not working)
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/acceptance`, {
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/acceptance`, {
           method: "GET",
 
           headers: {
@@ -1090,7 +1105,10 @@ const validatorAnimationPathway = () => {
             var jsonString = await response.json()
 
 
-            console.log("Result of Acceptance GET" + jsonString)
+            console.log("Result of Acceptance GET" + Object.entries(jsonString))
+
+
+            setIncrementer(1)
 
 
           })
@@ -1110,7 +1128,7 @@ const validatorAnimationPathway = () => {
 
 
             try {
-              const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}`, {
+              const response: any = await fetch(`https://api.vrün.com/${currentChain}/${address}`, {
                 method: "PUT",
                 headers: {
                   "Content-Type": "application/json"
@@ -1122,9 +1140,13 @@ const validatorAnimationPathway = () => {
                 })
               });
 
+
+              setIncrementer(1)
+
             } catch (error: any) {
               console.log(error);
               setAddValidatorError(error.error.message.toString())
+              setShowForm4(false)
             }
 
 
@@ -1159,23 +1181,9 @@ const validatorAnimationPathway = () => {
 
 
 
-        let feeRecipient;
+        let feeRecipient = nullAddress
 
-        if (checked3) {
-
-
-          feeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
-
-
-
-
-        } else {
-
-
-          feeRecipient = await distributorContract.getProxyAddress(address);
-
-
-        }
+      
 
 
 
@@ -1253,6 +1261,8 @@ const validatorAnimationPathway = () => {
 
         }
 
+        console.log( "The value:" + Object.entries(value))
+
 
         const APIType = "AddValidators";
         let signature = await signer.signTypedData(EIP712Domain, types, value);
@@ -1262,7 +1272,7 @@ const validatorAnimationPathway = () => {
 
 
         try {
-          const response: any = await fetch(`https://db.vrün.com/${currentChain}/${address}/${currentIndex}`, {
+          const response: any = await fetch(`https://api.vrün.com/${currentChain}/${address}/${currentIndex}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
@@ -1280,11 +1290,13 @@ const validatorAnimationPathway = () => {
 
           console.log("First Pubkey:" + firstPubkey);
 
+          setIncrementer(2)
 
 
         } catch (error: any) {
           console.log(error);
           setAddValidatorError(error.message.toString())
+          setShowForm4(false)
         }
 
 
@@ -1298,7 +1310,7 @@ const validatorAnimationPathway = () => {
 
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${currentIndex}`, {
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${currentIndex}`, {
           method: "GET",
 
           headers: {
@@ -1324,6 +1336,7 @@ const validatorAnimationPathway = () => {
             console.log(error);
 
             setAddValidatorError(error.message.toString())
+            setShowForm4(false)
           });
 
 
@@ -1349,6 +1362,8 @@ const validatorAnimationPathway = () => {
 
 
         const depositContract = new ethers.Contract(NodeDepositAddress, depositABI, signer);
+
+
 
         let result;
 
@@ -1382,8 +1397,12 @@ const validatorAnimationPathway = () => {
           checkIndex();
           router.push('/account');
 
+          setIncrementer(3); // Trigger immediately
+          setIncrementerWithDelay(4, 1500);
+
         } else {
           setAddValidatorError("Transaction failed!");
+          setShowForm4(false)
           // Handle the failure case if needed
 
           // Call checkIndex function regardless of the transaction status
@@ -1397,16 +1416,19 @@ const validatorAnimationPathway = () => {
 
       catch (e: any) {
 
-    
+
 
         if (e.reason === "rejected") {
           setAddValidatorError(e.info.error.message.toString())
-  
+          setShowForm4(false)
+
         }
         else {
           setAddValidatorError(e.error["message"].toString())
+          setShowForm4(false)
+
         }
-  
+
 
 
       }
@@ -1482,7 +1504,7 @@ const validatorAnimationPathway = () => {
 } */
 
 
-    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
       method: "GET",
 
       headers: {
@@ -1545,7 +1567,7 @@ const validatorAnimationPathway = () => {
 
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
           method: "GET",
 
           headers: {
@@ -1586,23 +1608,9 @@ const validatorAnimationPathway = () => {
       }
 
 
-      let newFeeRecipient;
+      let newFeeRecipient = nullAddress
 
-      if (inOutBool === true) {
-
-
-
-        newFeeRecipient = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketSmoothingPool"))
-        console.log("It is true dough!")
-        console.log(newFeeRecipient)
-
-
-      } else {
-        newFeeRecipient = await distributorContract.getProxyAddress(address);
-        console.log(newFeeRecipient)
-
-      }
-
+     
 
 
       const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
@@ -1615,7 +1623,7 @@ const validatorAnimationPathway = () => {
 
       let signature = await signer.signTypedData(EIP712Domain, types, value);
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+      await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
         method: "POST",
 
         headers: {
@@ -1639,7 +1647,7 @@ const validatorAnimationPathway = () => {
         .catch(error => {
           // Handle error here
           console.log(error);
-          setErrorBoxTest3("setFeeRecipient failed...")
+          setErrorBoxTest3("setFeeRecipient failed...") 
         });
 
 
@@ -1708,7 +1716,7 @@ const validatorAnimationPathway = () => {
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
-        await setFeeRecipient(checked2);
+   
 
         if (checked2 === false) {
 
@@ -1734,20 +1742,126 @@ const validatorAnimationPathway = () => {
         let input: any = error
 
 
-        
+
         if (input.reason === "rejected") {
           setErrorBoxTest3(input.info.error.message.toString())
-  
+
         }
         else {
           setErrorBoxTest3(input.reason.toString())
         }
-  
+
 
 
       }
     }
   }
+
+
+
+
+
+  const [showForm4, setShowForm4] = useState(false)
+  const [showFormEffect4, setShowFormEffect4] = useState(false);
+  const [currentStatus1, setCurrentStatus1] = useState(0)
+  const [currentStatus2, setCurrentStatus2] = useState(0)
+  const [currentStatus3, setCurrentStatus3] = useState(0)
+  const [incrementer, setIncrementer] = useState(0);
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentStatus1(1)
+      setCurrentStatus2(1)
+
+    } else if (incrementer === 2) {
+      setCurrentStatus2(2)
+      setCurrentStatus3(1)
+
+
+    } else if (incrementer === 3) {
+
+      setCurrentStatus3(2)
+
+
+
+    } else if (incrementer === 4) {
+      setCurrentStatus3(3)
+    }
+
+
+
+    else {
+
+      setCurrentStatus1(0)
+      setCurrentStatus2(0)
+      setCurrentStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
+
+
+
+  const handleIncrementer = () => {
+
+    if (incrementer === 4) {
+      setIncrementer(0)
+    }
+
+    else {
+      let newIncrement = incrementer + 1
+      setIncrementer(newIncrement)
+
+    }
+
+
+  }
+
+
+  const setIncrementerWithDelay = (value: number, delay: number) => {
+    setTimeout(() => {
+      setIncrementer(value);
+    }, delay);
+  };
+
+
+  const triggerConfetti = () => {
+    confetti();
+  };
+
+
+
+
+  useEffect(() => {
+
+
+    setShowFormEffect4(showForm4);
+
+
+  }, [showForm4]);
+
+
+
+  useEffect(() => {
+
+    if (currentStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentStatus3])
+
+
+
+
+
+
 
 
 
@@ -1792,7 +1906,7 @@ const validatorAnimationPathway = () => {
 
 
               {Number(formatEther(newMinipools)) < 1 &&
-                <div className="flex flex-col  gap-2 w-[500px] rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
+                <div className="flex flex-col  gap-2 w-[500px] rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
                   <h2 className="text-4xl w-[90%] font-bold text-gray-900 ">Stake/Unstake RPL </h2>
 
                   <p className="my-4 w-[80%] text-gray-500 sm:text-l">
@@ -1849,19 +1963,14 @@ const validatorAnimationPathway = () => {
 
 
 
-              <div style={Number(formatEther(newMinipools)) < 1 ? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
+              <div style={Number(formatEther(newMinipools)) < 1 ? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 bg-white shadow rounded-lg border">
                 <h2 className="text-3xl font-bold text-gray-900 ">Create a New Validator</h2>
 
-                <p className="my-4 w-[90%] text-gray-500 sm:text-l">
 
-                  Create your custom &quot;graffiti&quot;, select <span>8ETH</span> or <span>16ETH</span>, and we will do the rest!
-                </p>
+                <input value={grafittiInput} placeholder='Grafitti' className="mt-4 mb-2 border border-black-200 " type="text" onChange={handleGrafittiInput} />
 
 
-                <input value={grafittiInput} placeholder='Grafitti' className=" border border-black-200 " type="text" onChange={handleGrafittiInput} />
-
-
-                <div className="w-[80%] mt-5">
+                <div className="w-[80%] mt-2">
                   <label className="text-gray-500 mb-3 sm:text-l"> Please select ETH Deposit Value:</label>
                   <div className="flex items-center justify-center gap-2">
                     <label >
@@ -1888,7 +1997,7 @@ const validatorAnimationPathway = () => {
 
                   </div>
 
-                 
+
 
 
                 </div>
@@ -1902,9 +2011,10 @@ const validatorAnimationPathway = () => {
                 </div>
 
                 {addValidatorError !== "" &&
-                    <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{addValidatorError}</p>
-                  }
+                  <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{addValidatorError}</p>
+                }
               </div>
+
 
 
 
@@ -1964,19 +2074,29 @@ const validatorAnimationPathway = () => {
 
 
 
-                  <label className=" flex items-center justify-center w-full gap-2">
+                
 
-
-                    <span>Opt in?</span>
-
-                    <input
-                      type="checkbox"
-
-                      checked={checked2}
-                      onChange={handleChecked2}
-                    />
-                  </label>
-
+                  <div className="flex items-center justify-center w-full gap-4">
+                      <span>Opt in?</span>
+                      <label className="flex items-center justify-center gap-1">
+                        <input
+                          type="radio"
+                          name="optIn"
+                          checked={checked2 === true}
+                          onChange={() => setChecked2(true)}
+                        />
+                        Yes
+                      </label>
+                      <label className="flex items-center justify-center gap-1">
+                        <input
+                          type="radio"
+                          name="optIn"
+                          checked={checked2 === false}
+                          onChange={() => setChecked2(false)}
+                        />
+                        No
+                      </label>
+                    </div>
 
                   <div className='w-full flex gap-2 items-center justify-center'>
                     <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
@@ -1985,8 +2105,223 @@ const validatorAnimationPathway = () => {
                   </div>
 
                   {errorBoxText3 !== "" &&
-                      <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{errorBoxText3}</p>
-                    }
+                    <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{errorBoxText3}</p>
+                  }
+
+
+
+
+                </div>
+
+
+              </Modal>
+
+
+
+              <Modal
+                isOpen={showForm4}
+                onRequestClose={() => setShowForm4(false)}
+                contentLabel="Create Validator Modal"
+                className={`${styles.modal} ${showFormEffect4 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                ariaHideApp={false}
+                style={{
+                  overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: "999999999999999999999999999999999999",
+                    transition: "0.2s transform ease-in-out",
+                  },
+                  content: {
+                    width: 'auto',
+                    height: 'auto',
+                    minWidth: "280px",
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+
+                    color: 'black',
+                    backgroundColor: "#fff",
+                    border: "0",
+                    borderRadius: "20px",
+                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                    overflow: "auto",
+                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                  },
+                }}
+              >
+                <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                  <div className="flex items-start justify-center gap-3 w-full">
+
+                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                        setShowForm4(false)
+                      }} />
+
+                    </div>
+                  </div>
+                  {currentStatus3 === 3 ? (
+
+
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">Validator Deposited</h3>
+
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                      <button onClick={goToAccount} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">See Validator</button>
+                    </div>
+
+
+
+
+                  ) : (
+
+
+                    <>
+
+
+
+
+                      <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                        <h3 className="font-bold text-[30px]">Validator Deposit</h3>
+                        <p className="text-[25px]">{selectedCont}</p>
+                      </div>
+
+                      <hr className="w-full my-3" />
+
+                      <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p> <FaEthereum /></p>
+
+                            <p className="text-left">Checking Terms and Conditions Acceptance</p>
+                          </div>
+                          <p className='self-end'>
+
+                            {
+
+                              currentStatus1 === 0 ? (
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                              ) : (
+
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                              )
+
+
+
+
+                            }
+
+
+                          </p>
+                        </div>
+
+
+
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p><HiOutlinePaperAirplane /></p>
+
+                            <p className="text-left" >Get Signed Deposit Data</p>
+                          </div>
+                          <p className='self-end'>
+
+                            {
+
+                              currentStatus2 === 0 ? (
+                                <p></p>
+
+                              ) : currentStatus2 === 1 ? (
+
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                              ) : (
+
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                              )
+
+
+
+
+                            }
+
+
+                          </p>
+
+
+                        </div>
+
+
+
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p> <FaSignature /></p>
+                            <p className="text-left">Deposit your ETH</p>
+                          </div>
+                          <p className='self-end'>
+
+                            {
+
+                              currentStatus3 === 0 ? (
+                                <p></p>
+
+                              ) : currentStatus3 === 1 ? (
+
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                              ) : (
+
+                                <div className="flex items-center justify-center text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                              )
+
+
+
+
+                            }
+
+
+                          </p>
+
+                        </div>
+
+
+                      </div>
+
+
+                
+
+
+
+
+                    </>
+
+
+
+
+
+
+                  )}
+
+
+
+
 
 
 

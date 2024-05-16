@@ -21,6 +21,7 @@
     "@reduxjs/toolkit": "^2.2.2",
     "@types/react-redux": "^7.1.33",
     "apexcharts": "^3.45.2",
+    "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.2",
     "chia-bls": "^1.0.1",
     "date-fns": "^3.6.0",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@openpgp/web-stream-tools": "^0.0.11-patch-0",
+    "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^18.19.3",
     "@types/react": "^18.2.43",
     "@types/react-modal": "^3.16.3",

@@ -645,7 +645,7 @@ const RPLBlock: NextPage = () => {
 
 
   return (
-    <div className="flex flex-col  h-auto gap-2 text-center items-center justify-center rounded-xl bg-white border shadow border-b-4 border-black-100 px-2 py-8 ">
+    <div className="flex flex-col  h-auto gap-2 text-center items-center justify-center rounded-xl bg-white border shadow-xl border-b-4 border-black-100 px-2 py-8 ">
       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
 
       <p className="my-4 w-[80%] text-gray-500 sm:text-l">
