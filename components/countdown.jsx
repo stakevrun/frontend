@@ -12,7 +12,7 @@ const CountdownComponent = ({ milliseconds, reset }) => {
     
       console.log("NOW:" + now)
       console.log("MILIS:" + milliseconds)
-      const remainingTime =  now - milliseconds;
+      const remainingTime =  milliseconds - now;
 
       console.log("Remaing time:" + remainingTime)
 

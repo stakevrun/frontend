@@ -1941,11 +1941,18 @@ const ValidatorDetail: NextPage = () => {
 
     useEffect(() => {
 
-        console.log(TotalGraphPlotPoints)
+        if( TotalGraphPlotPoints) {
+
+            console.log(TotalGraphPlotPoints)
 
         const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
         setXAxisData(xAxisDataArray);
 
+
+
+        }
+
+        
     }, [TotalGraphPlotPoints])
 
 
@@ -2455,7 +2462,7 @@ const ValidatorDetail: NextPage = () => {
 
                                                     {reduxData.statusResult === "Prelaunch" &&
                                                         <>
-                                                            <CountdownComponent milliseconds={reduxData.statusTimeResult} reset={getMinipoolData}/>
+                                                            <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData}/>
 
                                                             <p className='text-xs'>Until this Validator can be Staked</p>
 
@@ -2466,7 +2473,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "active_staking" &&
+                                                    {/*reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "active_staking" &&
                                                         <>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
 
@@ -2476,7 +2483,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                         </>
-                                                    }
+                                                */}
                                                     {reduxData.statusResult === "Prelaunch" && timeToStake &&
 
                                                         <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake Minipool</button>
@@ -2605,7 +2612,7 @@ const ValidatorDetail: NextPage = () => {
                                     }
 
 
-                                    {reduxData.statusResult === "Prelaunch" &&
+                                    {reduxData.statusResult === "Prelaunch" && timeToStake &&
                                         <div className="flex w-auto items-center p-6 bg-white shadow-xl border rounded-lg">
 
                                             <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">

@@ -3188,19 +3188,17 @@ const AccountMain: NextPage = () => {
 
     if (borrowed > BigInt(0)) {
 
+      
 
-      const ethOfRPLStaked = amount / rplPrice
-
-      console.log("fIRST NUMBER" + ethOfRPLStaked)
-
-      const newNodeCollateral = ethOfRPLStaked / borrowed;
+      const newNodeCollateral = ethers.formatUnits(rplPrice * amount / borrowed, 16)
 
       console.log("Node collateral:" + newNodeCollateral)
 
-      const correctOne  = ethers.formatEther(newNodeCollateral)
+
+      
 
 
-      setNodeCollateral(Number(correctOne))
+      setNodeCollateral(Number(newNodeCollateral))
 
 
     } else {
@@ -3421,7 +3419,7 @@ const AccountMain: NextPage = () => {
                                 src={"/images/rocketlogo.webp"} />
                             </div>
                             <div>
-                              <span className="block text-lg font-bold">{nodeCollateral}</span>
+                              <span className="block text-lg font-bold">{nodeCollateral} %</span>
 
 
 

@@ -1929,7 +1929,7 @@ const CreateValidator: NextPage = () => {
 
                       <div className="flex flex-col items-center justify-center gap-2">
 
-                        <p className="mb-2 font-bold">{stakingMessage}</p>
+                        <p className="mb-2 text-gray-500">{stakingMessage}</p>
 
                         <BounceLoader />
                       </div>
