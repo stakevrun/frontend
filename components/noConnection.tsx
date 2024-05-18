@@ -8,7 +8,7 @@ const NoConnection = () => {
 
 
 
-            <div className="flex flex-col w-auto gap-2 rounded-lg border border-gray-100 px-4 py-4 text-center items-center justify-center shadow-xl">
+            <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
 
 
                 <MdNoAccounts className='text-7xl' />

@@ -54,6 +54,7 @@ export type beaconLogs = Array<beaconLog>
     beaconStatus: string
     activationEpoch: string
     smoothingPoolTruth: boolean
+ 
     feeRecipient: string
     valBalance: string
     valProposals: string
@@ -118,6 +119,7 @@ const initialState: stateType =  {
     valDayVariance: "",
     activationEpoch: "", 
     smoothingPoolTruth: false,
+   
     feeRecipient: "",
     pubkey: "",
     valIndex: "",

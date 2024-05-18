@@ -351,11 +351,11 @@ const RPLBlock: NextPage = () => {
 
         const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer);
 
-      
+
 
         const activeMinipools = await MinipoolManager.getNodeStakingMinipoolCount(address);
 
-       
+
         setDisplayActiveMinipools(activeMinipools);
 
 
@@ -365,7 +365,7 @@ const RPLBlock: NextPage = () => {
 
 
 
-        if (Number(ethers.formatEther(amount)) <  Number(rplRequiredPerLEB8)) {
+        if (Number(ethers.formatEther(amount)) < Number(rplRequiredPerLEB8)) {
 
           setNewMinipools(BigInt(0))
 
@@ -381,7 +381,6 @@ const RPLBlock: NextPage = () => {
 
 
           console.log(" Possible New: " + possibleNewMinpools);
-      
 
 
 
@@ -389,7 +388,8 @@ const RPLBlock: NextPage = () => {
 
 
 
-        setNewMinipools(possibleNewMinpools)
+
+          setNewMinipools(possibleNewMinpools)
 
 
         }
@@ -482,7 +482,7 @@ const RPLBlock: NextPage = () => {
         if (address !== undefined) {
           handleCheckRPL(address);
           handleCheckStakeRPL(address);
-          
+
         }
       } else {
         // Handle failed transaction
@@ -502,7 +502,7 @@ const RPLBlock: NextPage = () => {
   const handleStakeButtonClick = async () => {
     setStakingMessage("Processing approval to spend RPL...")
     setStakeButtonBool(false)
-    
+
     const nodeAddress = await handleApproveRPL();
     if (nodeAddress) {
 
@@ -580,7 +580,7 @@ const RPLBlock: NextPage = () => {
 
       let input: any = error
 
-      if(input.reason !== undefined) {
+      if (input.reason !== undefined) {
         setErrorBoxTest(input.reason.toString());
 
 
@@ -588,7 +588,7 @@ const RPLBlock: NextPage = () => {
         setErrorBoxTest("Rejected. Did you enter an RPL value?")
       }
 
-   
+
 
       setStakeButtonBool(true);
 
@@ -645,29 +645,40 @@ const RPLBlock: NextPage = () => {
 
 
   return (
-    <div className="flex flex-col  h-auto gap-2 text-center items-center justify-center rounded-xl bg-white border shadow-xl border-b-4 border-black-100 px-2 py-8 ">
-      <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl">Stake RPL for your Minipool Deposits </h2>
+    <div className="flex flex-col w-auto  h-auto gap-4 px-8 text-center items-center justify-center rounded-xl bg-white border shadow-xl  border-black-100  py-4 ">
+       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl"> RPL Interface</h2>
 
-      <p className="my-4 w-[80%] text-gray-500 sm:text-l">
-        You have
+      <div className="flex flex-col  items-center justify-center gap-1 shadow text-lg my-3 py-3 px-3 rounded-lg border">
+       <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
         <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
-        unstaked RPL in your Wallet and
-        <span style={Number(ethers.formatEther(stakeRPL)) >= 1? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true}/> </span>
-        staked RPL.
-        You have
+       
+        </label> 
+
+        <label className="flex flex-col items-center font-bold justify-center gap-1">
+          Staked RPL:
+        <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true} /> </span>
+        </label>
+        <label className="flex flex-col font-bold items-center justify-center gap-1">
+          Active Minipools:
         <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} bool={true} /> </span>
-        active Minipool(s) and are able to create <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={ Math.floor(Number(ethers.formatEther(newMinipools))) } bool={true} /></span> new LEB8s (Minipools)
 
-
-      </p>
-      <input value={RPLinput} placeholder='RPL Value' className="border border-black-500 " style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
+        </label>
+     
+        <label className="flex flex-col font-bold items-center justify-center gap-1">
+        Minipools able to be created:
+        
+        
+        <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span>
+        </label>
+      </div>
+      <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
 
       <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
         {!stakeButtonBool &&
 
           <div className="flex flex-col items-center justify-center gap-2">
-            
+
             <p className="mb-2 font-bold">{stakingMessage}</p>
 
             <BounceLoader />
@@ -677,8 +688,8 @@ const RPLBlock: NextPage = () => {
         }
 
 
-        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
-        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
+        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
+        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
 
 
 

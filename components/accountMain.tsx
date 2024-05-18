@@ -287,6 +287,15 @@ const AccountMain: NextPage = () => {
 
   }
 
+  const [graphTimeout, setGraphTimeout] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setGraphTimeout(true);
+    }, 500);
+
+    return () => clearTimeout(timer); // Cleanup timeout if the component unmounts
+  }, []);
 
 
 
@@ -542,7 +551,7 @@ const AccountMain: NextPage = () => {
 
 
 
-    const data: string = await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+    const data: string = await fetch(`https://api.vrün.com/${currentChain}/${address}/${index}`, {
       method: "POST",
 
       headers: {
@@ -934,7 +943,7 @@ const AccountMain: NextPage = () => {
 
 
 
-    const enabled = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
+    const enabled = await fetch(`https://api.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
       method: "GET",
 
       headers: {
@@ -1090,6 +1099,8 @@ const AccountMain: NextPage = () => {
   }
 
 
+  const [timeToStake, setTimeToStake] = useState(false)
+
 
 
 
@@ -1109,7 +1120,7 @@ const AccountMain: NextPage = () => {
 
     //Get latest index
 
-    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
       method: "GET",
 
       headers: {
@@ -1240,7 +1251,7 @@ const AccountMain: NextPage = () => {
 
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
           method: "GET",
 
           headers: {
@@ -1252,26 +1263,7 @@ const AccountMain: NextPage = () => {
             let pubkey = await response.json()
 
 
-
-
-            const chainString = currentChain === 17000 ? 'holesky.' : ''
-
-
-
-
-            await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
-              method: "GET",
-
-              headers: {
-                "Content-Type": "application/json"
-              },
-            })
-              .then(async response => {
-
-                var jsonObject = await response.json()
-
-
-                let minipoolAddress = jsonObject.data.minipool_address;
+            let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
 
 
 
@@ -1281,26 +1273,23 @@ const AccountMain: NextPage = () => {
 
 
 
-                if (minipoolAddress === nullAddress) {
-                  attachedPubkeyArray.push(["Null minipool", pubkey])
-                }
 
-                else {
-                  attachedPubkeyArray.push([minipoolAddress, pubkey]);
-                }
+            if (minipoolAddress === nullAddress) {
+              attachedPubkeyArray.push(["Null minipool", pubkey])
+            }
 
-
-                console.log("Get minipool result:" + minipoolAddress);
+            else {
+              attachedPubkeyArray.push([minipoolAddress, pubkey]);
+            }
 
 
+            console.log("Get minipool result:" + minipoolAddress);
 
 
 
-              })
-              .catch(error => {
 
 
-              });
+
 
 
 
@@ -1435,6 +1424,8 @@ const AccountMain: NextPage = () => {
 
           console.log("Time Remaining:" + string);
 
+         
+
 
           const printGraff = await getGraffiti(pubkey);
 
@@ -1484,6 +1475,9 @@ const AccountMain: NextPage = () => {
           const isEnabled = await getEnabled(pubkey)
 
 
+          console.log("Status:" + beaconStatusObject.status)
+
+
           const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
 
 
@@ -1495,38 +1489,46 @@ const AccountMain: NextPage = () => {
 
 
 
-
-
-
-
-
-          const beaconObject = await getValBeaconStats(pubkey)
-
-          console.log(typeof beaconObject === "object" ? Object.entries(beaconObject) : "");
-
-
-
-          console.log(printGraff)
-
-          const newValBalance = beaconObject[0].end_balance
+          let beaconObject = []
 
           let newValProposals = 0;
+          let newValBalance = 0
+          let newValVariance = 0
 
-          for (const beaconLog of beaconObject) {
 
-            let blocks = beaconLog.proposed_blocks
+          if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
 
-            newValProposals += blocks
+            beaconObject = await getValBeaconStats(pubkey);
+
+
+            if (beaconStatus === "active_staking") {
+              newValBalance = beaconObject[0].end_balance
+
+
+            }
+
+
+            for (const beaconLog of beaconObject) {
+
+              let blocks = beaconLog.proposed_blocks
+
+              newValProposals += blocks
+            }
+
+            if (beaconStatus === "active_staking") {
+
+              newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+
+            }
+
           }
-
-          const newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
 
 
           minipoolObjects.push({
             address: minAddress,
             statusResult: currentStatus,
-            statusTimeResult: statusTimeResult.toString(),
+            statusTimeResult: numStatusTime.toString(),
             timeRemaining: timeRemaining.toString(),
             graffiti: typeof printGraff === "string" ? printGraff : "",
             beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
@@ -1543,7 +1545,7 @@ const AccountMain: NextPage = () => {
           seperateMinipoolObjects.push({
             address: minAddress,
             statusResult: currentStatus,
-            statusTimeResult: statusTimeResult.toString(),
+            statusTimeResult: numStatusTime.toString(),
             timeRemaining: timeRemaining.toString(),
             graffiti: typeof printGraff === "string" ? printGraff : "",
             beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
@@ -1604,7 +1606,7 @@ const AccountMain: NextPage = () => {
 
       setValidatorsInNeedOfAction(getValidatorsInNeedOfAction())
 
-
+      console.log("WOOOH!")
       setChecked2(reduxData[0].smoothingPoolTruth)
 
 
@@ -1645,9 +1647,26 @@ const AccountMain: NextPage = () => {
 
           }
 
+          if (log.statusResult === "Prelaunch") {
+            newTotalVals += 1;
+
+          }
+
+          if (log.statusResult === "Initialised") {
+            newTotalVals += 1;
+
+          }
+
+          if (log.statusResult === "Staking") {
+            newTotalVals += 1;
+
+          }
+
 
 
         }
+
+
 
 
 
@@ -1691,7 +1710,7 @@ const AccountMain: NextPage = () => {
 } */
 
 
-    const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
       method: "GET",
 
       headers: {
@@ -1749,7 +1768,7 @@ const AccountMain: NextPage = () => {
 
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
           method: "GET",
 
           headers: {
@@ -1819,7 +1838,7 @@ const AccountMain: NextPage = () => {
 
       let signature = await signer.signTypedData(EIP712Domain, types, value);
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+      await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
         method: "POST",
 
         headers: {
@@ -1952,7 +1971,7 @@ const AccountMain: NextPage = () => {
 
 
 
-      await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+      await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
         method: "POST",
 
         headers: {
@@ -2192,10 +2211,15 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
-    console.log(TotalGraphPlotPoints)
+    if (TotalGraphPlotPoints.length > 0) {
+      console.log(TotalGraphPlotPoints)
 
-    const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
-    setXAxisData(xAxisDataArray);
+      const xAxisDataArray = Array.from({ length: TotalGraphPlotPoints.length }, (_, i) => i + 1);
+      setXAxisData(xAxisDataArray);
+
+    }
+
+
 
   }, [TotalGraphPlotPoints])
 
@@ -2575,7 +2599,7 @@ const AccountMain: NextPage = () => {
 
 
 
-    const graffiti = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
+    const graffiti = await fetch(`https://api.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
       method: "GET",
 
       headers: {
@@ -2846,6 +2870,8 @@ const AccountMain: NextPage = () => {
   };
 
 
+
+
   const getGraphData = (graphState: string, xAxisData: Array<number>, TotalGraphPlotPoints: Array<number>) => {
     let sliceLength;
     switch (graphState) {
@@ -2885,7 +2911,22 @@ const AccountMain: NextPage = () => {
     };
   };
 
+
+
+
   const graphData = getGraphData(graphState, xAxisData, TotalGraphPlotPoints);
+
+  useEffect(() => {
+
+    console.log("Datasets:" + Object.entries(graphData.datasets))
+
+
+    const newOne = Object.entries(graphData.datasets)
+
+
+    console.log(Object.entries(newOne))
+
+  }, [graphData])
 
 
   const options = {
@@ -2900,7 +2941,23 @@ const AccountMain: NextPage = () => {
   }
 
 
-  const charRef = useRef();
+  const charRef = useRef<any>(null);
+
+
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && charRef.current && charRef) {
+        charRef.current.update();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   const onClick = (event: any) => {
 
@@ -2912,6 +2969,7 @@ const AccountMain: NextPage = () => {
 
   }
 
+  
 
 
 
@@ -3014,13 +3072,17 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
-    if ((Number(totalValidators) - Number(runningValidators)) > 0) {
+    if (validatorsInNeedOfAction.close > 0 || validatorsInNeedOfAction.withdrawn > 0 || validatorsInNeedOfAction.stake > 0) {
 
       setShowForm5(true)
 
+      console.log("TOTAL VAL:" + totalValidators)
+      console.log("RUNNING VAL:" + runningValidators)
+      console.log("Total:" + (Number(totalValidators) - Number(runningValidators)))
+
     }
 
-  }, [totalValidators])
+  }, [validatorsInNeedOfAction])
 
 
 
@@ -3074,7 +3136,9 @@ const AccountMain: NextPage = () => {
   const [nodeCollateral, setNodeCollateral] = useState(0)
 
 
-
+  function wei(number: number) {
+    return number * Math.pow(10, -18);
+}
 
 
 
@@ -3107,19 +3171,36 @@ const AccountMain: NextPage = () => {
 
     const amount = await rocketNodeStaking.getNodeRPLStake(add)
 
+
+    console.log("Price of RPL:" + rplPrice)
+    console.log(typeof rplPrice)
+
     console.log("Staked RPL" + amount)
+    console.log(typeof amount)
     const borrowed = await rocketNodeStaking.getNodeETHMatched(add)
 
+    console.log("Borrowed Eth value:" + borrowed)
+    console.log(typeof borrowed)
 
 
 
 
-    if (borrowed > 0) {
 
-      const newNodeCollateral = (rplPrice / amount) / borrowed;
+    if (borrowed > BigInt(0)) {
 
 
-      setNodeCollateral(newNodeCollateral)
+      const ethOfRPLStaked = amount / rplPrice
+
+      console.log("fIRST NUMBER" + ethOfRPLStaked)
+
+      const newNodeCollateral = ethOfRPLStaked / borrowed;
+
+      console.log("Node collateral:" + newNodeCollateral)
+
+      const correctOne  = ethers.formatEther(newNodeCollateral)
+
+
+      setNodeCollateral(Number(correctOne))
 
 
     } else {
@@ -3127,14 +3208,6 @@ const AccountMain: NextPage = () => {
       setNodeCollateral(0)
 
     }
-
-
-
-
-
-
-
-
 
 
 
@@ -3184,14 +3257,18 @@ const AccountMain: NextPage = () => {
 
                     <div className="w-full h-auto flex-col flex gap-[10vh] pt-8 items-center justify-center lg:flex-row lg:pt-0">
 
+
                       <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
 
                         <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
 
-                          <div className="w-auto h-[auto]  flex flex-col items-center justify-center p-8 px-[6vh]">
+                          {graphData.labels.length > 0 || graphTimeout ? (
 
 
-                            {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+                            <div className="w-auto h-[auto]  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+
 
                               <div className="w-auto h-auto py-3">
 
@@ -3222,11 +3299,24 @@ const AccountMain: NextPage = () => {
                                 <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
                               </div>
 
-                            }
 
 
 
-                          </div>
+
+                            </div>
+
+
+                          ) : (
+
+                            <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+                              <h3>Please wait while we retrieve your rewards data...</h3>
+
+                              <BounceLoader />
+
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -3314,7 +3404,7 @@ const AccountMain: NextPage = () => {
 
 
                               <Link href="/payments">
-                              <button className="bg-green-500 text-xs hover:bg-green-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">Top-up</button>
+                                <button className="bg-green-500 text-xs hover:bg-green-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">Top-up</button>
                               </Link>
 
 
@@ -3594,7 +3684,7 @@ const AccountMain: NextPage = () => {
                         </div>
 
 
-                        {totalValidators !== "0" ? (
+                        {runningValidators !== "0" ? (
 
                           <div>
 

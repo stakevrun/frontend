@@ -55,13 +55,13 @@ const ContractTag = ({pubkey}) => {
         <p id="addressText" className='text-wrap word-break break-all' aria-disabled>{pubkey}</p>
         {!copied && (
        <span className='relative cursor-pointer'>
-            <span className="absolute top-7  bg-green-100 shadow border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copy Address</span></span>
+            <span className="absolute top-7  bg-gray-100 shadow-lg border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copy Address</span></span>
             <AiFillCopy className="text-xl" onClick={handleCopyClick} onMouseEnter={changeStyles} onMouseLeave={revertStyles}/>
           </span>
         )}
         {copied && (
           <span className='relative cursor-pointer'>
-            <span className="absolute top-7  bg-green-100 shadow border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copied!</span></span>
+            <span className="absolute top-7  bg-gray-200 shadow-lg border-white-2 font-bold rounded-lg p-2 text-xs " style={styles}><span>Copied!</span></span>
             <AiOutlineCheck className="text-xl" onMouseEnter={changeStyles} onMouseLeave={revertStyles} />
           </span>
         )}

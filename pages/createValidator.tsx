@@ -1395,7 +1395,7 @@ const CreateValidator: NextPage = () => {
 
           // Call checkIndex function regardless of the transaction status
           checkIndex();
-          router.push('/account');
+      
 
           setIncrementer(3); // Trigger immediately
           setIncrementerWithDelay(4, 1500);

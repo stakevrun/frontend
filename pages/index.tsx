@@ -64,10 +64,10 @@ const Home: NextPage = () => {
 
 
         <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh]'>
-          <div className=" w-[65%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
+          <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
-            <div className="w-full flex h-full  flex-col justify-center items-end p-4 gap-6 lg:w-[50%] ">
+            <div className="w-full flex h-full  flex-col justify-center items-end p-4 gap-8 lg:w-[50%] ">
 
               <h1 className='text-4xl  md:text-5xl  lg:text-6xl  xl:text-7xl  self-start  font-bold'>
                 Welcome to Vrün!

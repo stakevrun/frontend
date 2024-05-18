@@ -29,7 +29,7 @@ const Navbar: NextPage = () => {
 
 
 
-          <div className="shrink-0">
+          <div className="flex items-center justify-center gap-8">
             <Link className="flex flex-row items-center justify-center gap-2" href="/">
               <Image
                 height={30}
@@ -41,7 +41,20 @@ const Navbar: NextPage = () => {
               <span className="text-lg xl:text-2xl font-bold">
                 VRÜN
               </span>
+
             </Link>
+
+            <Link href="/payments" className="text-black hover:text-gray-600">
+              Payments
+            </Link>
+
+            <Link href="/rpl" className="text-black hover:text-gray-600">
+              RPL
+            </Link>
+          </div>
+          <div className="shrink-0">
+
+
           </div>
           <nav className="flex grow w-auto">
             <ul className="flex grow flex-wrap gap-x-5 items-center justify-end">

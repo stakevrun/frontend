@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Navbar from '../components/navbar';
@@ -15,6 +15,7 @@ import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
 import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
+import { FaCoins } from "react-icons/fa";
 
 const Payments: NextPage = () => {
 
@@ -33,6 +34,11 @@ const Payments: NextPage = () => {
     const [isRegistered, setIsRegistered] = useState(true)
     const [paymentErrorMessage, setPaymentErrorMessage] = useState("")
     const [feeETHInput, setFeeETHInput] = useState("")
+
+
+    const [isInitialRender, setIsInitialRender] = useState(true);
+
+
 
 
 
@@ -114,12 +120,16 @@ const Payments: NextPage = () => {
 
         } catch (e: any) {
 
-            if (e.reason === "rejected") {
+            if (e.reason) {
                 setPaymentErrorMessage(e.reason.toString())
 
             }
-            else {
+            else if(e.error) {
                 setPaymentErrorMessage(e.error["message"].toString())
+            } else{
+
+                setPaymentErrorMessage("Error: check you have input a valid ETH value.")
+
             }
 
 
@@ -133,6 +143,7 @@ const Payments: NextPage = () => {
 
 
     }
+
 
 
     const getPayments = async () => {
@@ -157,6 +168,8 @@ const Payments: NextPage = () => {
             .then(async response => {
 
                 var jsonObject = await response.json()
+
+                console.log("Running Payments")
 
 
 
@@ -352,11 +365,48 @@ const Payments: NextPage = () => {
 
 
 
+    useEffect(() => {
+
+
+        if (paymentErrorMessage !== "") {
+
+
+            const handleText = () => {
+                setPaymentErrorMessage("")
+
+            }
+
+
+            const timeoutId = setTimeout(handleText, 6000);
+
+            return () => clearTimeout(timeoutId);
+
+
+
+
+        }
+
+    }, [paymentErrorMessage])
+
+
+
 
     const triggerConfetti = () => {
         confetti();
     };
 
+
+    useEffect(() => {
+        if (!isInitialRender && address !== undefined) {
+            // This block will run after the initial render
+            getPayments();
+            getCharges();
+        } else {
+            // This block will run only on the initial render
+
+            setIsInitialRender(false);
+        }
+    }, [currentChain, address]);
 
 
 
@@ -382,74 +432,144 @@ const Payments: NextPage = () => {
             {address !== undefined ? (
                 <>
                     {isRegistered ? (
+                        <>
 
-                        <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
-
-
-
-                            <div className='mb-2 flex flex-col justify-start items-start'>
-                                <span className="block text-lg font-bold">
-
-                                    <span style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
-                                        {reduxPayments - reduxCharges}
-                                    </span> ETH
+                            <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-[8vh] ">
 
 
-                                </span>
-                                {reduxPayments - reduxCharges > 0 ? (
-                                    <span className="block text-gray-500 ">Vrün Balance</span>
-                                ) : (
-                                    <span className="block text-gray-500 ">in Arrears</span>
-
-                                )
-
-                                }
-                            </div>
-
-                            <div className="flex relative w-full h-full flex-col shadow-xl border rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
-
-                                <h2 className="text-[20px] font-bold mb-2">Add ETH Credit</h2>
-
-                                <input
-
-                                    className="w-[60%] self-center border border-black-200 text-black-500"
-                                    type="text"
-
-                                    value={feeETHInput}
-                                    onChange={handleETHInput}
-                                />
-
-
-
-                                <div >
-                                    <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+                                <div className="w-full flex flex-col justify-center items-center gap-4 ">
+                                    <h2 className="text-4xl font-bold text-gray-900 ">Payments & Charges</h2>
 
                                 </div>
 
-                                {paymentErrorMessage !== "" &&
-                                    <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
-                                }
+
+
+                                <div className=' w-auto p-5 border  rounded-lg flex justify-start items-center shadow-xl'>
+                                    <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-yellow-600 bg-yellow-100 rounded-full mr-6">
+                                        <FaCoins className="text-yellow-500 text-xl" />
+
+                                    </div>
+                                    <div className="flex flex-col items-center justify-center">
+                                        <span className="block text-lg font-bold">
+
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
+                                                {reduxPayments - reduxCharges}
+                                            </span> ETH
+
+
+                                        </span>
+                                        {reduxPayments - reduxCharges > 0 ? (
+                                            <span className="block text-lg text-gray-500 ">Vrün Balance</span>
+                                        ) : (
+                                            <span className="block text-lg text-gray-500 ">in Arrears</span>
+
+                                        )
+
+                                        }
+
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justiify-center w-auto h-full flex-col shadow-xl border rounded-lg gap-2  px-6 py-6 pt-[45px] text-center">
+
+
+                                    <div className=" w-[85%] flex items-center flex-col justify-center gap-2">
+                                        <h2 className=" text-2xl  self-start font-bold mb-2">Add ETH Credit:</h2>
+
+                                        <input
+
+                                            className="w-full self-center bg-gray-100 text-xl py-7 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500"
+                                            type="text"
+                                            placeholder='Enter ETH amount...'
+
+                                            value={feeETHInput}
+                                            onChange={handleETHInput}
+                                        />
+
+                                    </div>
+
+
+
+                                    <div >
+                                        <button className="bg-green-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={makePayment}>Pay ETH</button>
+
+                                    </div>
+
+                                    {paymentErrorMessage !== "" &&
+                                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
+                                    }
+                                </div>
+
+
+
+
+
                             </div>
 
 
+                            <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 ">
+                                <div className="w-auto overflow-hidden shadow-xl border rounded-lg mb-10 ">
+
+
+                                    <table className="w-full bg-white">
+                                        <tbody>
+
+                                            {reduxData.map((data, index) => (
+                                                <tr key={index} style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }}>
 
 
 
-                        </div>) : (<
+                                                    <td className=" px-4 pl-10 w-[200px] ">
+
+                                                    </td>
+
+                                                    <td className="px-4 py-3 w-[200px]">
+
+                                                    </td>
+
+                                                    <td className="px-4 py-3 w-[180px]">
+
+                                                    </td>
+
+                                                    <td className="px-4 py-3 text-xs w-[180px]">
 
 
-                            NoRegistration onRegistrationResult={handleRegistrationResult} />
+
+                                                    </td>
+
+                                                    <td className="px-4 pr-10 py-3 w-[auto]">
+
+                                                    </td>
+
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+
+                            </div>
+
+
+                        </>
+
+
+                    ) : (<
+
+
+                        NoRegistration onRegistrationResult={handleRegistrationResult} />
 
 
                     )
                     }
                 </>
-            ) : (<NoConnection />)}
+            ) : (<NoConnection />)
+            }
 
 
             <Footer />
 
-        </div>
+        </div >
     )
 }
 

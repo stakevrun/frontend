@@ -12,6 +12,7 @@ import miniManagerABI from "../../../json/miniManagerABI.json"
 import daoABI from "../../../json/daoABI.json"
 import feeABI from "../../../json/feeABI.json"
 import CountdownComponent from '../../../components/countdown.jsx';
+import CountdownComponentScrub from "../../../components/countdownScrub.jsx"
 import QuickNode from '@quicknode/sdk';
 import Modal from 'react-modal';
 import ContractTag from "../../../components/contractTag"
@@ -109,6 +110,8 @@ const ValidatorDetail: NextPage = () => {
         if (!isInitialRender && address !== undefined) {
             // This block will run after the initial render
 
+            getMinipoolData();
+
 
 
 
@@ -118,6 +121,8 @@ const ValidatorDetail: NextPage = () => {
             setIsInitialRender(false);
         }
     }, [currentChain, address]);
+
+
 
     const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
 
@@ -348,6 +353,8 @@ const ValidatorDetail: NextPage = () => {
 
     const [checked2, setChecked2] = useState(false)
 
+    const [timeToStake, setTimeToStake] = useState(false)
+
 
     const getMinipoolData = async () => {
 
@@ -361,7 +368,7 @@ const ValidatorDetail: NextPage = () => {
 
         //Get latest index
 
-        const newNextIndex = await fetch(`https://db.vrün.com/${currentChain}/${address}/nextindex`, {
+        const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
             method: "GET",
 
             headers: {
@@ -395,7 +402,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            await fetch(`https://db.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+            await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
                 method: "GET",
 
                 headers: {
@@ -409,24 +416,12 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                    const chainString = currentChain === 17000 ? 'holesky.' : ''
 
 
 
 
-                    await fetch(`https://${chainString}beaconcha.in/api/v1/rocketpool/validator/${pubkey}?apikey=${beaconAPIKey}`, {
-                        method: "GET",
 
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                    })
-                        .then(async response => {
-
-                            var jsonObject = await response.json()
-
-
-                            let minipoolAddress = jsonObject.data.minipool_address;
+                    let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
 
 
 
@@ -435,26 +430,17 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                            if (minipoolAddress === nullAddress) {
-                                attachedPubkeyArray.push(["Null minipool", pubkey])
-                            }
+                    if (minipoolAddress === nullAddress) {
+                        attachedPubkeyArray.push(["Null minipool", pubkey])
+                    }
 
-                            else {
-                                attachedPubkeyArray.push([minipoolAddress, pubkey]);
-                            }
-
-
-                            console.log("Get minipool result:" + minipoolAddress);
+                    else {
+                        attachedPubkeyArray.push([minipoolAddress, pubkey]);
+                    }
 
 
+                    console.log("Get minipool result:" + minipoolAddress);
 
-
-
-                        })
-                        .catch(error => {
-
-
-                        });
 
 
 
@@ -472,47 +458,8 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-
-
-
-
-
-
-
-
-
-        const emptyValidatorData: beaconLog = {
-            attester_slashings: BigInt(0),
-            day: 0,
-            day_end: "",
-            day_start: "",
-            deposits: BigInt(0),
-            deposits_amount: BigInt(0),
-            end_balance: BigInt(0),
-            end_effective_balance: BigInt(0),
-            max_balance: BigInt(0),
-            max_effective_balance: BigInt(0),
-            min_balance: BigInt(0),
-            min_effective_balance: BigInt(0),
-            missed_attestations: 0,
-            missed_blocks: 0,
-            missed_sync: 0,
-            orphaned_attestations: 0,
-            orphaned_blocks: 0,
-            orphaned_sync: 0,
-            participated_sync: 0,
-            proposed_blocks: 0,
-            proposer_slashings: BigInt(0),
-            start_balance: BigInt(0),
-            start_effective_balance: BigInt(0),
-            validatorindex: 0,
-            withdrawals: BigInt(0),
-            withdrawals_amount: BigInt(0)
-        };
-
-
-
         let minipoolObjects: Array<rowObject> = [];
+
         let seperateMinipoolObjects: Array<rowObject2> = [];
 
         let newRunningVals = 0;
@@ -528,26 +475,10 @@ const ValidatorDetail: NextPage = () => {
             if (minAddress === "Null minipool") {
 
 
-
-                minipoolObjects.push({
-
-                    address: "",
-                    statusResult: "Empty",
-                    statusTimeResult: "",
-                    timeRemaining: "",
-                    graffiti: "",
-                    beaconStatus: "",
-
-                    beaconLogs: [emptyValidatorData],
-                    valBalance: "",
-                    valProposals: "",
-                    valDayVariance: "",
-                    pubkey: pubkey,
-                    isEnabled: false,
-                    valIndex: ""
+            
 
 
-                });
+
 
 
 
@@ -629,6 +560,9 @@ const ValidatorDetail: NextPage = () => {
                 const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
 
 
+                setTimeToStake(Date.now() - numStatusTime > 0 ? false : true)
+
+
                 const string = formatTime(timeRemaining);
 
                 console.log("Time Remaining:" + string);
@@ -686,57 +620,51 @@ const ValidatorDetail: NextPage = () => {
 
                 const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
 
+                let beaconObject = [];
+                let newValProposals = 0;
+                let newValBalance = 0;
+                let newValVariance = 0;
+
 
                 setChecked2(smoothingBool)
 
+                if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
+
+                    beaconObject = await getValBeaconStats(pubkey)
+
+                    if (beaconStatus === "active_staking") {
+                        newValBalance = beaconObject[0].end_balance
 
 
-                const beaconObject = await getValBeaconStats(pubkey)
-
-                console.log(typeof beaconObject === "object" ? Object.entries(beaconObject) : "");
+                    }
 
 
 
-                console.log(printGraff)
 
-                const newValBalance = beaconObject[0].end_balance
 
-                let newValProposals = 0;
+                    for (const beaconLog of beaconObject) {
 
-                for (const beaconLog of beaconObject) {
+                        let blocks = beaconLog.proposed_blocks
 
-                    let blocks = beaconLog.proposed_blocks
+                        newValProposals += blocks
+                    }
 
-                    newValProposals += blocks
+                    if (beaconStatus === "active_staking" || beaconStatus === "withdrawal_done") {
+
+                        newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+
+                    }
                 }
 
-                const newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
 
 
-                minipoolObjects.push({
-                    address: minAddress,
-                    statusResult: currentStatus,
-                    statusTimeResult: statusTimeResult.toString(),
-                    timeRemaining: timeRemaining.toString(),
-                    graffiti: typeof printGraff === "string" ? printGraff : "",
-                    beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-
-                    beaconLogs: typeof beaconObject === "object" ? beaconObject : [emptyValidatorData],
-                    valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-                    valProposals: newValProposals.toString(),
-                    valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-                    isEnabled: isEnabled,
-                    valIndex: valIndex,
-
-                    pubkey: pubkey
-                })
 
 
                 seperateMinipoolObjects.push({
                     address: minAddress,
                     statusResult: currentStatus,
-                    statusTimeResult: statusTimeResult.toString(),
+                    statusTimeResult: numStatusTime.toString(),
                     timeRemaining: timeRemaining.toString(),
                     graffiti: typeof printGraff === "string" ? printGraff : "",
                     beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
@@ -769,6 +697,8 @@ const ValidatorDetail: NextPage = () => {
 
 
         dispatch(getData(seperateMinipoolObjects))
+
+
 
 
 
@@ -890,7 +820,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const enabled = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
+        const enabled = await fetch(`https://api.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetEnabled&start=-1`, {
             method: "GET",
 
             headers: {
@@ -940,7 +870,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const graffiti = await fetch(`https://db.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
+        const graffiti = await fetch(`https://api.vrün.com/${currentChain}/${address}/${pubkey}/logs?type=SetGraffiti&start=-1`, {
             method: "GET",
 
             headers: {
@@ -1072,9 +1002,12 @@ const ValidatorDetail: NextPage = () => {
 
     const stakeMinipool = async () => {
 
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        let signer = await browserProvider.getSigner()
-        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+        try {
+
+            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+            let signer = await browserProvider.getSigner()
+            const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
 
 
 
@@ -1086,141 +1019,178 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+            const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
-        const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-        const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(params.param1);
+            const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
-        console.log("Mini Address:" + minipoolAddress)
-        const minipool = new ethers.Contract(minipoolAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+            const minipoolAddress = await MinipoolManager.getMinipoolByPubkey(params.param1);
 
 
-        const canStakeResult = await minipool.canStake()
-
-        console.log(canStakeResult);
-
-
-        const types = {
-            GetDepositData: [
-                { name: 'pubkey', type: 'bytes' },
-                { name: 'withdrawalCredentials', type: 'bytes32' },
-                { name: 'amountGwei', type: 'uint256' }
-            ]
-        }
+            console.log("Mini Address:" + minipoolAddress)
+            const minipool = new ethers.Contract(minipoolAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
 
 
-        //ACCOUNT UI BRANCH
+            const canStakeResult = await minipool.canStake()
+
+            console.log(canStakeResult);
 
 
-        const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-        const APItype = "GetDepositData"
-
-        console.log("Minipool Address:" + minipoolAddress);
-
-        let newAddress = ethers.concat(['0x01', ethers.zeroPadValue(minipoolAddress, 31)])
-
-        const value = { pubkey: params.param1, withdrawalCredentials: newAddress, amountGwei: (ethers.parseEther('31') / ethers.parseUnits('1', 'gwei')).toString() }
-
-
-        let signature = await signer.signTypedData(EIP712Domain, types, value);
-
-        let depositSignature;
-        let depositDataRoot;
+            const types = {
+                GetDepositData: [
+                    { name: 'pubkey', type: 'bytes' },
+                    { name: 'withdrawalCredentials', type: 'bytes32' },
+                    { name: 'amountGwei', type: 'uint256' }
+                ]
+            }
 
 
+            //ACCOUNT UI BRANCH
 
 
-        await fetch(`https://db.vrün.com/${currentChain}/${address}/0`, {
-            method: "POST",
+            const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+            const APItype = "GetDepositData"
 
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                type: APItype,
-                data: value,
-                signature: signature
+            console.log("Minipool Address:" + minipoolAddress);
+
+            let newAddress = ethers.concat(['0x01', ethers.zeroPadValue(minipoolAddress, 31)])
+
+            const value = { pubkey: params.param1, withdrawalCredentials: newAddress, amountGwei: (ethers.parseEther('31') / ethers.parseUnits('1', 'gwei')).toString() }
+
+
+            let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+            let depositSignature;
+            let depositDataRoot;
+
+
+
+
+            await fetch(`https://api.vrün.com/${currentChain}/${address}/0`, {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    type: APItype,
+                    data: value,
+                    signature: signature
+                })
             })
-        })
-            .then(async response => {
+                .then(async response => {
 
-                var jsonString = await response.json()// Note: response will be opaque, won't contain data
+                    var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
-                let newJSON = Object.entries(jsonString);
+                    let newJSON = Object.entries(jsonString);
 
-                console.log(newJSON);
+                    console.log(newJSON);
 
-                depositDataRoot = newJSON[0][1]
-                depositSignature = newJSON[1][1]
+                    depositDataRoot = newJSON[0][1]
+                    depositSignature = newJSON[1][1]
 
 
-            })
-            .catch(error => {
-                // Handle error here
-                console.log(error);
-            });
+                })
+                .catch(error => {
+                    // Handle error here
+                    console.log(error);
+                });
 
-        if (canStakeResult) {
-
+            if (canStakeResult) {
 
 
 
-            await minipool.stake(depositSignature, depositDataRoot);
+
+                await minipool.stake(depositSignature, depositDataRoot);
 
 
-        } else {
-            const statusResult = await minipool.getStatus();
-            const statusTimeResult = await minipool.getStatusTime();
-            const numStatusTime = Number(statusTimeResult) * 1000;
+            } else {
+                const statusResult = await minipool.getStatus();
+                const statusTimeResult = await minipool.getStatusTime();
+                const numStatusTime = Number(statusTimeResult) * 1000;
 
-            console.log("Status Result:" + statusResult)
+                console.log("Status Result:" + statusResult)
 
-            console.log("Status Time Result:" + statusTimeResult)
+                console.log("Status Time Result:" + statusTimeResult)
 
-            console.log(Date.now());
-            console.log(numStatusTime);
-
+                console.log(Date.now());
+                console.log(numStatusTime);
 
 
 
 
 
 
-            const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
-            const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+                const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
 
-            const scrubPeriod: any = await DAOContract.getScrubPeriod();
+                const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
 
-            const numScrub = Number(scrubPeriod) * 1000;
-            console.log(numScrub);
+                const scrubPeriod: any = await DAOContract.getScrubPeriod();
 
-            const timeRemaining: any = numScrub - (Date.now() - numStatusTime)
+                const numScrub = Number(scrubPeriod) * 1000;
+                console.log(numScrub);
 
-
-            const string = formatTime(timeRemaining);
+                const timeRemaining: any = numScrub - (Date.now() - numStatusTime)
 
 
-
-
-
-            console.log("Time Remaining:" + string);
-
-
-            await minipool.stake(depositSignature, depositDataRoot);
+                const string = formatTime(timeRemaining);
 
 
 
 
+
+                console.log("Time Remaining:" + string);
+
+
+                await minipool.stake(depositSignature, depositDataRoot);
+
+
+
+                getMinipoolData();
+
+
+
+
+
+            }
+
+        } catch (e: any) {
+
+
+            setStakeErrorMessage(e.reason)
         }
 
     }
 
 
+    const [stakeErrorMessage, setStakeErrorMessage] = useState("")
+
     const [distributeErrorBoxText, setDistributeErrorBoxText] = useState("")
+
+
+    useEffect(() => {
+
+
+        if (stakeErrorMessage !== "") {
+
+
+            const handleText = () => {
+                setStakeErrorMessage("")
+
+            }
+
+
+            const timeoutId = setTimeout(handleText, 6000);
+
+            return () => clearTimeout(timeoutId);
+
+
+
+
+        }
+
+    }, [stakeErrorMessage])
 
 
 
@@ -1362,12 +1332,6 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    useEffect(() => {
-
-        console.log(checked);
-
-
-    }, [checked])
 
 
 
@@ -1468,7 +1432,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+            await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
                 method: "POST",
 
                 headers: {
@@ -1746,7 +1710,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        const data: string = await fetch(`https://db.vrün.com/${currentChain}/${address}/${index}`, {
+        const data: string = await fetch(`https://api.vrün.com/${currentChain}/${address}/${index}`, {
             method: "POST",
 
             headers: {
@@ -2002,11 +1966,18 @@ const ValidatorDetail: NextPage = () => {
                 break;
         }
 
-        const slicedLabels = xAxisData.slice(0, sliceLength);
-        const slicedData = TotalGraphPlotPoints.slice(0, sliceLength);
+        let slicedLabels: Array<number> = [];
+        let slicedData: Array<number> = [];
+
+        if (xAxisData && TotalGraphPlotPoints) {
+            slicedLabels = xAxisData?.slice(0, sliceLength);
+
+
+            slicedData = TotalGraphPlotPoints?.slice(0, sliceLength);
+        }
 
         return {
-            labels: slicedLabels.reverse(),
+            labels: xAxisData && TotalGraphPlotPoints ? slicedLabels.reverse() : slicedLabels,
             datasets: [
                 {
                     label: 'Daily Rewards Tracker',
@@ -2027,7 +1998,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    const charRef = useRef();
+    const charRef = useRef<any>(null);
 
     const onClick = (event: any) => {
 
@@ -2133,7 +2104,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            await fetch(`https://db.vrün.com/${currentChain}/${address}/batch`, {
+            await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
                 method: "POST",
 
                 headers: {
@@ -2227,6 +2198,33 @@ const ValidatorDetail: NextPage = () => {
 
     const [errorBoxText2, setErrorBoxTest2] = useState("")
 
+    const [graphTimeout, setGraphTimeout] = useState(false)
+
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setGraphTimeout(true);
+      }, 500);
+  
+      return () => clearTimeout(timer); // Cleanup timeout if the component unmounts
+    }, []);
+
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+          if (document.visibilityState === 'visible' && charRef.current !== undefined ) {
+            charRef.current.update();
+          }
+        };
+    
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+        return () => {
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+      }, []);
+    
+
 
 
 
@@ -2280,7 +2278,7 @@ const ValidatorDetail: NextPage = () => {
 
                 <>
 
-                    {xAxisData.length > 0 ? (<>
+                    {xAxisData ? (<>
 
 
 
@@ -2312,14 +2310,21 @@ const ValidatorDetail: NextPage = () => {
 
                             <div className="w-full h-auto lg:h-auto flex-col flex gap-[10vh] items-center justify-center lg:flex-row ">
 
+
                                 <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
 
                                     <div className=" h-full w-full gap-4 overflow-hidden rounded-2xl bg-white">
 
                                         <div className="flex items-center  h-full justify-center p-4 bg-white ">
-                                            {xAxisData.length > 0 && TotalGraphPlotPoints.length > 0 &&
+
+
+                                            {graphData.labels.length > 0  || graphTimeout? (
+
 
                                                 <div className="w-auto h-[auto]  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+
 
 
                                                     <Line
@@ -2348,11 +2353,25 @@ const ValidatorDetail: NextPage = () => {
                                                     <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app</a></p>
 
                                                 </div>
+                                            ) : (
 
-                                            }
+
+                                                <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+                                                    <h3>Please wait while we retrieve your rewards data...</h3>
+
+                                                    <BounceLoader />
+
+                                                </div>)}
+
                                         </div>
                                     </div>
                                 </div>
+
+
+
+
 
 
                                 <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
@@ -2420,17 +2439,56 @@ const ValidatorDetail: NextPage = () => {
                                                 <GrSatellite className="text-yellow-500 text-2xl" />
                                             </div>
                                             <div>
-                                                <div className="flex items-start flex-col gap-0.5 text-l ">
-                                                    {reduxData.beaconStatus !== "" &&
-                                                        <h3 className='block text-lg  font-bold'>Beaconchain</h3>
+                                                <div className="flex items-start flex-col gap-1 text-l ">
+
+                                                    <h3 className='block text-lg  font-bold'>Validator Status:</h3>
+
+
+                                                    {reduxData.statusResult === "Staking" ? (
+
+                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>) :
+                                                        (
+                                                            <p className="text-yellow-500  text-md">{reduxData.statusResult.toLowerCase()}</p>
+
+                                                        )}
+
+
+                                                    {reduxData.statusResult === "Prelaunch" &&
+                                                        <>
+                                                            <CountdownComponent milliseconds={reduxData.statusTimeResult} reset={getMinipoolData}/>
+
+                                                            <p className='text-xs'>Until this Validator can be Staked</p>
+
+
+                                                        </>
                                                     }
 
-                                                    <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
-                                                    {reduxData.statusResult !== "Prelaunch" && reduxData.statusResult !== "Staking" &&
 
-                                                        <CountdownComponent milliseconds={reduxData.timeRemaining} />}
 
-                                                    <a className="text-black-500  hover:text-blue-300  text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
+
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "active_staking" &&
+                                                        <>
+                                                            <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
+
+                                                            <p className='text-xs'>Until the next stage...</p>
+
+
+
+
+                                                        </>
+                                                    }
+                                                    {reduxData.statusResult === "Prelaunch" && timeToStake &&
+
+                                                        <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake Minipool</button>
+
+
+
+                                                    }
+
+
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "" &&
+                                                        <a className=" hover:text-blue-300  font-bold hover:text-blue-300 cursor-pointer text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -2478,7 +2536,10 @@ const ValidatorDetail: NextPage = () => {
                                     </section>
 
                                 </div>
+
                             </div>
+
+                            <p className="font-bold text-md text-red-400">{stakeErrorMessage}</p>
 
 
                         </div>
