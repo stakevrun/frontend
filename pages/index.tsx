@@ -17,6 +17,8 @@ import { ImPower } from "react-icons/im";
 import { BsSignStopFill } from "react-icons/bs";
 import { FaMoneyBillWave } from "react-icons/fa6";
 import { GrSatellite } from "react-icons/gr";
+import type { RootState } from '../globalredux/store';
+import { useSelector, useDispatch } from 'react-redux';
 
 
 
@@ -35,7 +37,7 @@ const Home: NextPage = () => {
 
   }, [address])
 
-
+  const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
 
 
 
@@ -43,7 +45,7 @@ const Home: NextPage = () => {
 
 
   return (
-    <div className="flex w-full h-auto flex-col">
+    <div  style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full h-auto flex-col">
 
       <Head>
         <title>Vrün | Nodes & Staking</title>

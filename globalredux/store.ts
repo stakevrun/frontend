@@ -9,6 +9,8 @@ import attestationsDataReducer from "./Features/attestations/attestationsDataSli
 import graphPointsDataReducer from "./Features/graphpoints/graphPointsDataSlice"
 import paymentsReducer from "./Features/payments/paymentSlice"
 import chargesReducer from "./Features/charges/chargesSlice"
+import collateralReducer from "./Features/collateral/collateralSlice";
+import darkModeReducer from "./Features/darkmode/darkModeSlice"
 
 
 export const store = configureStore({
@@ -18,7 +20,9 @@ export const store = configureStore({
         attestationsData: attestationsDataReducer,
         graphPointsData: graphPointsDataReducer,
         paymentsData: paymentsReducer,
-        chargesData: chargesReducer
+        chargesData: chargesReducer,
+        collateralData: collateralReducer,
+        darkMode: darkModeReducer
     }
 })
 

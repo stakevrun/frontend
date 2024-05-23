@@ -10,6 +10,8 @@ import NoConnection from '../components/noConnection';
 import storageABI from "../json/storageABI.json"
 import managerABI from "../json/managerABI.json"
 import { ethers } from 'ethers';
+import type { RootState } from '../globalredux/store';
+import { useSelector, useDispatch } from 'react-redux';
 
 
 const RPL: NextPage = () => {
@@ -123,11 +125,14 @@ const RPL: NextPage = () => {
     }, [currentChain, address]);
 
 
+    const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
+
+
 
 
     return (
 
-        <div className="flex w-full h-auto flex-col">
+        <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full h-auto flex-col">
 
             <Head>
                 <title>Vrün | Nodes & Staking</title>

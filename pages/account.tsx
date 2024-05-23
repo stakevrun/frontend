@@ -6,8 +6,13 @@ import Leftbar from '../components/leftbar';
 import AccountMain from '../components/accountMain';
 import Head from 'next/head';
 import Footer from '../components/footer';
+import type { RootState } from '../globalredux/store';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Account: NextPage = () => {
+
+
+  const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -17,7 +22,7 @@ const Account: NextPage = () => {
 
 
   return (
-    <div className="flex w-full mx-auto flex-col ">
+    <div style={{backgroundColor: reduxDarkMode? "#222": "white", height: "auto", width: "100%", color: reduxDarkMode?  "white" : "#222"}} className="flex w-full mx-auto flex-col ">
 
 <Head>
         <title>Vrün | Nodes & Staking</title>

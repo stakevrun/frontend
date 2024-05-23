@@ -343,6 +343,7 @@ const RPLBlock: NextPage = () => {
         const rplPrice = await rocketNetworkContract.getRPLPrice()
         const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
 
+
         console.log("rplRequiredPerLEB8: " + rplRequiredPerLEB8)
 
 
@@ -373,7 +374,7 @@ const RPLBlock: NextPage = () => {
         } else {
 
           let LEB8sPossible = amount / rplRequiredPerLEB8
-          let possibleNewMinpools = LEB8sPossible - ethers.parseEther(activeMinipools.toString());
+          let possibleNewMinpools = LEB8sPossible;
 
 
 
@@ -645,10 +646,10 @@ const RPLBlock: NextPage = () => {
 
 
   return (
-    <div className="flex flex-col w-auto  h-auto gap-4 px-8 text-center items-center justify-center rounded-xl bg-white border shadow-xl  border-black-100  py-4 ">
-       <h2 className="text-2xl w-[90%] font-bold text-gray-900 sm:text-2xl"> RPL Interface</h2>
+    <div className="flex flex-col w-auto  h-auto gap-4 px-8 text-center items-center justify-center rounded-xl  border shadow-xl  border-black-100  py-4 ">
+       <h2 className="text-2xl w-[90%] font-bold  sm:text-2xl"> RPL Interface</h2>
 
-      <div className="flex flex-col  items-center justify-center gap-1 shadow text-lg my-3 py-3 px-3 rounded-lg border">
+      <div className="flex flex-col  items-center justify-center gap-1 shadow-lg text-lg my-3 py-3 px-3 rounded-lg border">
        <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
         <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
        
@@ -665,7 +666,7 @@ const RPLBlock: NextPage = () => {
         </label>
      
         <label className="flex flex-col font-bold items-center justify-center gap-1">
-        Minipools able to be created:
+       Total Possible Minipools:
         
         
         <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span>

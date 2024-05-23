@@ -167,6 +167,37 @@
   background-color: var(--green-600);
 }
 
+.t {
+  width: 50px;
+  height: 25px;
+  border-radius: 20px;
+  border: 1px solid #999;
+  background-color: white;
+  position: fixed;
+  top: 2.5vh;
+  right: 25px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.tIcon {
+  width: 15px;
+  height: 15px;
+
+}
+
+.tButton {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background-color: #999;
+  position: absolute;
+  cursor: pointer;
+
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;

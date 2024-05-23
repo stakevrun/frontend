@@ -42,6 +42,7 @@ import { attestationsData } from '../globalredux/Features/attestations/attestati
 import { getGraphPointsData } from "../globalredux/Features/graphpoints/graphPointsDataSlice"
 import { getPaymentsData } from "../globalredux/Features/payments/paymentSlice"
 import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
+import { getCollateralData } from '../globalredux/Features/collateral/collateralSlice';
 import { TiTick } from "react-icons/ti";
 import confetti from 'canvas-confetti';
 import { PiSignatureBold } from "react-icons/pi";
@@ -132,6 +133,8 @@ const AccountMain: NextPage = () => {
   const reduxAttestations = useSelector((state: RootState) => state.attestationsData.data)
   const reduxPayments = useSelector((state: RootState) => state.paymentsData.data)
   const reduxCharges = useSelector((state: RootState) => state.chargesData.data)
+  const reduxCollateral = useSelector((state: RootState) => state.collateralData.data)
+
 
 
 
@@ -1105,6 +1108,9 @@ const AccountMain: NextPage = () => {
 
 
 
+
+
+
   const getMinipoolData = async () => {
 
 
@@ -1213,7 +1219,8 @@ const AccountMain: NextPage = () => {
         beaconStatus: "",
         activationEpoch: "",
         smoothingPoolTruth: false,
-
+        withdrawalEpoch: "",
+        withdrawalCountdown: "",
         feeRecipient: "",
         valBalance: "",
         valProposals: "",
@@ -1314,6 +1321,8 @@ const AccountMain: NextPage = () => {
       let newRunningVals = 0;
       let newTotalVals = 0;
 
+  
+
 
       for (const [minAddress, pubkey] of attachedPubkeyArray) {
 
@@ -1321,10 +1330,12 @@ const AccountMain: NextPage = () => {
 
 
 
-        if (minAddress === "Null minipool") {
+
+        if (minAddress === "Null minipool" ) {
 
 
-
+        
+ 
           minipoolObjects.push({
 
             address: "",
@@ -1352,6 +1363,8 @@ const AccountMain: NextPage = () => {
             beaconStatus: "",
             activationEpoch: "",
             smoothingPoolTruth: false,
+            withdrawalEpoch: "",
+            withdrawalCountdown: "",
             feeRecipient: "",
 
             valBalance: "",
@@ -1424,7 +1437,7 @@ const AccountMain: NextPage = () => {
 
           console.log("Time Remaining:" + string);
 
-         
+
 
 
           const printGraff = await getGraffiti(pubkey);
@@ -1467,10 +1480,20 @@ const AccountMain: NextPage = () => {
 
           beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
           const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
-          const epoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+          const activationEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+          const withdrawalEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.withdrawable_epoch : "";
           const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
 
           const smoothingBool = await getMinipoolTruth()
+
+          const genesisTime = 1695902400 * 1000;
+
+
+          const theTime = Date.now()
+
+          const currentEpoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
+
+          const withdrawalCountdown = (Number(withdrawalEpoch) - Number(currentEpoch)) * 12 * 32 * 1000;
 
           const isEnabled = await getEnabled(pubkey)
 
@@ -1501,7 +1524,7 @@ const AccountMain: NextPage = () => {
             beaconObject = await getValBeaconStats(pubkey);
 
 
-            if (beaconStatus === "active_staking") {
+            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
               newValBalance = beaconObject[0].end_balance
 
 
@@ -1515,7 +1538,7 @@ const AccountMain: NextPage = () => {
               newValProposals += blocks
             }
 
-            if (beaconStatus === "active_staking") {
+            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
 
               newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
@@ -1549,8 +1572,10 @@ const AccountMain: NextPage = () => {
             timeRemaining: timeRemaining.toString(),
             graffiti: typeof printGraff === "string" ? printGraff : "",
             beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-            activationEpoch: epoch !== undefined ? epoch : "",
+            activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
             smoothingPoolTruth: smoothingBool,
+            withdrawalEpoch: withdrawalEpoch,
+            withdrawalCountdown: withdrawalCountdown.toString(),
             feeRecipient: newFeeRecipient,
 
 
@@ -1632,7 +1657,7 @@ const AccountMain: NextPage = () => {
 
 
 
-        if (log.beaconStatus === "active_staking") {
+        if (log.beaconStatus === "active_ongoing" || log.beaconStatus === "active_exiting" || log.beaconStatus === "exited_unslashed" || log.beaconStatus === "exited_slashed" || log.beaconStatus === "active_slashed" || log.beaconStatus === "withdrawal_possible" || log.beaconStatus === "withdrawal_done") {
 
           newRunningVals += 1;
           newTotalVals += 1;
@@ -1647,17 +1672,17 @@ const AccountMain: NextPage = () => {
 
           }
 
-          if (log.statusResult === "Prelaunch") {
+          else if (log.statusResult === "Prelaunch") {
             newTotalVals += 1;
 
           }
 
-          if (log.statusResult === "Initialised") {
+          else if (log.statusResult === "Initialised") {
             newTotalVals += 1;
 
           }
 
-          if (log.statusResult === "Staking") {
+          else if (log.statusResult === "Staking") {
             newTotalVals += 1;
 
           }
@@ -2311,6 +2336,8 @@ const AccountMain: NextPage = () => {
     valDayVariance: string
     activationEpoch: string
     smoothingPoolTruth: boolean
+    withdrawalEpoch: string
+    withdrawalCountdown: string
     feeRecipient: string
 
     graffiti: string
@@ -2969,7 +2996,7 @@ const AccountMain: NextPage = () => {
 
   }
 
-  
+
 
 
 
@@ -3067,18 +3094,19 @@ const AccountMain: NextPage = () => {
 
 
   const [showForm5, setShowForm5] = useState(false)
-
+  const [modalRendered, setModalRendered] = useState(false);
 
 
   useEffect(() => {
 
-    if (validatorsInNeedOfAction.close > 0 || validatorsInNeedOfAction.withdrawn > 0 || validatorsInNeedOfAction.stake > 0) {
+    if ((validatorsInNeedOfAction.close > 0 || validatorsInNeedOfAction.withdrawn > 0 || validatorsInNeedOfAction.stake > 0) && modalRendered === false) {
 
       setShowForm5(true)
 
       console.log("TOTAL VAL:" + totalValidators)
       console.log("RUNNING VAL:" + runningValidators)
       console.log("Total:" + (Number(totalValidators) - Number(runningValidators)))
+      setModalRendered(true)
 
     }
 
@@ -3138,7 +3166,7 @@ const AccountMain: NextPage = () => {
 
   function wei(number: number) {
     return number * Math.pow(10, -18);
-}
+  }
 
 
 
@@ -3188,22 +3216,27 @@ const AccountMain: NextPage = () => {
 
     if (borrowed > BigInt(0)) {
 
-      
+
 
       const newNodeCollateral = ethers.formatUnits(rplPrice * amount / borrowed, 16)
 
       console.log("Node collateral:" + newNodeCollateral)
 
 
-      
+
+      const rounded = Math.ceil(Number(newNodeCollateral) * 100) / 100
 
 
-      setNodeCollateral(Number(newNodeCollateral))
+
+
+
+
+      dispatch(getCollateralData(rounded))
 
 
     } else {
 
-      setNodeCollateral(0)
+      dispatch(getCollateralData(0))
 
     }
 
@@ -3221,7 +3254,7 @@ const AccountMain: NextPage = () => {
 
 
 
-
+  const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
 
 
 
@@ -3230,7 +3263,7 @@ const AccountMain: NextPage = () => {
 
 
   return (
-    <section className="flex w-full flex-col items-center bg-white pb-10 justify-center ">
+    <section style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full flex-col items-center  pb-10 justify-center ">
 
       {address !== undefined ? (
         <>
@@ -3244,8 +3277,8 @@ const AccountMain: NextPage = () => {
                   <div className="w-full h-auto lg:h-[90vh] flex flex-col items-center justify-center gap-[8vh]">
 
 
-                    <div className="w-full flex flex-col justify-center items-center gap-4 ">
-                      <h2 className="text-4xl font-bold text-gray-900 ">Account Overview</h2>
+                    <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="w-full flex flex-col justify-center items-center gap-4 ">
+                      <h2 className="text-4xl font-bold  ">Account Overview</h2>
 
 
 
@@ -3258,7 +3291,7 @@ const AccountMain: NextPage = () => {
 
                       <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
 
-                        <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-white">
+                        <div style={{backgroundColor: reduxDarkMode?  "#333" : "#fff"}} className="grid h-full w-full grid-cols-1 gap-4 p-6 overflow-hidden rounded-2xl ">
 
                           {graphData.labels.length > 0 || graphTimeout ? (
 
@@ -3268,7 +3301,7 @@ const AccountMain: NextPage = () => {
 
 
 
-                              <div className="w-auto h-auto py-3">
+                              
 
 
                                 <Line
@@ -3277,6 +3310,7 @@ const AccountMain: NextPage = () => {
                                   options={options}
                                   onClick={onClick}
                                   ref={charRef}
+                                  
 
                                 >
 
@@ -3295,7 +3329,7 @@ const AccountMain: NextPage = () => {
 
                                 </div>
                                 <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
-                              </div>
+                             
 
 
 
@@ -3326,9 +3360,9 @@ const AccountMain: NextPage = () => {
 
 
 
-                        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 xl:grid-rows-2 gap-3">
+                        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-rows-2 gap-3 ">
 
-                          <div className="flex w-auto items-center p-6 bg-white border shadow-xl rounded-lg mb-5">
+                          <div className="flex w-auto items-center p-6  border shadow-xl rounded-lg mb-5">
                             <div className="inline-flex flex-shrink-4 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
                               <FaEthereum className="text-lg text-blue-500" />
                             </div>
@@ -3371,7 +3405,7 @@ const AccountMain: NextPage = () => {
 
                             </div>
                           </div>
-                          <div className="flex items-center  p-6 bg-white border shadow-xl rounded-lg mb-5">
+                          <div className="flex items-center  p-6 border shadow-xl rounded-lg mb-5">
 
                             <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-yellow-600 bg-yellow-100 rounded-full mr-6">
                               <FaCoins className="text-yellow-500 text-xl" />
@@ -3384,7 +3418,7 @@ const AccountMain: NextPage = () => {
                               <div className='mb-2 flex flex-col justify-start items-start'>
                                 <span className="block text-lg font-bold">
 
-                                  <span style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
+                                  <span style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode? "#fff" : "#222" } : { color: "red" }}>
                                     {reduxPayments - reduxCharges}
                                   </span> ETH
 
@@ -3410,7 +3444,7 @@ const AccountMain: NextPage = () => {
                             </div>
 
                           </div>
-                          <div className="flex w-auto items-center p-6 bg-white border shadow-xl rounded-lg mb-5">
+                          <div className="flex w-auto items-center p-6  border shadow-xl rounded-lg mb-5">
                             <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
                               <Image
                                 width={70}
@@ -3419,7 +3453,13 @@ const AccountMain: NextPage = () => {
                                 src={"/images/rocketlogo.webp"} />
                             </div>
                             <div>
-                              <span className="block text-lg font-bold">{nodeCollateral} %</span>
+
+                              {
+                                reduxCollateral > 0 ?
+                                  (<span className="block text-lg font-bold">{reduxCollateral} %</span>) :
+                                  (<span className="block  text-lg font-bold">{reduxCollateral}</span>)
+                              }
+
 
 
 
@@ -3478,7 +3518,7 @@ const AccountMain: NextPage = () => {
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
 
                         <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                          <h3 className="text-4xl font-bold text-gray-900 ">Validators</h3>
+                          <h3 className="text-4xl font-bold ">Validators</h3>
                           <Link href="/createValidator">
 
                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  rounded-full ">
@@ -3498,7 +3538,7 @@ const AccountMain: NextPage = () => {
                     <div ref={targetRef} className="w-auto overflow-hidden shadow-xl border rounded-lg mb-10 ">
 
 
-                      <table className="w-full bg-white">
+                      <table className="w-full">
                         <tbody>
 
                           {reduxData.map((data, index) => (
@@ -3538,7 +3578,7 @@ const AccountMain: NextPage = () => {
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                                           </svg>
                                         </div>}
-                                        <p>{data.valDayVariance !== "" && data.valDayVariance}</p>
+                                        <p >{data.valDayVariance !== "" && data.valDayVariance}</p>
                                       </div>
                                     )}
 
@@ -3550,77 +3590,48 @@ const AccountMain: NextPage = () => {
 
                               <td className="px-4 py-3 w-[180px]">
                                 <div className="flex items-center flex-col gap-1 text-l ">
-                                  {data.beaconStatus !== "" && <>
-                                    <h3 className='text-center font-semibold text-[18px]'>Status on Beaconchain</h3>
-                                    <GrSatellite /></>}
-                                  {data.beaconStatus}
+                             
+                                    <h3 className='text-center font-semibold text-[18px]'>Validator Status</h3>
+                                    <GrSatellite  />
+
+                                  {data.statusResult === "Staking" ? ( <p className="text-yellow-500  text-md">{data.beaconStatus}</p>) :
+                                    (
+                                      <p className="text-yellow-500  text-md">
+                                        
+                                        
+                                        {data.statusResult === "Prelaunch" && data.statusResult.toLowerCase()}
+
+
+                                        {data.statusResult === "Initialised" && data.statusResult.toLowerCase()}
+
+                                        {data.statusResult === "Staking" &&  data.statusResult.toLowerCase()}
+
+
+                                        {data.statusResult === "Withdrawable" && data.statusResult.toLowerCase()}
+
+
+                                        {data.statusResult === "Dissolved" && data.statusResult.toLowerCase()}
+
+
+                                        {data.statusResult === "Empty" && data.statusResult.toLowerCase()}
+
+                                      </p>
+
+                                    )}
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3 text-xs w-[180px]">
-                                <div className="flex items-center flex-col gap-1 text-l ">
-
-                                  <h3 className='text-center font-semibold text-[18px] mb-2'>Minipool Status:</h3>
-
-                                  {data.statusResult === "Prelaunch" &&
-                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-
-                                  {data.statusResult === "Initialised" &&
-
-                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-orange-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-                                  {data.statusResult === "Staking" &&
-
-                                    <span className="px-2 py-1 font-semibold text-[15px] leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-
-                                  {data.statusResult === "Withdrawable" &&
-
-                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-green-700 bg-green-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-
-                                  {data.statusResult === "Dissolved" &&
-
-                                    <span className="px-2 py-1 font-semibold text-md leading-tight text-red-700 bg-red-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-
-                                  {data.statusResult === "Empty" &&
-
-                                    <span className="px-2 py-1 font-semibold  text-s leading-tight text-greay-700 bg-gray-100 rounded-sm">{data.statusResult}</span>
-
-
-                                  }
-
-                                </div>
-
-
-                              </td>
+              
 
                               <td className="px-4 pr-10 py-3 w-[auto]">
                                 <div className="flex items-center text-l  flex-col gap-1">
                                   {data.valProposals !== "" &&
 
-                                    <h3 className='text-center font-semibold text-lg'>Blocks Proposed</h3>
+                                    <h3 className='text-center  font-semibold text-lg'>Blocks Proposed</h3>
 
                                   }
 
-                                  <p>{data.valProposals}</p>
+                                  <p >{data.valProposals}</p>
                                 </div>
                               </td>
 
@@ -3640,7 +3651,7 @@ const AccountMain: NextPage = () => {
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
 
                         <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                          <h3 className="text-4xl font-bold text-gray-900 ">Account Details</h3>
+                          <h3 className="text-4xl font-bold ">Account Details</h3>
 
 
                         </div>
@@ -3658,7 +3669,7 @@ const AccountMain: NextPage = () => {
                     <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 xl:grid-rows-2 gap-4">
 
 
-                      <div className="flex items-center p-6 bg-white shadow-xl border rounded-lg">
+                      <div className="flex items-center p-6 shadow-xl border rounded-lg">
 
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
                           <PiSignatureBold className="text-purple-500 text-3xl" />
@@ -3667,14 +3678,14 @@ const AccountMain: NextPage = () => {
                         <div className='flex flex-col items-center gap-1 justify-start w-full'>
 
 
-                          <p className="block text-lg font-bold">Batch Change Graffiti</p>
+                          <p className="block text-lg  font-bold">Batch Change Graffiti</p>
 
                           <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white shadow-xl font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
                         </div>
                       </div>
 
 
-                      <div className="flex items-center p-6 bg-white shadow-xl border rounded-lg">
+                      <div className="flex items-center p-6  shadow-xl border rounded-lg">
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -3686,7 +3697,7 @@ const AccountMain: NextPage = () => {
 
                           <div>
 
-                            <span className="block text-lg font-bold" >Successful Attestations</span>
+                            <span  className="block text-lg  font-bold" >Successful Attestations</span>
 
                             <span className="block text-gray-500 mt-2 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
 
@@ -3704,7 +3715,7 @@ const AccountMain: NextPage = () => {
 
                       </div>
 
-                      <div className="flex w-auto items-center p-6 bg-white shadow-xl border  rounded-lg">
+                      <div className="flex w-auto items-center p-6 shadow-xl border  rounded-lg">
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                           <Image
                             width={70}
@@ -3716,7 +3727,7 @@ const AccountMain: NextPage = () => {
 
                           <div className='flex flex-col items-center gap-1 justify-center w-full'>
 
-                            <span className="block text-lg font-bold">Smoothing Pool</span>
+                            <span className="block text-lg  font-bold">Smoothing Pool</span>
 
 
 
@@ -3887,7 +3898,7 @@ const AccountMain: NextPage = () => {
 
                       <input
 
-                        className="w-[60%] self-center border border-black-200 text-black-500"
+                        className="w-[60%] self-center border border-black-200 text-black"
                         type="text"
 
                         value={feeETHInput}

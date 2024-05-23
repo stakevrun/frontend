@@ -129,9 +129,9 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
           height={200}
           alt="Rocket Pool Logo"
           src={"/images/rocketlogo.webp"} />
-        <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Not Registered with Rocket Pool?</h2>
+        <h2 className="text-2xl font-bold  sm:text-2xl">Not Registered with Rocket Pool?</h2>
 
-        <p className="mt-4 text-gray-500 sm:text-l">
+        <p className="my-4 text-gray-500  sm:text-l">
           You must be registered with Rocket Pool to use the Vrün platform.
         </p>
 

@@ -12,7 +12,7 @@ const NoConnection = () => {
 
 
                 <MdNoAccounts className='text-7xl' />
-                <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">NO WALLET CONNECTED</h2>
+                <h2 className="text-2xl font-bold  sm:text-2xl">NO WALLET CONNECTED</h2>
 
                 <p className="mt-4 text-gray-500 sm:text-l">
                     Please connect your wallet to use the Vrün platform.

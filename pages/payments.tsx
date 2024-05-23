@@ -17,6 +17,7 @@ import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
 import { FaCoins } from "react-icons/fa";
 
+
 const Payments: NextPage = () => {
 
     const reduxPayments = useSelector((state: RootState) => state.paymentsData.data)
@@ -410,13 +411,13 @@ const Payments: NextPage = () => {
 
 
 
-
+    const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
 
 
 
 
     return (
-        <div className="flex w-full h-auto flex-col">
+        <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full h-auto flex-col">
 
             <Head>
                 <title>Vrün | Nodes & Staking</title>
@@ -438,7 +439,7 @@ const Payments: NextPage = () => {
 
 
                                 <div className="w-full flex flex-col justify-center items-center gap-4 ">
-                                    <h2 className="text-4xl font-bold text-gray-900 ">Payments & Charges</h2>
+                                    <h2 className="text-4xl font-bold ">Payments & Charges</h2>
 
                                 </div>
 
@@ -452,7 +453,7 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: "#222" } : { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode? "#fff" : "#222" } : { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 

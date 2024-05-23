@@ -918,21 +918,8 @@ const CreateValidator: NextPage = () => {
 
 
 
-    const index = findFirstFalseIndex(attachedPubkeyArray);
-
-    if (index !== -1) {
-      setCurrentIndex(index);
-    } else {
       setCurrentIndex(newNextIndex)
-    }
-
-
-
-
-
-
-
-
+    
 
 
   }
@@ -1047,8 +1034,6 @@ const CreateValidator: NextPage = () => {
 
   const handleAddValidator = async () => {
 
-    setIncrementer(0)
-    setShowForm4(true);
 
 
 
@@ -1056,14 +1041,16 @@ const CreateValidator: NextPage = () => {
 
 
 
-    if (address !== undefined) {
+    if (address !== undefined && grafittiInput !== "" ) {
 
 
       try {
 
 
 
-
+        setIncrementer(0)
+        setShowForm4(true);
+    
 
 
 
@@ -1387,7 +1374,7 @@ const CreateValidator: NextPage = () => {
 
         // Check if the transaction was successful
         if (receipt.status === 1) {
-          alert("Success! There should be Confetti here and preloader over buttons!")
+        
 
           // Read the emitted event logs
           let logs = receipt.logs;
@@ -1436,6 +1423,12 @@ const CreateValidator: NextPage = () => {
 
 
     }
+
+    else {
+      alert("You must enter a grafitti for the Validator!")
+    }
+
+   
   }
 
 
