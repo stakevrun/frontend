@@ -437,6 +437,7 @@ const Navbar: NextPage = () => {
 
   const getMinipoolData = async () => {
 
+    if(address) {
     
 
     let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
@@ -665,7 +666,14 @@ const Navbar: NextPage = () => {
           ];
 
 
-          const currentStatus = MinipoolStatus[statusResult];
+
+          let currentStatus = "";
+
+       
+
+         
+
+
 
           if (MinipoolStatus[statusResult] === "Staking") {
 
@@ -756,10 +764,15 @@ const Navbar: NextPage = () => {
           const isEnabled = await getEnabled(pubkey)
 
 
+
           console.log("Status:" + beaconStatusObject.status)
 
 
           const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
+
+
+
+          
 
 
 
@@ -801,6 +814,18 @@ const Navbar: NextPage = () => {
               newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
             }
+
+          }
+
+
+          if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
+
+            currentStatus = "Empty"
+
+          } else {
+            
+            currentStatus = MinipoolStatus[statusResult];
+
 
           }
 
@@ -852,6 +877,10 @@ const Navbar: NextPage = () => {
 
     }
 
+
+  } else {
+    console.log("Cannot run Minipool function without a connected account")
+  }
 
 
 

@@ -46,6 +46,7 @@ import { getCollateralData } from '../globalredux/Features/collateral/collateral
 import { TiTick } from "react-icons/ti";
 import confetti from 'canvas-confetti';
 import { PiSignatureBold } from "react-icons/pi";
+import { BiSolidErrorAlt } from "react-icons/bi";
 
 
 
@@ -294,7 +295,13 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setGraphTimeout(true);
+      if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
+
+        setGraphTimeout(true);
+
+      }
+     
+
     }, 500);
 
     return () => clearTimeout(timer); // Cleanup timeout if the component unmounts
@@ -1406,7 +1413,7 @@ const AccountMain: NextPage = () => {
           ];
 
 
-          const currentStatus = MinipoolStatus[statusResult];
+          let currentStatus = "MinipoolStatus[statusResult]";
 
           if (MinipoolStatus[statusResult] === "Staking") {
 
@@ -1546,6 +1553,18 @@ const AccountMain: NextPage = () => {
 
           }
 
+          
+
+          if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
+
+            currentStatus = "Empty"
+
+          } else {
+            
+            currentStatus = MinipoolStatus[statusResult];
+
+
+          }
 
 
           minipoolObjects.push({
@@ -3259,6 +3278,12 @@ const AccountMain: NextPage = () => {
 
 
 
+  
+
+
+
+
+
 
 
 
@@ -4102,6 +4127,8 @@ const AccountMain: NextPage = () => {
 
 
                   </Modal>
+
+
 
 
 

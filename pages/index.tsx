@@ -69,19 +69,19 @@ const Home: NextPage = () => {
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
-            <div className="w-full flex h-full  flex-col justify-center items-end p-4 gap-8 lg:w-[50%] ">
+            <div className="w-full flex h-full items-center  flex-col justify-center lg:items-end p-4 gap-8 lg:w-[50%] ">
 
-              <h1 className='text-4xl  md:text-5xl  lg:text-6xl  xl:text-7xl  self-start  font-bold'>
+              <h1 className='text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left  font-bold'>
                 Welcome to Vrün!
               </h1>
 
-              <p className="text-md  md:text-lg  lg:text-xl  xl:text-2xl  self-start">
+              <p className="text-md  md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
               </p>
 
-              <Link href="/createValidator" className='self-start'>
+              <Link href="/createValidator" className=' self-center xl:self-start'>
 
-                <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                <button className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                   Create Validator
                 </button>
 
@@ -117,7 +117,7 @@ const Home: NextPage = () => {
                     <FaMoneyBillWave className="text-3xl text-green-500  w-[70px]" />
                   </div>
                   <div>
-                    <h2 className="font-bold">Stake RPL for your Minipools &rarr;</h2>
+                    <h2 className="font-bold text-black">Stake RPL for your Minipools &rarr;</h2>
                     <p>We provide an onsite service for staking your RPL</p>
 
                     <Link href="/account" className='self-start mt-3'>
@@ -137,7 +137,7 @@ const Home: NextPage = () => {
                   </div>
 
                   <div>
-                    <h2 className="font-bold">New to Validators & Staking? &rarr;</h2>
+                    <h2 className="text-black font-bold">New to Validators & Staking? &rarr;</h2>
                     <p>Learn how to interact with Ethereum and the beacon chain</p>
                     <a href="https://ethereum.org/en/developers/docs/" target='_blank' className='self-start mt-3'>
                       <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
@@ -162,7 +162,7 @@ const Home: NextPage = () => {
                       src={"/images/rocketPlogo.png"} />
                   </div>
                   <div>
-                    <h2 className="font-bold">Rocket Pool Docs &rarr;</h2>
+                    <h2 className="text-black font-bold">Rocket Pool Docs &rarr;</h2>
                     <p>Learn about the under the hood functions which help to power Vrün!</p>
 
                     <a href="https://docs.rocketpool.net/overview/contracts-integrations" target='_blank' className='self-start mt-3'>
@@ -182,7 +182,7 @@ const Home: NextPage = () => {
 
                   </div>
                   <div>
-                    <h2 className="font-bold text-lg mb-1">Swagger UI documentation &rarr;</h2>
+                    <h2 className="font-bold text-black text-lg mb-1">Swagger UI documentation &rarr;</h2>
                     <p className='mb-3'>Find in-depth information about Swagger UI and the various routes used.</p>
                     <a href="https://beaconcha.in/api/v1/docs/index.html" target='_blank' className='self-start mt-3'>
                       <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >

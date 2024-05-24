@@ -10,6 +10,16 @@ import networkABI from "../json/networkABI.json"
 import miniManagerABI from "../json/miniManagerABI.json"
 import { useAccount, useChainId } from 'wagmi';
 import BounceLoader from "react-spinners/BounceLoader";
+import Modal from 'react-modal';
+import { AiOutlineClose } from 'react-icons/ai'
+import { HiOutlinePaperAirplane } from "react-icons/hi";
+import { FaSignature } from "react-icons/fa";
+import { FaEthereum } from "react-icons/fa";
+import styles from '../styles/Home.module.css';
+import { TiTick } from "react-icons/ti";
+import { BiSolidErrorAlt } from "react-icons/bi";
+import confetti from 'canvas-confetti';
+
 
 const RPLBlock: NextPage = () => {
 
@@ -447,6 +457,7 @@ const RPLBlock: NextPage = () => {
         const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
         console.log("Approval transaction:", approvalTx.hash);
         setStakingMessage("Approval confirmed! Processing... ")
+        setIncrementer(1)
 
         await approvalTx.wait();
         return NodeStakingAddress;
@@ -455,6 +466,7 @@ const RPLBlock: NextPage = () => {
       }
     } else {
       console.log("Metamask not available");
+
     }
   };
 
@@ -462,8 +474,11 @@ const RPLBlock: NextPage = () => {
   const [preloader, setPreloader] = useState(true)
 
   const handleStakeRPL = async (NodeStakingAddress: any) => {
+
     try {
       if (!NodeStakingAddress) return; // Ensure NodeStakingAddress is provided
+
+
 
       let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
       let signer = await browserProvider.getSigner();
@@ -478,47 +493,99 @@ const RPLBlock: NextPage = () => {
 
       const receipt = await tx.wait();
       console.log("Transaction confirmed:", receipt);
+  
 
       if (receipt.status === 1) {
-        if (address !== undefined) {
-          handleCheckRPL(address);
-          handleCheckStakeRPL(address);
+        
+          setIncrementer(2)
 
-        }
+          setRPLinput("");
+
+          setStakeButtonBool(true)
+          setIncrementerWithDelay(4, 700)
+
+        
       } else {
+        setIncrementer(5)
+        setStakeButtonBool(true)
         // Handle failed transaction
       }
-    } catch (error) {
-      console.log(error);
-      alert(error)
-      setStakeButtonBool(false)
+    } catch (e: any) {
+      
+      
+      if (e.reason !== undefined) {
+        setErrorBoxTest(e.reason.toString());
+
+
+    } else if (e.error) {
+        setErrorBoxTest(e.error["message"].toString())
+    } else {
+        setErrorBoxTest("An Unknown error occured.")
+
+    }
+      setIncrementer(5)
+      setStakeButtonBool(true)
+    
     }
   };
 
 
 
+  
+
   const [stakingMessage, setStakingMessage] = useState("")
 
 
   const handleStakeButtonClick = async () => {
-    setStakingMessage("Processing approval to spend RPL...")
-    setStakeButtonBool(false)
 
-    const nodeAddress = await handleApproveRPL();
-    if (nodeAddress) {
+    try {
+
+      setIncrementer(0)
+      setShowFormStakeRPL(true);
+      setStakeButtonBool(false)
+      setStakingMessage("Processing approval to spend RPL...")
+  
+
+      const nodeAddress = await handleApproveRPL();
+      if (nodeAddress) {
+        setIncrementer(1)
 
 
-      setStakingMessage("Approval sucessful, now initiating Stake transaction...")
+        setStakingMessage("Approval sucessful, now initiating Stake transaction...")
 
-      const newStake = await handleStakeRPL(nodeAddress);
-      setRPLinput("");
+       const newStake =  await handleStakeRPL(nodeAddress);
 
-      setStakeButtonBool(true);
+
+       if (address !== undefined) {
+        handleCheckRPL(address);
+        handleCheckStakeRPL(address);
+       }
+
+
+
+
+      } else {
+        setIncrementer(5)
+
+        setRPLinput("");
+        setStakeButtonBool(true)
+   
+
+      }
+    }
+    catch (e: any) {
+      if (e.reason !== undefined) {
+        setErrorBoxTest(e.reason.toString());
+
+
+    } else if (e.error["message"]) {
+        setErrorBoxTest(e.error["message"].toString())
     } else {
+        setErrorBoxTest("An Unknown error occured.")
 
-      setRPLinput("");
-      setStakeButtonBool(true);
-
+    }
+      setIncrementer(5)
+      setStakeButtonBool(true)
     }
   };
 
@@ -526,13 +593,37 @@ const RPLBlock: NextPage = () => {
 
   const handleUnstakeButtonClick = async () => {
 
-    setStakeButtonBool(false);
+
+    try {
+
+    setIncrementer(0)
+    setShowFormStakeRPL(true);
+    setStakeButtonBool(false)
+
+   
 
     const newStake = await handleUnstakeRPL();
-    setRPLinput("");
-    setStakeButtonBool(true);
+   
+  
 
     console.log(newStake);
+
+    } catch (e : any) {
+   
+      if (e.reason !== undefined) {
+        setErrorBoxTest(e.reason.toString());
+
+
+    } else if (e.error["message"]) {
+        setErrorBoxTest(e.error["message"].toString())
+    } else {
+        setErrorBoxTest("An Unknown error occured.")
+
+    }
+      setIncrementer(5)
+      setStakeButtonBool(true)
+
+    }
 
 
 
@@ -565,41 +656,39 @@ const RPLBlock: NextPage = () => {
         if (address !== undefined) {
           handleCheckRPL(address);
           handleCheckStakeRPL(address);
+          setIncrementer(1)
+          setIncrementerWithDelay(4, 700)
+          setRPLinput("");
+          setStakeButtonBool(true)
 
-          setStakeButtonBool(true);
+    
         }
       } else {
         // Handle failed transaction
 
-        setStakeButtonBool(true);
+        setIncrementer(5)
+        setStakeButtonBool(true)
       }
-    } catch (error: any) {
-      console.log(error.message);
+    } catch (e: any) {
+  
 
 
 
-
-      let input: any = error
-
-      if (input.reason !== undefined) {
-        setErrorBoxTest(input.reason.toString());
+      if (e.reason !== undefined) {
+        setErrorBoxTest(e.reason.toString());
 
 
-      } else {
-        setErrorBoxTest("Rejected. Did you enter an RPL value?")
-      }
+    } else if (e.error["message"]) {
+        setErrorBoxTest(e.error["message"].toString())
+    } else {
+        setErrorBoxTest("An Unknown error occured.")
 
-
-
-      setStakeButtonBool(true);
+    }
+      setIncrementer(5)
+      setStakeButtonBool(true)
 
     }
   };
-
-
-
-
-
 
 
 
@@ -633,6 +722,11 @@ const RPLBlock: NextPage = () => {
 
 
 
+
+
+
+
+
   const handleRPLInputChange = (e: any) => {
 
     setRPLinput(e.target.value)
@@ -640,6 +734,153 @@ const RPLBlock: NextPage = () => {
   }
 
 
+  const [currentStakeStatus1, setCurrentStakeStatus1] = useState(0)
+  const [currentStakeStatus2, setCurrentStakeStatus2] = useState(0)
+  const [currentStakeStatus3, setCurrentStakeStatus3] = useState(0)
+  const [incrementer, setIncrementer] = useState(0);
+
+
+
+  const setIncrementerWithDelay = (value: number, delay: number) => {
+    setTimeout(() => {
+      setIncrementer(value);
+    }, delay);
+  };
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentStakeStatus1(1)
+      setCurrentStakeStatus2(1)
+
+    } else if (incrementer === 2) {
+      setCurrentStakeStatus2(2)
+
+
+
+    } else if (incrementer === 4) {
+      setCurrentStakeStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentStakeStatus3(4)
+    }
+
+
+
+    else {
+
+      setCurrentStakeStatus1(0)
+      setCurrentStakeStatus2(0)
+      setCurrentStakeStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
+
+
+
+
+
+
+  const [showFormStakeRPL, setShowFormStakeRPL] = useState(false)
+  const [showFormEffectStakeRPL, setShowFormEffectStakeRPL] = useState(false)
+
+
+  useEffect(() => {
+
+
+    setShowFormEffectStakeRPL(showFormStakeRPL);
+
+
+  }, [showFormStakeRPL]);
+
+
+  
+  const triggerConfetti = () => {
+    confetti();
+  };
+
+
+
+  useEffect(() => {
+
+    if (currentStakeStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentStakeStatus3])
+
+
+
+
+
+
+
+
+  
+  const [showFormUnstakeRPL, setShowFormUnstakeRPL] = useState(false)
+  const [showFormEffectUnstakeRPL, setShowFormEffectUnstakeRPL] = useState(false)
+
+
+  useEffect(() => {
+
+
+    setShowFormEffectUnstakeRPL(showFormUnstakeRPL);
+
+
+  }, [showFormUnstakeRPL]);
+
+
+  
+  const [currentUnstakeStatus1, setCurrentUnstakeStatus1] = useState(0)
+  const [currentUnstakeStatus2, setCurrentUnstakeStatus2] = useState(0)
+  const [currentUnstakeStatus3, setCurrentUnstakeStatus3] = useState(0)
+
+
+  useEffect(() => {
+
+    if (currentUnstakeStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentUnstakeStatus3])
+
+
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentUnstakeStatus1(1)
+
+
+    }  else if (incrementer === 4) {
+      setCurrentUnstakeStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentUnstakeStatus3(4)
+    }
+
+
+
+    else {
+
+      setCurrentUnstakeStatus1(0)
+      setCurrentUnstakeStatus2(0)
+      setCurrentUnstakeStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
 
 
 
@@ -647,46 +888,36 @@ const RPLBlock: NextPage = () => {
 
   return (
     <div className="flex flex-col w-auto  h-auto gap-4 px-8 text-center items-center justify-center rounded-xl  border shadow-xl  border-black-100  py-4 ">
-       <h2 className="text-2xl w-[90%] font-bold  sm:text-2xl"> RPL Interface</h2>
+      <h2 className="text-2xl w-[90%] font-bold  sm:text-2xl"> RPL Interface</h2>
 
       <div className="flex flex-col  items-center justify-center gap-1 shadow-lg text-lg my-3 py-3 px-3 rounded-lg border">
-       <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
-        <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
-       
-        </label> 
+        <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
+          <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
+
+        </label>
 
         <label className="flex flex-col items-center font-bold justify-center gap-1">
           Staked RPL:
-        <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true} /> </span>
+          <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true} /> </span>
         </label>
         <label className="flex flex-col font-bold items-center justify-center gap-1">
           Active Minipools:
-        <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} bool={true} /> </span>
+          <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} bool={true} /> </span>
 
         </label>
-     
+
         <label className="flex flex-col font-bold items-center justify-center gap-1">
-       Total Possible Minipools:
-        
-        
-        <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span>
+          Total Possible Minipools:
+
+
+          <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span>
         </label>
       </div>
       <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
 
       <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
-        {!stakeButtonBool &&
 
-          <div className="flex flex-col items-center justify-center gap-2">
-
-            <p className="mb-2 font-bold">{stakingMessage}</p>
-
-            <BounceLoader />
-          </div>
-
-
-        }
 
 
         <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
@@ -694,21 +925,369 @@ const RPLBlock: NextPage = () => {
 
 
 
-
+      
 
 
 
       </div>
 
-      {errorBoxText !== "" &&
-        <div className='w-3/5 flex gap-2 items-center justify-center'>
+   
 
-          <p className="my-4 w-[80%] font-bold text-red-500 sm:text-l">{errorBoxText}</p>
+
+
+
+      <Modal
+        isOpen={showFormStakeRPL}
+        onRequestClose={() => setShowFormStakeRPL(false)}
+        contentLabel="Create Validator Modal"
+        className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+            transition: "0.2s transform ease-in-out",
+          },
+          content: {
+            width: 'auto',
+            height: 'auto',
+            minWidth: "280px",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+          <div className="flex items-start justify-center gap-3 w-full">
+
+            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                setShowFormStakeRPL(false)
+              }} />
+
+            </div>
+          </div>
+          {currentStakeStatus3 === 3 ? (
+
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]">RPL Staked</h3>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+              <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+          ) : currentStakeStatus3 === 4 ? (
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]">RPL Stake Failed!</h3>
+
+              <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+              <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+
+          ) : (
+
+
+            <>
+
+
+
+
+              <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                <h3 className="font-bold text-[30px]">Stake RPL</h3>
+                <p className="text-[25px]">{RPLinput} RPL</p>
+              </div>
+
+              <hr className="w-full my-3" />
+
+              <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                <div className='flex items-start justify-between gap-6 w-full'>
+                  <div className="flex items-center justify-start gap-4">
+                    <p> <FaEthereum /></p>
+
+                    <p className="text-left">Approve spending of RPL </p>
+                  </div>
+                  <p className='self-end'>
+
+                    {
+
+                      currentStakeStatus1 === 0 ? (
+                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                      ) : (
+
+                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                      )
+
+
+
+
+                    }
+
+
+                  </p>
+                </div>
+
+
+
+                <div className='flex items-start justify-between gap-6 w-full'>
+                  <div className="flex items-center justify-start gap-4">
+                    <p><HiOutlinePaperAirplane /></p>
+
+                    <p className="text-left" >Stake RPL</p>
+                  </div>
+                  <p className='self-end'>
+
+                    {
+
+                      currentStakeStatus2 === 0 ? (
+                        <p></p>
+
+                      ) : currentStakeStatus2 === 1 ? (
+
+                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                      ) : (
+
+                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                      )
+
+
+
+
+                    }
+
+
+                  </p>
+
+
+                </div>
+
+
+
+
+
+
+
+              </div>
+
+
+
+
+
+
+
+            </>
+
+
+
+
+
+
+          )}
+
+
+
+
+
+
+
 
         </div>
 
 
-      }
+      </Modal>
+
+
+
+
+      <Modal
+        isOpen={showFormUnstakeRPL}
+        onRequestClose={() => setShowFormUnstakeRPL(false)}
+        contentLabel="Unstake RPL Transaction Modal"
+        className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+            transition: "0.2s transform ease-in-out",
+          },
+          content: {
+            width: 'auto',
+            height: 'auto',
+            minWidth: "280px",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+          <div className="flex items-start justify-center gap-3 w-full">
+
+            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                setShowFormUnstakeRPL(false)
+              }} />
+
+            </div>
+          </div>
+          {currentUnstakeStatus3 === 3 ? (
+
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]">RPL Staked</h3>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+              <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+          ) : currentUnstakeStatus3 === 4 ? (
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]">RPL Unstake Failed!</h3>
+
+              <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+              <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+
+          ) : (
+
+
+            <>
+
+
+
+
+              <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                <h3 className="font-bold text-[30px]">Unstake RPL</h3>
+                <p className="text-[25px]">{RPLinput} RPL</p>
+              </div>
+
+              <hr className="w-full my-3" />
+
+              <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                <div className='flex items-start justify-between gap-6 w-full'>
+                  <div className="flex items-center justify-start gap-4">
+                    <p> <FaEthereum /></p>
+
+                    <p className="text-left">Unstake RPL </p>
+                  </div>
+                  <p className='self-end'>
+
+                    {
+
+                      currentUnstakeStatus1 === 0 ? (
+                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                      ) : (
+
+                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                      )
+
+
+
+
+                    }
+
+
+                  </p>
+                </div>
+
+
+
+              
+
+
+
+
+
+
+              </div>
+
+
+
+
+
+
+
+            </>
+
+
+
+
+
+
+          )}
+
+
+        </div>
+
+
+      </Modal>
     </div>
 
   )
