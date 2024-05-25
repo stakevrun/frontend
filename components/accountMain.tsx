@@ -47,6 +47,7 @@ import { TiTick } from "react-icons/ti";
 import confetti from 'canvas-confetti';
 import { PiSignatureBold } from "react-icons/pi";
 import { BiSolidErrorAlt } from "react-icons/bi";
+import { HiOutlinePaperAirplane } from "react-icons/hi";
 
 
 
@@ -300,7 +301,7 @@ const AccountMain: NextPage = () => {
         setGraphTimeout(true);
 
       }
-     
+
 
     }, 500);
 
@@ -1087,7 +1088,7 @@ const AccountMain: NextPage = () => {
         withdrawnNum += 1
       }
 
-      if (object.statusResult === "Prelaunch") {
+      if (object.statusResult === "Prelaunch" && Number(object.timeRemaining) <= 0) {
         stakeNum += 1
 
       }
@@ -1328,7 +1329,7 @@ const AccountMain: NextPage = () => {
       let newRunningVals = 0;
       let newTotalVals = 0;
 
-  
+
 
 
       for (const [minAddress, pubkey] of attachedPubkeyArray) {
@@ -1338,11 +1339,11 @@ const AccountMain: NextPage = () => {
 
 
 
-        if (minAddress === "Null minipool" ) {
+        if (minAddress === "Null minipool") {
 
 
-        
- 
+
+
           minipoolObjects.push({
 
             address: "",
@@ -1553,14 +1554,14 @@ const AccountMain: NextPage = () => {
 
           }
 
-          
+
 
           if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
 
             currentStatus = "Empty"
 
           } else {
-            
+
             currentStatus = MinipoolStatus[statusResult];
 
 
@@ -1951,113 +1952,137 @@ const AccountMain: NextPage = () => {
 
 
 
-
+  const setIncrementerWithDelay = (value: number, delay: number) => {
+    setTimeout(() => {
+      setIncrementer(value);
+    }, delay);
+  };
 
 
 
 
   const setGraffiti = async (newGrafitti: string) => {
 
+    if (newGrafitti !== "") {
 
-    try {
-
-      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-      let signer = await browserProvider.getSigner()
-
-
-      /*  struct SetFeeRecipient {
-    uint256 timestamp;
-    bytes pubkey;
-    address feeRecipient;
-  } */
-
-
-      const types = {
-        SetGraffiti: [
-          { name: 'timestamp', type: 'uint256' },
-          { name: 'pubkeys', type: 'bytes[]' },
-          { name: 'graffiti', type: 'string' },
-        ]
-      }
-
-      let pubkeyArray = [];
-      let indexArray = [];
-
-
-      let i = 0;
-
-
-
-      for (const data of reduxData) {
-
-        indexArray.push(i)
-
-        pubkeyArray.push(data.pubkey)
-
-
-        i++
-
-
-
-      }
-
-
-      const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-      const APItype = "SetGraffiti"
-
-      const date = Math.floor(Date.now() / 1000);
-
-      const value = { timestamp: date, pubkeys: pubkeyArray, graffiti: newGrafitti }
-
-
-      let signature = await signer.signTypedData(EIP712Domain, types, value);
-
-
-
-
-      await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          type: APItype,
-          data: value,
-          signature: signature,
-          indices: indexArray
-        })
-      })
-        .then(async response => {
-
-          var jsonString = await response.json()// Note: response will be opaque, won't contain data
-
-          console.log("Get Deposit Data response" + jsonString)
-        })
-        .catch(error => {
-          // Handle error here
-          console.log(error);
-
-          setGraffitiError(error.toString())
-
-
-        });
-
-
-      await getMinipoolData();
-      alert("Success! There should be Confetti here and preloader over buttons!")
       setShowForm(false);
+      setShowFormEditGraffiti(true)
+      setIncrementer(0)
+      try {
 
-    } catch (e: any) {
-      if (e.reason === "rejected") {
-        setGraffitiError(e.info.error.message.toString())
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+
+
+        /*  struct SetFeeRecipient {
+      uint256 timestamp;
+      bytes pubkey;
+      address feeRecipient;
+    } */
+
+
+        const types = {
+          SetGraffiti: [
+            { name: 'timestamp', type: 'uint256' },
+            { name: 'pubkeys', type: 'bytes[]' },
+            { name: 'graffiti', type: 'string' },
+          ]
+        }
+
+        let pubkeyArray = [];
+        let indexArray = [];
+
+
+        let i = 0;
+
+
+
+        for (const data of reduxData) {
+
+          indexArray.push(i)
+
+          pubkeyArray.push(data.pubkey)
+
+
+          i++
+
+
+
+        }
+
+
+        const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+        const APItype = "SetGraffiti"
+
+        const date = Math.floor(Date.now() / 1000);
+
+        const value = { timestamp: date, pubkeys: pubkeyArray, graffiti: newGrafitti }
+
+
+        let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+        await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            type: APItype,
+            data: value,
+            signature: signature,
+            indices: indexArray
+          })
+        })
+          .then(async response => {
+
+            var jsonString = await response.json()// Note: response will be opaque, won't contain data
+
+            console.log("Get Deposit Data response" + jsonString)
+          })
+          .catch(error => {
+            // Handle error here
+            console.log(error);
+
+            setGraffitiError(error.toString())
+            setIncrementer(5)
+
+
+          });
+
+        setIncrementer(1)
+        const data = await getMinipoolData();
+
+        setIncrementer(2)
+
+
+        setIncrementerWithDelay(4, 400)
+
+
+      } catch (e: any) {
+
+
+        if (e.reason === "rejected") {
+          setGraffitiError(e.info.error.message.toString())
+
+        } else if (e.error) {
+          setGraffitiError(e.error["message"].toString())
+
+        }
+        else {
+          setGraffitiError("An Unknown error occured, please try again")
+        }
+        setIncrementer(5)
 
       }
-      else {
-        setGraffitiError(e.error["message"].toString())
-      }
 
+    } else {
 
+      setGraffitiError("You must input a new Graffiti!")
+      setIncrementer(5)
     }
 
 
@@ -2109,6 +2134,7 @@ const AccountMain: NextPage = () => {
         let sum = 0;
 
         // Calculate the sum of values at the current index across all inner arrays
+        
         for (let j = 0; j < numArrays; j++) {
           sum += newPlotPointsArray[j][i];
         }
@@ -2116,7 +2142,7 @@ const AccountMain: NextPage = () => {
         // Calculate the average and push it to the averagePlotPoints array
         averagePlotPoints.push(sum / numArrays);
       }
-    }
+    } 
 
     return averagePlotPoints;
   }
@@ -3021,6 +3047,12 @@ const AccountMain: NextPage = () => {
 
 
   const handleOptSmoothingPool = async () => {
+
+
+    setIncrementer(0)
+    setShowFormSmoothingPool(true)
+    setShowForm6(false)
+
     if (typeof (window as any).ethereum !== "undefined") {
       try {
 
@@ -3041,26 +3073,30 @@ const AccountMain: NextPage = () => {
         const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked2)
         console.log(tx);
 
+        setIncrementer(1)
+
         // Listen for transaction confirmation
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
 
 
-        if (checked2 === false) {
+        if (receipt.status === 1) {
 
-          alert("Opt-out of Smoothing Pool Successful")
-          alert("Success! There should be Confetti here and preloader over buttons!")
-          triggerConfetti();
+        setIncrementer(2)
 
+        const data = await getMinipoolData();
+
+          setIncrementerWithDelay(4, 300)
 
 
         } else {
 
+          setIncrementer(5)
+          setErrorBoxTest2("An Unknown error has occured. Please try again.")
 
-          alert("Opt-in to Smoothing Pool Successful")
-          alert("Success! There should be Confetti here and preloader over buttons!")
-          triggerConfetti();
+
+          
 
 
         }
@@ -3074,12 +3110,28 @@ const AccountMain: NextPage = () => {
 
         let input: any = error
 
-        setErrorBoxTest2(input.reason.toString());
+    
 
-        if (input.reason === "rejected") {
+        if (input.reason) {
           setErrorBoxTest2(input.info.error.message.toString())
 
         }
+
+        else if (input.error) {
+
+          
+          setErrorBoxTest2(input.error["message"].toString())
+
+
+        } else{
+
+          setErrorBoxTest2("An Unknown error has occured")
+
+
+        }
+
+
+        setIncrementer(5)
 
 
 
@@ -3088,28 +3140,7 @@ const AccountMain: NextPage = () => {
   }
 
 
-  useEffect(() => {
-
-
-    if (errorBoxText2 !== "") {
-
-
-      const handleText = () => {
-        setErrorBoxTest2("")
-
-      }
-
-
-      const timeoutId = setTimeout(handleText, 6000);
-
-      return () => clearTimeout(timeoutId);
-
-
-
-
-    }
-
-  }, [errorBoxText2])
+  
 
 
   const [showForm5, setShowForm5] = useState(false)
@@ -3278,7 +3309,156 @@ const AccountMain: NextPage = () => {
 
 
 
-  
+
+
+  const [showFormEditGraffiti, setShowFormEditGraffiti] = useState(false)
+  const [showFormEditGraffitiEffect, setShowFormEditGraffitiEffect] = useState(false)
+
+
+  useEffect(() => {
+
+
+    setShowFormEditGraffitiEffect(showFormEditGraffiti);
+
+    if (showFormEditGraffiti === false) {
+      setIncrementer(0)
+    }
+
+
+  }, [showFormEditGraffiti]);
+
+
+
+  const [currentEditGraffitiStatus1, setCurrentEditGraffitiStatus1] = useState(0)
+
+  const [currentEditGraffitiStatus2, setCurrentEditGraffitiStatus2] = useState(0)
+  const [currentEditGraffitiStatus3, setCurrentEditGraffitiStatus3] = useState(0)
+  const [incrementer, setIncrementer] = useState(0)
+
+
+  useEffect(() => {
+
+    if (currentEditGraffitiStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentEditGraffitiStatus3])
+
+
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentEditGraffitiStatus1(1)
+      setCurrentEditGraffitiStatus2(1)
+
+    } else if (incrementer === 2) {
+      setCurrentEditGraffitiStatus2(2)
+
+
+
+    } else if (incrementer === 4) {
+      setCurrentEditGraffitiStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentEditGraffitiStatus3(4)
+    }
+
+
+
+    else {
+
+      setCurrentEditGraffitiStatus1(0)
+      setCurrentEditGraffitiStatus2(0)
+      setCurrentEditGraffitiStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
+
+
+
+  const [showFormSmoothingPool, setShowFormSmoothingPool] = useState(false)
+  const [showFormSmoothingPoolEffect, setShowFormSmoothingPoolEffect] = useState(false)
+
+
+  useEffect(() => {
+
+
+      setShowFormSmoothingPoolEffect(showFormSmoothingPool);
+
+      if (showFormSmoothingPool === false) {
+          setIncrementer(0)
+      }
+
+
+  }, [showFormSmoothingPool]);
+
+
+
+  const [currentSmoothingPoolStatus1, setCurrentSmoothingPoolStatus1] = useState(0)
+
+  const [currentSmoothingPoolStatus2, setCurrentSmoothingPoolStatus2] = useState(0)
+  const [currentSmoothingPoolStatus3, setCurrentSmoothingPoolStatus3] = useState(0)
+
+
+
+  useEffect(() => {
+
+      if (currentSmoothingPoolStatus3 === 3) {
+
+          triggerConfetti();
+      }
+
+  }, [currentSmoothingPoolStatus3])
+
+
+
+
+  useEffect(() => {
+
+
+      if (incrementer === 1) {
+
+          setCurrentSmoothingPoolStatus1(1)
+          setCurrentSmoothingPoolStatus2(1)
+
+      } else if (incrementer === 2) {
+          setCurrentSmoothingPoolStatus2(2)
+
+
+
+      } else if (incrementer === 4) {
+          setCurrentSmoothingPoolStatus3(3)
+      } else if (incrementer === 5) {
+          setCurrentSmoothingPoolStatus3(4)
+      }
+
+
+
+      else {
+
+          setCurrentSmoothingPoolStatus1(0)
+          setCurrentSmoothingPoolStatus2(0)
+          setCurrentSmoothingPoolStatus3(0)
+
+
+
+      }
+
+  }, [incrementer])
+
+
+
+
+
+
+
 
 
 
@@ -3288,7 +3468,7 @@ const AccountMain: NextPage = () => {
 
 
   return (
-    <section style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full flex-col items-center  pb-10 justify-center ">
+    <section style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full flex-col items-center  pb-10 justify-center ">
 
       {address !== undefined ? (
         <>
@@ -3302,7 +3482,7 @@ const AccountMain: NextPage = () => {
                   <div className="w-full h-auto lg:h-[90vh] flex flex-col items-center justify-center gap-[8vh]">
 
 
-                    <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="w-full flex flex-col justify-center items-center gap-4 ">
+                    <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="w-full flex flex-col justify-center items-center gap-4 ">
                       <h2 className="text-4xl font-bold  ">Account Overview</h2>
 
 
@@ -3316,7 +3496,7 @@ const AccountMain: NextPage = () => {
 
                       <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
 
-                        <div style={{backgroundColor: reduxDarkMode?  "#333" : "#fff"}} className="grid h-full w-full grid-cols-1 gap-4 p-6 overflow-hidden rounded-2xl ">
+                        <div style={{ backgroundColor: reduxDarkMode ? "#333" : "#fff" }} className="grid h-full w-full grid-cols-1 gap-4 p-6 overflow-hidden rounded-2xl ">
 
                           {graphData.labels.length > 0 || graphTimeout ? (
 
@@ -3326,35 +3506,35 @@ const AccountMain: NextPage = () => {
 
 
 
-                              
-
-
-                                <Line
-
-                                  data={graphData}
-                                  options={options}
-                                  onClick={onClick}
-                                  ref={charRef}
-                                  
-
-                                >
 
 
 
-                                </Line>
+                              <Line
 
-                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
-
-                                  <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                  <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                  <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                  <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+                                data={graphData}
+                                options={options}
+                                onClick={onClick}
+                                ref={charRef}
 
 
+                              >
 
-                                </div>
-                                <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
-                             
+
+
+                              </Line>
+
+                              <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                              </div>
+                              <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
+
 
 
 
@@ -3443,7 +3623,7 @@ const AccountMain: NextPage = () => {
                               <div className='mb-2 flex flex-col justify-start items-start'>
                                 <span className="block text-lg font-bold">
 
-                                  <span style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode? "#fff" : "#222" } : { color: "red" }}>
+                                  <span style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
                                     {reduxPayments - reduxCharges}
                                   </span> ETH
 
@@ -3598,7 +3778,7 @@ const AccountMain: NextPage = () => {
 
                                     ) : (
                                       <div className='flex items-center justify-center'>
-                                        {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                        {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-red-600 bg-red-100 rounded-full mr-6">
                                           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                                           </svg>
@@ -3613,23 +3793,29 @@ const AccountMain: NextPage = () => {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3 w-[180px]">
+                              <td className="px-4 py-3 w-[200px]">
                                 <div className="flex items-center flex-col gap-1 text-l ">
-                             
-                                    <h3 className='text-center font-semibold text-[18px]'>Validator Status</h3>
-                                    <GrSatellite  />
 
-                                  {data.statusResult === "Staking" ? ( <p className="text-yellow-500  text-md">{data.beaconStatus}</p>) :
+                                  <h3 className='text-center font-semibold text-[18px]'>Validator Status</h3>
+                                  <GrSatellite />
+
+                                  {data.statusResult === "Staking" && data.beaconStatus !== "" ? (<p className="text-yellow-500  text-center  text-md">{data.beaconStatus}</p>) :
                                     (
-                                      <p className="text-yellow-500  text-md">
-                                        
-                                        
+                                      <p className="text-yellow-500 text-center  text-md">
+
+                                        {
+                                          data.statusResult === "Staking" && data.beaconStatus === "" && "waiting_for_beaconchain"
+
+
+
+                                        }
+
+
                                         {data.statusResult === "Prelaunch" && data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Initialised" && data.statusResult.toLowerCase()}
 
-                                        {data.statusResult === "Staking" &&  data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Withdrawable" && data.statusResult.toLowerCase()}
@@ -3646,7 +3832,7 @@ const AccountMain: NextPage = () => {
                                 </div>
                               </td>
 
-              
+
 
                               <td className="px-4 pr-10 py-3 w-[auto]">
                                 <div className="flex items-center text-l  flex-col gap-1">
@@ -3700,12 +3886,15 @@ const AccountMain: NextPage = () => {
                           <PiSignatureBold className="text-purple-500 text-3xl" />
                         </div>
 
-                        <div className='flex flex-col items-center gap-1 justify-start w-full'>
+                        <div className='flex h-full flex-col items-start gap-0.5 justify-center w-full'>
 
 
                           <p className="block text-lg  font-bold">Batch Change Graffiti</p>
 
-                          <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white shadow-xl font-bold mx-2 py-2 px-4 rounded-md">Edit</button>
+                          <div className='w-full flex flex-col gap-1 items-start justify-center'>
+
+                            <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white shadow-xl font-bold py-2 px-4 rounded-md">Edit</button>
+                          </div>
                         </div>
                       </div>
 
@@ -3720,18 +3909,18 @@ const AccountMain: NextPage = () => {
 
                         {runningValidators !== "0" ? (
 
-                          <div>
+                          <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
-                            <span  className="block text-lg  font-bold" >Successful Attestations</span>
+                            <span className="block text-lg  font-bold" >Successful Attestations</span>
 
-                            <span className="block text-gray-500 mt-2 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
+                            <span className="block text-gray-500 mt-1 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
 
                           </div>
 
                         ) : (
-                          <div>
+                          <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
                             <span className="block text-lg font-bold">Attestations</span>
-                            <span className="block text-gray-500 mt-2 text-[18px]" >0</span>
+                            <span className="block text-gray-500 mt-1 text-[18px]" >0</span>
 
                           </div>
 
@@ -3750,7 +3939,7 @@ const AccountMain: NextPage = () => {
                         </div>
                         <div className='flex flex-col items-center justify-start w-full'>
 
-                          <div className='flex flex-col items-center gap-1 justify-center w-full'>
+                          <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
                             <span className="block text-lg  font-bold">Smoothing Pool</span>
 
@@ -3772,7 +3961,7 @@ const AccountMain: NextPage = () => {
 
                           </div>
 
-                          <div className='w-3/5 flex gap-2 items-center justify-center'>
+                          <div className='w-full flex gap-2 items-start justify-start'>
                             <button onClick={() => { setShowForm6(true) }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 shadow-xl text-white font-bold py-2 px-2 rounded-md" >
                               Change
                             </button>
@@ -3801,9 +3990,402 @@ const AccountMain: NextPage = () => {
 
 
 
-                  {/*<div className="w-full  h-auto py-[10vh]  flex flex-col justify-center items-center">
-                  <RPLBlock />
-                </div>*/}
+                  {/*MODALS*/}
+
+
+
+
+
+
+                  <Modal
+                    isOpen={showFormSmoothingPool}
+                    onRequestClose={() => setShowFormSmoothingPool(false)}
+                    contentLabel="Smoothing Pool Transaction Modal"
+                    className={`${styles.modal} ${showFormSmoothingPoolEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                      <div className="flex items-start justify-center gap-3 w-full">
+
+                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                            setShowFormSmoothingPool(false)
+                          }} />
+
+                        </div>
+                      </div>
+                      {currentSmoothingPoolStatus3 === 3 ? (
+
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Change succesful!</h3>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+                      ) : currentSmoothingPoolStatus3 === 4 ? (
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Failed to Toggle Smoothing Pool!</h3>
+
+                          <p className='my-3 text-lg text-red-400 '>{errorBoxText2}</p>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+
+                      ) : (
+
+
+                        <>
+
+
+
+
+                          <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                            <h3 className="font-bold text-[30px]">Change Enabled Status: </h3>
+
+                          </div>
+
+                          <hr className="w-full my-3" />
+
+                          <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p> <HiOutlinePaperAirplane /></p>
+
+                                <p className="text-left">Change Smoothing Pool Status </p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentSmoothingPoolStatus1 === 0 ? (
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+                            </div>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p><FaEthereum /></p>
+
+                                <p className="text-left">Confirming change...</p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentSmoothingPoolStatus2 === 0 ? (
+                                    <p></p>
+
+                                  ) : currentSmoothingPoolStatus2 === 1 ? (
+
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+
+
+                            </div>
+
+
+
+
+
+
+
+
+
+
+                          </div>
+
+
+
+
+
+
+
+                        </>
+
+
+
+
+
+
+                      )}
+
+
+                    </div>
+
+
+                  </Modal>
+
+
+
+
+
+
+
+                  <Modal
+                    isOpen={showFormEditGraffiti}
+                    onRequestClose={() => setShowFormEditGraffiti(false)}
+                    contentLabel="Graffiti Transaction Modal"
+                    className={`${styles.modal} ${showFormEditGraffitiEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                      <div className="flex items-start justify-center gap-3 w-full">
+
+                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                            setShowFormEditGraffiti(false)
+                          }} />
+
+                        </div>
+                      </div>
+                      {currentEditGraffitiStatus3 === 3 ? (
+
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Graffiti Edit Successful!</h3>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                          <button onClick={() => { setShowFormEditGraffiti(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+                      ) : currentEditGraffitiStatus3 === 4 ? (
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Failed to change Validator Graffiti!</h3>
+
+                          <p className='my-3 text-lg text-red-400 '>{graffitiError}</p>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                          <button onClick={() => { setShowFormEditGraffiti(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+
+                      ) : (
+
+
+                        <>
+
+
+
+
+                          <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                            <h3 className="font-bold text-[30px]">Batch Change Graffiti </h3>
+                            <p className="text-[19px]">Change the Graffiti for all your Validators...</p>
+                          </div>
+
+                          <hr className="w-full my-3" />
+
+                          <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p> <HiOutlinePaperAirplane /></p>
+
+                                <p className="text-left">Signed Typed Data </p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentEditGraffitiStatus1 === 0 ? (
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+                            </div>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p><HiOutlinePaperAirplane /></p>
+
+                                <p className="text-left">Confirming change</p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentEditGraffitiStatus2 === 0 ? (
+                                    <p></p>
+
+                                  ) : currentEditGraffitiStatus2 === 1 ? (
+
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+
+
+                            </div>
+
+
+
+
+
+
+
+
+
+
+                          </div>
+
+
+
+
+
+
+
+                        </>
+
+
+
+
+
+
+                      )}
+
+
+                    </div>
+
+
+                  </Modal>
 
 
 
@@ -3871,9 +4453,7 @@ const AccountMain: NextPage = () => {
                         <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                       </div>
 
-                      {graffitiError !== "" &&
-                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
-                      }
+
 
                     </div>
                   </Modal>
@@ -4116,10 +4696,7 @@ const AccountMain: NextPage = () => {
                         </button>
                       </div>
 
-                      {errorBoxText2 !== "" &&
-                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{errorBoxText2}</p>
-                      }
-
+               
 
 
 

@@ -1064,6 +1064,10 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+
+
+
+
             const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
 
             const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
@@ -1112,7 +1116,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            await fetch(`https://api.vrün.com/${currentChain}/${address}/0`, {
+            await fetch(`https://api.vrün.com/${currentChain}/${address}/${params.param2}`, {
                 method: "POST",
 
                 headers: {
@@ -1221,7 +1225,7 @@ const ValidatorDetail: NextPage = () => {
                 setStakeErrorMessage(e.reason)
 
 
-            } else if (e.error["message"]) {
+            } else if (e.error) {
                 setStakeErrorMessage(e.error["message"].toString())
             } else {
                 setStakeErrorMessage("An Unknown error occured.")
@@ -1271,6 +1275,10 @@ const ValidatorDetail: NextPage = () => {
     const distributeBalanceOfMinipool = async () => {
 
 
+        setShowFormDistribute(true)
+        setIncrementer(0)
+
+
         try {
 
             let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
@@ -1293,17 +1301,29 @@ const ValidatorDetail: NextPage = () => {
             const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
             await minipool.distributeBalance(false)
 
-            getMinipoolData();
+            setIncrementer(1)
 
+
+            const data = await getMinipoolData();
+
+
+            setIncrementer(2)
+
+            setIncrementerWithDelay(4, 300)
         } catch (e: any) {
 
-            if (e.reason === "rejected") {
+            if (e.reason) {
                 setDistributeErrorBoxText(e.reason.toString())
 
             }
-            else {
+            else if (e.error) {
                 setDistributeErrorBoxText(e.error["message"].toString())
+            } else {
+                setDistributeErrorBoxText("An Unknown error occured")
+
             }
+
+            setIncrementer(5)
 
 
 
@@ -1318,33 +1338,16 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    useEffect(() => {
-
-
-        if (closeDissolvedErrorMessage !== "") {
-
-
-            const handleText = () => {
-                setCloseDissolvedErrorMessage("")
-
-            }
-
-
-            const timeoutId = setTimeout(handleText, 6000);
-
-            return () => clearTimeout(timeoutId);
-
-
-
-
-        }
-
-    }, [closeDissolvedErrorMessage])
+  
 
 
 
 
     const closeMinipool = async () => {
+
+
+        setShowFormDissolve(true)
+        setIncrementer(0)
 
 
         try {
@@ -1369,18 +1372,22 @@ const ValidatorDetail: NextPage = () => {
             const minipool = new ethers.Contract(minipoolAddress, ['function close()'], signer)
             const returnValue = await minipool.close()
 
-            getMinipoolData()
-            alert(returnValue)
-            console.log(returnValue)
+            setIncrementer(1)
+
+            const data = await getMinipoolData()
+            setIncrementer(2)
+            setIncrementerWithDelay(4, 700)
+
+
 
         } catch (e: any) {
 
 
-            if (e.reason !== undefined) {
+            if (e.reason) {
                 setCloseDissolvedErrorMessage(e.reason.toString());
 
 
-            } else if (e.error["message"]) {
+            } else if (e.error) {
                 setCloseDissolvedErrorMessage(e.error["message"].toString())
             } else {
                 setCloseDissolvedErrorMessage("An Unknown error occured.")
@@ -1388,7 +1395,7 @@ const ValidatorDetail: NextPage = () => {
             }
 
 
-
+            setIncrementer(5)
 
         }
 
@@ -1466,7 +1473,7 @@ const ValidatorDetail: NextPage = () => {
             withdrawnNum += 1
         }
 
-        if (reduxData.statusResult === "Prelaunch") {
+        if (reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) <= 0) {
             stakeNum += 1
 
         }
@@ -1590,80 +1597,102 @@ const ValidatorDetail: NextPage = () => {
     const setGraffiti = async (index: number, pubkey: string, newGrafitti: string) => {
 
 
-        try {
+        setShowForm(false);
+        setShowFormEditGraffiti(true)
+        setIncrementer(0)
 
-            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-            let signer = await browserProvider.getSigner()
+        if (newGrafitti !== "") {
+            try {
 
-
-            /*  struct SetFeeRecipient {
-          uint256 timestamp;
-          bytes pubkey;
-          address feeRecipient;
-        } */
+                let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+                let signer = await browserProvider.getSigner()
 
 
-            const types = {
-                SetGraffiti: [
-                    { name: 'timestamp', type: 'uint256' },
-                    { name: 'pubkeys', type: 'bytes[]' },
-                    { name: 'graffiti', type: 'string' },
-
-                ]
-            }
+                /*  struct SetFeeRecipient {
+              uint256 timestamp;
+              bytes pubkey;
+              address feeRecipient;
+            } */
 
 
-            const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-            const APItype = "SetGraffiti"
+                const types = {
+                    SetGraffiti: [
+                        { name: 'timestamp', type: 'uint256' },
+                        { name: 'pubkeys', type: 'bytes[]' },
+                        { name: 'graffiti', type: 'string' },
 
-            const date = Math.floor(Date.now() / 1000);
-
-            const value = { timestamp: date, pubkeys: [pubkey], graffiti: newGrafitti }
-
-
-            let signature = await signer.signTypedData(EIP712Domain, types, value);
-
+                    ]
+                }
 
 
+                const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+                const APItype = "SetGraffiti"
 
-            await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
-                method: "POST",
+                const date = Math.floor(Date.now() / 1000);
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    type: APItype,
-                    data: value,
-                    signature: signature,
-                    indices: [index]
+                const value = { timestamp: date, pubkeys: [pubkey], graffiti: newGrafitti }
+
+
+                let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+                await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        type: APItype,
+                        data: value,
+                        signature: signature,
+                        indices: [index]
+                    })
                 })
-            })
-                .then(async response => {
+                    .then(async response => {
 
-                    var jsonString = await response.json()// Note: response will be opaque, won't contain data
+                        var jsonString = await response.json()// Note: response will be opaque, won't contain data
 
-                    console.log("Get Deposit Data response" + jsonString)
-                })
-                .catch(error => {
-                    // Handle error here
-                    console.log(error);
-                });
+                        console.log("Get Deposit Data response" + jsonString)
+                    })
+                    .catch(error => {
+                        // Handle error here
+                        console.log(error);
+                        setGraffitiError(error.toString())
+                        setIncrementer(5)
+                    });
 
 
-            await getMinipoolData();
-            setShowForm(false);
+                setIncrementer(1)
+                const data = await getMinipoolData();
 
-        } catch (error: any) {
+                setIncrementer(2)
 
-            if (error.reason === "rejected") {
-                setGraffitiError(error.info.error.message.toString())
+
+                setIncrementerWithDelay(4, 400)
+
+            } catch (e: any) {
+
+                if (e.reason === "rejected") {
+                    setGraffitiError(e.info.error.message.toString())
+
+                } else if (e.error) {
+                    setGraffitiError(e.error["message"].toString())
+
+                }
+                else {
+                    setGraffitiError("An Unknown error occured, please try again")
+                }
+                setIncrementer(5)
 
             }
-            else {
-                setGraffitiError(error.error["message"].toString())
-            }
 
+
+        } else {
+            setIncrementer(5)
+            setGraffitiError("You must input a new Graffiti!")
         }
 
     }
@@ -1967,13 +1996,13 @@ const ValidatorDetail: NextPage = () => {
 
             if (e.reason !== undefined) {
                 setGetPresignedErrorBoxText(e.reason.toString());
-        
-        
+
+
             } else if (e.error) {
                 setGetPresignedErrorBoxText(e.error["message"].toString())
             } else {
                 setGetPresignedErrorBoxText("An Unknown error occured.")
-        
+
             }
 
             setIncrementer(5)
@@ -2362,80 +2391,103 @@ const ValidatorDetail: NextPage = () => {
     const toggleEnableDisable = async () => {
 
 
+
+        setShowForm6(false)
+        setShowFormSetEnabled(true)
+        setIncrementer(0)
+
+
         if (typeof params.param1 === "string" && typeof params.param2 === "string") {
 
+            try {
+                let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+                let signer = await browserProvider.getSigner()
 
-            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-            let signer = await browserProvider.getSigner()
+                const types = {
+                    SetEnabled: [
+                        { name: 'timestamp', type: 'uint256' },
+                        { name: 'pubkeys', type: 'bytes[]' },
+                        { name: 'enabled', type: 'bool' },
+
+                    ]
+                }
+
+
+                const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+                const APItype = "SetEnabled"
+
+                const date = Math.floor(Date.now() / 1000);
+
+                const value = { timestamp: date, pubkeys: [params.param1], enabled: enChecked }
+
+
+                let signature = await signer.signTypedData(EIP712Domain, types, value);
 
 
 
 
+                await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        type: APItype,
+
+                        data: value,
+
+                        signature: signature,
+
+                        indices: [params.param2]
+                    })
+                })
+                    .then(async response => {
+
+                        var jsonString = await response.text()// Note: response will be opaque, won't contain data
+
+                        console.log("Get Deposit Data response" + jsonString)
+                        setIncrementer(1)
+
+                        const data = await getMinipoolData();
+
+                        setIncrementer(2)
+
+                        setIncrementerWithDelay(4, 700)
+
+                    })
+                    .catch(e => {
+                        // Handle error here
 
 
 
+                        setErrorBoxTest2(e.toString())
+                        setIncrementer(5)
+                    });
 
 
+            } catch (e: any) {
 
-            const types = {
-                SetEnabled: [
-                    { name: 'timestamp', type: 'uint256' },
-                    { name: 'pubkeys', type: 'bytes[]' },
-                    { name: 'enabled', type: 'bool' },
+                if (e.reason) {
+                    setErrorBoxTest2(e.reason.toString())
 
-                ]
+                }
+                else if (e.error) {
+                    setErrorBoxTest2(e.error["message"].toString())
+                } else {
+
+                    setErrorBoxTest2("An Unknown error occured. Please try again.")
+
+                }
+                setIncrementer(5)
+
+
             }
 
 
-            const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
-            const APItype = "SetEnabled"
-
-            const date = Math.floor(Date.now() / 1000);
-
-            const value = { timestamp: date, pubkeys: [params.param1], enabled: enChecked }
-
-
-            let signature = await signer.signTypedData(EIP712Domain, types, value);
-
-
-
-
-            await fetch(`https://api.vrün.com/${currentChain}/${address}/batch`, {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    type: APItype,
-
-                    data: value,
-
-                    signature: signature,
-
-                    indices: [params.param2]
-                })
-            })
-                .then(async response => {
-
-                    var jsonString = await response.text()// Note: response will be opaque, won't contain data
-
-                    console.log("Get Deposit Data response" + jsonString)
-
-                    getMinipoolData();
-
-                    alert("Enable/Disable sucessful")
-                    setShowForm6(false)
-                })
-                .catch(error => {
-                    // Handle error here
-                    console.log(error);
-                    setErrorBoxTest2(error)
-                });
-
-
-
-
+        } else {
+            setErrorBoxTest2("An unknown error occured")
+            setIncrementer(5)
         }
 
 
@@ -2732,6 +2784,340 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    const [showFormEditGraffiti, setShowFormEditGraffiti] = useState(false)
+    const [showFormEditGraffitiEffect, setShowFormEditGraffitiEffect] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormEditGraffitiEffect(showFormEditGraffiti);
+
+        if (showFormEditGraffiti === false) {
+            setIncrementer(0)
+        }
+
+
+    }, [showFormEditGraffiti]);
+
+
+
+    const [currentEditGraffitiStatus1, setCurrentEditGraffitiStatus1] = useState(0)
+
+    const [currentEditGraffitiStatus2, setCurrentEditGraffitiStatus2] = useState(0)
+    const [currentEditGraffitiStatus3, setCurrentEditGraffitiStatus3] = useState(0)
+
+
+
+    useEffect(() => {
+
+        if (currentEditGraffitiStatus3 === 3) {
+
+            triggerConfetti();
+        }
+
+    }, [currentEditGraffitiStatus3])
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentEditGraffitiStatus1(1)
+            setCurrentEditGraffitiStatus2(1)
+
+        } else if (incrementer === 2) {
+            setCurrentEditGraffitiStatus2(2)
+
+
+
+        } else if (incrementer === 4) {
+            setCurrentEditGraffitiStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentEditGraffitiStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentEditGraffitiStatus1(0)
+            setCurrentEditGraffitiStatus2(0)
+            setCurrentEditGraffitiStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+
+
+
+    const [showFormSetEnabled, setShowFormSetEnabled] = useState(false)
+    const [showFormSetEnabledEffect, setShowFormSetEnabledEffect] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormSetEnabledEffect(showFormSetEnabled);
+
+        if (showFormSetEnabled === false) {
+            setIncrementer(0)
+        }
+
+
+    }, [showFormSetEnabled]);
+
+
+
+    const [currentSetEnabledStatus1, setCurrentSetEnabledStatus1] = useState(0)
+
+    const [currentSetEnabledStatus2, setCurrentSetEnabledStatus2] = useState(0)
+    const [currentSetEnabledStatus3, setCurrentSetEnabledStatus3] = useState(0)
+
+
+
+    useEffect(() => {
+
+        if (currentSetEnabledStatus3 === 3) {
+
+            triggerConfetti();
+        }
+
+    }, [currentSetEnabledStatus3])
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentSetEnabledStatus1(1)
+            setCurrentSetEnabledStatus2(1)
+
+        } else if (incrementer === 2) {
+            setCurrentSetEnabledStatus2(2)
+
+
+
+        } else if (incrementer === 4) {
+            setCurrentSetEnabledStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentSetEnabledStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentSetEnabledStatus1(0)
+            setCurrentSetEnabledStatus2(0)
+            setCurrentSetEnabledStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+
+    const [showFormDistribute, setShowFormDistribute] = useState(false)
+    const [showFormEffectDistribute, setShowFormEffectDistribute] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormEffectDistribute(showFormDistribute);
+
+
+        if (showFormDistribute === false) {
+            setIncrementer(0)
+        }
+
+
+    }, [showFormDistribute]);
+
+
+
+    const [currentDistributeStatus1, setCurrentDistributeStatus1] = useState(0)
+    const [currentDistributeStatus2, setCurrentDistributeStatus2] = useState(0)
+    const [currentDistributeStatus3, setCurrentDistributeStatus3] = useState(0)
+
+
+    useEffect(() => {
+
+        if (currentDistributeStatus3 === 3) {
+
+            triggerConfetti();
+        }
+
+    }, [currentDistributeStatus3])
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentDistributeStatus1(1)
+            setCurrentDistributeStatus2(1)
+
+
+        } else if (incrementer === 2) {
+            setCurrentDistributeStatus2(2)
+
+
+
+
+        } else if (incrementer === 4) {
+            setCurrentDistributeStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentDistributeStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentDistributeStatus1(0)
+            setCurrentDistributeStatus2(0)
+            setCurrentDistributeStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentSetEnabledStatus1(1)
+            setCurrentSetEnabledStatus2(1)
+
+        } else if (incrementer === 2) {
+            setCurrentSetEnabledStatus2(2)
+
+
+
+        } else if (incrementer === 4) {
+            setCurrentSetEnabledStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentSetEnabledStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentSetEnabledStatus1(0)
+            setCurrentSetEnabledStatus2(0)
+            setCurrentSetEnabledStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+    const [showFormDissolve, setShowFormDissolve] = useState(false)
+    const [showFormEffectDissolve, setShowFormEffectDissolve] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormEffectDissolve(showFormDissolve);
+
+
+        if (showFormDissolve === false) {
+            setIncrementer(0)
+        }
+
+
+    }, [showFormDissolve]);
+
+
+
+    const [currentDissolveStatus1, setCurrentDissolveStatus1] = useState(0)
+    const [currentDissolveStatus2, setCurrentDissolveStatus2] = useState(0)
+    const [currentDissolveStatus3, setCurrentDissolveStatus3] = useState(0)
+
+
+    useEffect(() => {
+
+        if (currentDissolveStatus3 === 3) {
+
+            triggerConfetti();
+        }
+
+    }, [currentDissolveStatus3])
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentDissolveStatus1(1)
+            setCurrentDistributeStatus2(1)
+
+
+        } else if (incrementer === 2) {
+            setCurrentDissolveStatus2(2)
+
+
+
+
+        } else if (incrementer === 4) {
+            setCurrentDissolveStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentDissolveStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentDissolveStatus1(0)
+            setCurrentDissolveStatus2(0)
+            setCurrentDissolveStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+
+
 
 
 
@@ -2949,16 +3335,22 @@ const ValidatorDetail: NextPage = () => {
                                                     <h3 className='block text-lg  font-bold'>Validator Status:</h3>
 
 
-                                                    {reduxData.statusResult === "Staking" ? (
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "" && (
 
-                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>) :
-                                                        (
-                                                            <p className="text-yellow-500  text-md">{reduxData.statusResult.toLowerCase()}</p>
-
-                                                        )}
+                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>)}
 
 
-                                                    {reduxData.statusResult === "Prelaunch" &&
+                                                    {
+                                                        reduxData.statusResult === "Staking" && reduxData.beaconStatus === "" && (
+
+                                                            <p className="text-yellow-500  text-md">waiting_for_beaconchain</p>
+
+                                                        )
+
+                                                    }
+
+
+                                                    {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) > 0 &&
                                                         <>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
 
@@ -3054,7 +3446,7 @@ const ValidatorDetail: NextPage = () => {
 
                             </div>
 
-                            <p className="font-bold text-lg text-red-400">{stakeErrorMessage || closeDissolvedErrorMessage}</p>
+                          
 
 
                         </div>
@@ -3083,9 +3475,9 @@ const ValidatorDetail: NextPage = () => {
                                             <PiSignatureBold className="text-purple-500 text-3xl" />
                                         </div>
                                         <div>
-                                            <div className="flex items-start flex-col gap-1 text-l ">
-                                                <span className="text-lg font-bold">Change Graffiti:</span>
-                                                <p className="text-s mb-1 text-gray-600">    {reduxData.graffiti}</p>
+                                            <div className="flex items-start flex-col gap-0.5 ">
+                                                <span className="text-lg font-bold">Change Graffiti</span>
+                                                <p className="text-s mb-1.5 text-gray-600">    {reduxData.graffiti}</p>
                                                 <button className="bg-blue-500 self-start  text-xs hover:bg-blue-700 text-white font-bold  py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
                                                     Change
                                                 </button>
@@ -3095,7 +3487,7 @@ const ValidatorDetail: NextPage = () => {
                                     </div>
 
 
-                                    {reduxData.statusResult === "Dissolved" &&
+                                    { reduxData.statusResult === "Dissolved" && 
 
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
 
@@ -3115,9 +3507,9 @@ const ValidatorDetail: NextPage = () => {
                                                 <button onClick={() => { closeMinipool() }} className="bg-red-500   text-xs  hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Close Minipool</button>
                                             </div>
 
-                                        </div>
+                                        </div>}
 
-                                    }
+                                    
 
 
                                     {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) <= 0 &&
@@ -3159,7 +3551,7 @@ const ValidatorDetail: NextPage = () => {
 
                                     {reduxData.beaconStatus === "withdrawal_done" && Number(reduxData.valBalance) > 0 &&
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
-                                            <div className="inline-flex flex-shrink-0 items-center justify-center text-blue-600 bg-blue-100 rounded-full mr-6">
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-yellow-100 rounded-full mr-6">
                                                 <FaCoins className="text-yellow-500 text-xl" />
                                             </div>
 
@@ -3170,8 +3562,8 @@ const ValidatorDetail: NextPage = () => {
                                                 <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500  text-xs  hover:bg-blue-700 text-white font-bold  py-2 px-4 rounded-md">Distribute Balance</button>
                                             </div>
                                         </div>
-                                    }
 
+                                    }
 
 
                                     {reduxData.statusResult !== "Empty" && (reduxData.beaconStatus === "active_ongoing" || reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed" || reduxData.beaconStatus === "withdrawal_possible" || reduxData.beaconStatus === "withdrawal_done") &&
@@ -3207,12 +3599,8 @@ const ValidatorDetail: NextPage = () => {
 
                             </div>
                             <div className='w-full h-[30px]  flex flex-col gap-2 items-center justify-center'>
-                                {distributeErrorBoxText !== "" &&
-                                    <p className=" w-full font-bold text-2xl text-center text-red-500 sm:text-l">{distributeErrorBoxText}</p>
-                                }
-                                {closeDissolvedErrorMessage !== "" &&
-                                    <p className=" w-full font-bold text-2xl text-center text-red-500 sm:text-l">{closeDissolvedErrorMessage}</p>
-                                }
+
+                              
                             </div>
 
                         </div>
@@ -3261,7 +3649,7 @@ const ValidatorDetail: NextPage = () => {
                                     <tbody>
 
                                         <tr className="border-b-2 ">
-                                            <td className="px-5  py-3 text-white bg-gray-500 text-s font-bold w-auto text-center">
+                                            <td className="px-5  py-3 text-white bg-[#333] text-s font-bold w-auto text-center">
                                                 <p>Graffiti</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
@@ -3271,7 +3659,7 @@ const ValidatorDetail: NextPage = () => {
                                             </td>
                                         </tr>
                                         <tr className="border-b-2 ">
-                                            <td className="px-5  bg-gray-500 text-white py-3 text-s font-bold w-auto text-center">
+                                            <td className="px-5  bg-[#333] text-white py-3 text-s font-bold w-auto text-center">
                                                 <p>Balance</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
@@ -3279,7 +3667,7 @@ const ValidatorDetail: NextPage = () => {
                                             </td>
                                         </tr>
                                         <tr className="border-b-2 ">
-                                            <td className="px-5  py-3  text-white bg-gray-500   text-s font-bold w-auto text-center">
+                                            <td className="px-5  py-3  text-white bg-[#333]   text-s font-bold w-auto text-center">
                                                 <p>Validator Index</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
@@ -3290,7 +3678,7 @@ const ValidatorDetail: NextPage = () => {
 
                                         <tr className="border-b-2 ">
 
-                                            <td className="px-5  py-3 bg-gray-500 text-white text-s font-bold w-auto text-center">
+                                            <td className="px-5  py-3 bg-[#333] text-white text-s font-bold w-auto text-center">
                                                 <p>Minipool Status:</p>
 
                                             </td>
@@ -3343,7 +3731,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                         <tr className="">
-                                            <td className="px-5  py-3 bg-gray-500 text-white font-bold text-s w-auto text-center">
+                                            <td className="px-5  py-3 bg-[#333] text-white font-bold text-s w-auto text-center">
                                                 <p>Activation Epoch</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
@@ -3369,6 +3757,588 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+                        <Modal
+                            isOpen={showFormDissolve}
+                            onRequestClose={() => setShowFormDissolve(false)}
+                            contentLabel="Dissolve Transaction Modal"
+                            className={`${styles.modal} ${showFormEffectDissolve ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                                <div className="flex items-start justify-center gap-3 w-full">
+
+                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                            setShowFormDissolve(false)
+                                        }} />
+
+                                    </div>
+                                </div>
+                                {currentDistributeStatus3 === 3 ? (
+
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Minipool Dissolved!</h3>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                        <button onClick={() => { setShowFormDissolve(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+                                ) : currentDistributeStatus3 === 4 ? (
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Dissolve Minipool Failed!</h3>
+
+                                        <p className='my-3 text-lg text-red-400 '>{closeDissolvedErrorMessage}</p>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                        <button onClick={() => { setShowFormDissolve(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+
+                                ) : (
+
+
+                                    <>
+
+
+
+
+                                        <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Distribute Balance of Minipool</h3>
+                                            {/* <p className="text-[25px]">{RPLinput} RPL</p> */}
+                                        </div>
+
+                                        <hr className="w-full my-3" />
+
+                                        <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p> <FaCoins /></p>
+
+                                                    <p className="text-left">Dissolve Minipool </p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentDissolveStatus1 === 0 ? (
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+                                            </div>
+
+
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p><FaEthereum /></p>
+
+                                                    <p className="text-left">Confirming change...</p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentDissolveStatus2 === 0 ? (
+                                                            <p></p>
+
+                                                        ) : currentDissolveStatus2 === 1 ? (
+
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+
+
+                                            </div>
+
+
+
+
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                                    </>
+
+
+
+
+
+
+                                )}
+
+
+                            </div>
+
+
+                        </Modal>
+
+
+
+
+
+                        <Modal
+                            isOpen={showFormDistribute}
+                            onRequestClose={() => setShowFormDistribute(false)}
+                            contentLabel="Distribute Balance Transaction Modal"
+                            className={`${styles.modal} ${showFormEffectDistribute ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                                <div className="flex items-start justify-center gap-3 w-full">
+
+                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                            setShowFormDistribute(false)
+                                        }} />
+
+                                    </div>
+                                </div>
+                                {currentDistributeStatus3 === 3 ? (
+
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Balance Distributed!</h3>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                        <button onClick={() => { setShowFormDistribute(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+                                ) : currentDistributeStatus3 === 4 ? (
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Distribute Balance Failed!</h3>
+
+                                        <p className='my-3 text-lg text-red-400 '>{distributeErrorBoxText}</p>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                        <button onClick={() => { setShowFormDistribute(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+
+                                ) : (
+
+
+                                    <>
+
+
+
+
+                                        <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Distribute Balance of Minipool</h3>
+                                            {/* <p className="text-[25px]">{RPLinput} RPL</p> */}
+                                        </div>
+
+                                        <hr className="w-full my-3" />
+
+                                        <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p> <FaCoins /></p>
+
+                                                    <p className="text-left">Confirm distribution </p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentDistributeStatus1 === 0 ? (
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+                                            </div>
+
+
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p><FaEthereum /></p>
+
+                                                    <p className="text-left">Confirming change...</p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentDistributeStatus2 === 0 ? (
+                                                            <p></p>
+
+                                                        ) : currentDistributeStatus2 === 1 ? (
+
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+
+
+                                            </div>
+
+
+
+
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                                    </>
+
+
+
+
+
+
+                                )}
+
+
+                            </div>
+
+
+                        </Modal>
+
+
+
+
+
+
+                        <Modal
+                            isOpen={showFormSetEnabled}
+                            onRequestClose={() => setShowFormSetEnabled(false)}
+                            contentLabel="Set Enabled Transaction Modal"
+                            className={`${styles.modal} ${showFormSetEnabledEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                                <div className="flex items-start justify-center gap-3 w-full">
+
+                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                            setShowFormSetEnabled(false)
+                                        }} />
+
+                                    </div>
+                                </div>
+                                {currentSetEnabledStatus3 === 3 ? (
+
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Change succesful!</h3>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                        <button onClick={() => { setShowFormSetEnabled(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+                                ) : currentSetEnabledStatus3 === 4 ? (
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[27px]">Failed to Change Enabled Status!</h3>
+
+                                        <p className='my-3 text-lg text-red-400 '>{errorBoxText2}</p>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                        <button onClick={() => { setShowFormSetEnabled(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+
+                                ) : (
+
+
+                                    <>
+
+
+
+
+                                        <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Change Enabled Status: </h3>
+
+                                        </div>
+
+                                        <hr className="w-full my-3" />
+
+                                        <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p> <HiOutlinePaperAirplane /></p>
+
+                                                    <p className="text-left">Signed Typed Data </p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentSetEnabledStatus1 === 0 ? (
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+                                            </div>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p><FaEthereum /></p>
+
+                                                    <p className="text-left">Confirming change...</p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentSetEnabledStatus2 === 0 ? (
+                                                            <p></p>
+
+                                                        ) : currentSetEnabledStatus2 === 1 ? (
+
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+
+
+                                            </div>
+
+
+
+
+
+
+
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                                    </>
+
+
+
+
+
+
+                                )}
+
+
+                            </div>
+
+
+                        </Modal>
 
 
 
@@ -3425,9 +4395,6 @@ const ValidatorDetail: NextPage = () => {
                                     <button className="bg-yellow-500 mt-2  text-xs  hover:bg-yellow-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={() => setShowForm(false)}>Cancel</button>
                                 </div>
 
-                                {graffitiError !== "" &&
-                                    <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{graffitiError}</p>
-                                }
                             </div>
                         </Modal>
 
@@ -3652,9 +4619,6 @@ const ValidatorDetail: NextPage = () => {
                                     </button>
                                 </div>
 
-                                {errorBoxText2 !== "" &&
-                                    <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{errorBoxText2}</p>
-                                }
 
 
 
@@ -3667,7 +4631,7 @@ const ValidatorDetail: NextPage = () => {
                         <Modal
                             isOpen={showFormStakeMinipool}
                             onRequestClose={() => setShowFormStakeMinipool(false)}
-                            contentLabel="Create Validator Modal"
+                            contentLabel="Stake Minipool Transaction Modal"
                             className={`${styles.modal} ${showFormEffectStakeMinipool ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -4202,6 +5166,199 @@ const ValidatorDetail: NextPage = () => {
 
 
                         </Modal>
+
+                        <Modal
+                            isOpen={showFormEditGraffiti}
+                            onRequestClose={() => setShowFormEditGraffiti(false)}
+                            contentLabel="Graffiti Transaction Modal"
+                            className={`${styles.modal} ${showFormEditGraffitiEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                                <div className="flex items-start justify-center gap-3 w-full">
+
+                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                            setShowFormEditGraffiti(false)
+                                        }} />
+
+                                    </div>
+                                </div>
+                                {currentEditGraffitiStatus3 === 3 ? (
+
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Graffiti Edit Successful!</h3>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                        <button onClick={() => { setShowFormEditGraffiti(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+                                ) : currentEditGraffitiStatus3 === 4 ? (
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Failed to change Validator Graffiti!</h3>
+
+                                        <p className='my-3 text-lg text-red-400 '>{graffitiError}</p>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                        <button onClick={() => { setShowFormEditGraffiti(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+
+                                ) : (
+
+
+                                    <>
+
+
+
+
+                                        <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Batch Change Graffiti </h3>
+                                            <p className="text-[19px]">Change the Graffiti for all your Validators...</p>
+                                        </div>
+
+                                        <hr className="w-full my-3" />
+
+                                        <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p> <HiOutlinePaperAirplane /></p>
+
+                                                    <p className="text-left">Signed Typed Data </p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentEditGraffitiStatus1 === 0 ? (
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+                                            </div>
+
+
+                                            <div className='flex items-start justify-between gap-6 w-full'>
+                                                <div className="flex items-center justify-start gap-4">
+                                                    <p><HiOutlinePaperAirplane /></p>
+
+                                                    <p className="text-left">Confirming change</p>
+                                                </div>
+                                                <p className='self-end'>
+
+                                                    {
+
+                                                        currentEditGraffitiStatus2 === 0 ? (
+                                                            <p></p>
+
+                                                        ) : currentEditGraffitiStatus2 === 1 ? (
+
+                                                            <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                                        ) : (
+
+                                                            <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                                        )
+
+
+
+
+                                                    }
+
+
+                                                </p>
+
+
+                                            </div>
+
+
+
+
+
+
+
+
+
+
+                                        </div>
+
+
+
+
+
+
+
+                                    </>
+
+
+
+
+
+
+                                )}
+
+
+                            </div>
+
+
+                        </Modal>
+
 
                         <Modal
                             isOpen={showFormGetPresigned}

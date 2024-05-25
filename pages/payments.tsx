@@ -16,6 +16,13 @@ import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
 import { FaCoins } from "react-icons/fa";
+import BounceLoader from "react-spinners/BounceLoader";
+import Modal from 'react-modal';
+import { FaEthereum } from "react-icons/fa";
+import styles from '../styles/Home.module.css';
+import { TiTick } from "react-icons/ti";
+import { BiSolidErrorAlt } from "react-icons/bi";
+import { AiOutlineClose } from 'react-icons/ai'
 
 
 const Payments: NextPage = () => {
@@ -81,6 +88,13 @@ const Payments: NextPage = () => {
 
 
 
+
+        setIncrementer(0)
+        setShowFormMakePayment(true)
+        
+
+
+
         try {
             let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
             let signer = await browserProvider.getSigner()
@@ -99,11 +113,16 @@ const Payments: NextPage = () => {
             if (receipt.status === 1) {
                 // If successful, setShowForm3(false)
 
-                setFeeETHInput("")
+                setIncrementer(1)
+
+               
                 getPayments();
 
-                alert("Success! There should be Confetti here and preloader over buttons!")
-                triggerConfetti();
+             
+              setIncrementerWithDelay(4, 700)
+
+              setFeeETHInput("")
+              
 
                 console.log("Transaction successful:", receipt);
             } else {
@@ -113,6 +132,7 @@ const Payments: NextPage = () => {
 
 
                 setPaymentErrorMessage(result)
+                setIncrementer(5)
 
 
             }
@@ -125,15 +145,15 @@ const Payments: NextPage = () => {
                 setPaymentErrorMessage(e.reason.toString())
 
             }
-            else if(e.error) {
+            else if (e.error) {
                 setPaymentErrorMessage(e.error["message"].toString())
-            } else{
+            } else {
 
                 setPaymentErrorMessage("Error: check you have input a valid ETH value.")
 
             }
 
-
+            setIncrementer(5)
 
 
 
@@ -390,6 +410,13 @@ const Payments: NextPage = () => {
     }, [paymentErrorMessage])
 
 
+    const setIncrementerWithDelay = (value: number, delay: number) => {
+        setTimeout(() => {
+          setIncrementer(value);
+        }, delay);
+      };
+
+
 
 
     const triggerConfetti = () => {
@@ -412,12 +439,89 @@ const Payments: NextPage = () => {
 
 
     const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
+    const [makePaymentErrorBoxText, setMakePaymentErrorBoxText] = useState("")
+
+
+
+
+
+    
+
+
+
+      const [showFormMakePayment, setShowFormMakePayment] = useState(false)
+      const [showFormMakePaymentEffect, setShowFormMakePaymentEffect] = useState(false)
+    
+    
+      useEffect(() => {
+    
+    
+        setShowFormMakePaymentEffect(showFormMakePayment);
+        if(showFormMakePayment === false) {
+            setIncrementer(0)
+        }
+    
+    
+      }, [showFormMakePayment]);
+    
+    
+      
+      const [currentMakePaymentStatus1, setCurrentMakePaymentStatus1] = useState(0)
+    
+      const [currentMakePaymentStatus3, setCurrentMakePaymentStatus3] = useState(0)
+      const [incrementer, setIncrementer] = useState(0)
+    
+    
+      useEffect(() => {
+    
+        if (currentMakePaymentStatus3 === 3) {
+    
+          triggerConfetti();
+        }
+    
+      }, [currentMakePaymentStatus3])
+    
+    
+    
+    
+      useEffect(() => {
+    
+    
+        if (incrementer === 1) {
+    
+          setCurrentMakePaymentStatus1(1)
+    
+    
+        }  else if (incrementer === 4) {
+          setCurrentMakePaymentStatus3(3)
+        } else if (incrementer === 5) {
+          setCurrentMakePaymentStatus3(4)
+        }
+    
+    
+    
+        else {
+    
+          setCurrentMakePaymentStatus1(0)
+        
+          setCurrentMakePaymentStatus3(0)
+    
+    
+    
+        }
+    
+      }, [incrementer])
+    
+
+
+
+
 
 
 
 
     return (
-        <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full h-auto flex-col">
+        <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full h-auto flex-col">
 
             <Head>
                 <title>Vrün | Nodes & Staking</title>
@@ -453,7 +557,7 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode? "#fff" : "#222" } : { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 
@@ -496,9 +600,6 @@ const Payments: NextPage = () => {
 
                                     </div>
 
-                                    {paymentErrorMessage !== "" &&
-                                        <p className="my-4 w-[80%] font-bold text-lg self-center text-center text-red-500 sm:text-l">{paymentErrorMessage}</p>
-                                    }
                                 </div>
 
 
@@ -552,6 +653,163 @@ const Payments: NextPage = () => {
                             </div>
 
 
+                       
+
+
+                            <Modal
+                                isOpen={showFormMakePayment}
+                                onRequestClose={() => setShowFormMakePayment(false)}
+                                contentLabel="Unstake RPL Transaction Modal"
+                                className={`${styles.modal} ${showFormMakePaymentEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                                ariaHideApp={false}
+                                style={{
+                                    overlay: {
+                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        zIndex: "999999999999999999999999999999999999",
+                                        transition: "0.2s transform ease-in-out",
+                                    },
+                                    content: {
+                                        width: 'auto',
+                                        height: 'auto',
+                                        minWidth: "280px",
+                                        position: 'absolute',
+                                        top: '50%',
+                                        left: '50%',
+
+                                        color: 'black',
+                                        backgroundColor: "#fff",
+                                        border: "0",
+                                        borderRadius: "20px",
+                                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                        overflow: "auto",
+                                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                    },
+                                }}
+                            >
+                                <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                                    <div className="flex items-start justify-center gap-3 w-full">
+
+                                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                                            <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                                setShowFormMakePayment(false)
+                                            }} />
+
+                                        </div>
+                                    </div>
+                                    {currentMakePaymentStatus3 === 3 ? (
+
+
+                                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Top-up Complete!</h3>
+
+                                            <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                            <button onClick={() => { setShowFormMakePayment(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                        </div>
+
+
+
+
+                                    ) : currentMakePaymentStatus3 === 4 ? (
+
+                                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                            <h3 className="font-bold text-[30px]">Top-up Failed!</h3>
+
+                                            <p className='my-3 text-lg text-red-400 '>{paymentErrorMessage}</p>
+
+                                            <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                            <button onClick={() => { setShowFormMakePayment(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                        </div>
+
+
+
+
+
+                                    ) : (
+
+
+                                        <>
+
+
+
+
+                                            <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                                <h3 className="font-bold text-[30px]">Top-up Vrun Account</h3>
+                                                <p className="text-[25px]">{feeETHInput} ETH</p>
+                                            </div>
+
+                                            <hr className="w-full my-3" />
+
+                                            <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                                <div className='flex items-start justify-between gap-6 w-full'>
+                                                    <div className="flex items-center justify-start gap-4">
+                                                        <p> <FaCoins/></p>
+
+                                                        <p className="text-left">Confirm Deposit </p>
+                                                    </div>
+                                                    <p className='self-end'>
+
+                                                        {
+
+                                                            currentMakePaymentStatus1 === 0 ? (
+                                                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                            ) : (
+
+                                                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                            )
+
+
+
+
+                                                        }
+
+
+                                                    </p>
+                                                </div>
+
+
+
+
+
+
+
+
+
+
+                                            </div>
+
+
+
+
+
+
+
+                                        </>
+
+
+
+
+
+
+                                    )}
+
+
+                                </div>
+
+
+                            </Modal>
+                        
                         </>
 
 

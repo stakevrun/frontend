@@ -67,6 +67,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       chains={chains}
     
       >
+         
    
         <Component {...pageProps} />
   

@@ -45,15 +45,21 @@ const Home: NextPage = () => {
 
 
   return (
-    <div  style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full h-auto flex-col">
+    <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222", fontFamily: "Poppins" }} className="flex w-full h-auto flex-col">
 
       <Head>
         <title>Vrün | Nodes & Staking</title>
         <meta
           content=" Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators."
           name="Vrün  | Nodes & Staking"
+
         />
+
+
         <link href="/favicon.ico" rel="icon" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
+        <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@700&family=Figtree:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,700;0,800;1,400;1,500&family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet"/>
       </Head>
 
 
@@ -75,7 +81,7 @@ const Home: NextPage = () => {
                 Welcome to Vrün!
               </h1>
 
-              <p className="text-md  md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
+              <p className="text-md text-black-100  md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
               </p>
 
@@ -142,7 +148,7 @@ const Home: NextPage = () => {
                     <a href="https://ethereum.org/en/developers/docs/" target='_blank' className='self-start mt-3'>
                       <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
-                       Get Started!
+                        Get Started!
 
                       </button>
                     </a>
