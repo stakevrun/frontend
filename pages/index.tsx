@@ -45,7 +45,7 @@ const Home: NextPage = () => {
 
 
   return (
-    <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222", fontFamily: "Poppins" }} className="flex w-full h-auto flex-col">
+    <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full h-auto flex-col">
 
       <Head>
         <title>Vrün | Nodes & Staking</title>
