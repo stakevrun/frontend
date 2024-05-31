@@ -203,4 +203,9 @@
     width: 100%;
     flex-direction: column;
   }
+
+  .card {
+    flex-direction: column;
+    gap: 2rem;
+  }
 }

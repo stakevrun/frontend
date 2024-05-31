@@ -179,7 +179,7 @@ const Payments: NextPage = () => {
         let paymentData: Array<RowType> = [];
 
 
-        const payments: string = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/payments`, {
+        const payments: string = await fetch(`https://fee.vrün.com/${currentChain}/${address}/payments`, {
             method: "GET",
 
             headers: {
@@ -260,7 +260,7 @@ const Payments: NextPage = () => {
 
 
 
-            const charges: number = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/${data.pubkey}/charges`, {
+            const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
                 method: "GET",
 
                 headers: {
@@ -543,7 +543,7 @@ const Payments: NextPage = () => {
 
 
                                 <div className="w-full flex flex-col justify-center items-center gap-4 ">
-                                    <h2 className="text-4xl font-bold ">Payments & Charges</h2>
+                                    <h2 className="text-2xl lg:text-4xl font-bold ">Payments & Charges</h2>
 
                                 </div>
 
@@ -564,9 +564,9 @@ const Payments: NextPage = () => {
 
                                         </span>
                                         {reduxPayments - reduxCharges > 0 ? (
-                                            <span className="block text-lg text-gray-500 ">Vrün Balance</span>
+                                            <span className="block text-md lg:text-lg text-gray-500 ">Vrün Balance</span>
                                         ) : (
-                                            <span className="block text-lg text-gray-500 ">in Arrears</span>
+                                            <span className="block text-md lg:text-lg text-gray-500 ">in Arrears</span>
 
                                         )
 
@@ -579,7 +579,7 @@ const Payments: NextPage = () => {
 
 
                                     <div className=" w-[85%] flex items-center flex-col justify-center gap-2">
-                                        <h2 className=" text-2xl  self-start font-bold mb-2">Add ETH Credit:</h2>
+                                        <h2 className=" text-xl lg:text-2xl  self-start font-bold mb-2">Add ETH Credit:</h2>
 
                                         <input
 

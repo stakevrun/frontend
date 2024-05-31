@@ -1462,10 +1462,8 @@ const dispatch = useDispatch()
 
 
 
-
-
           seperateMinipoolObjects.push({
-            address: "",
+            address:  address !== undefined? address.toString() : "",
             statusResult: "Empty",
             statusTimeResult: "",
             timeRemaining: "",
@@ -1486,6 +1484,12 @@ const dispatch = useDispatch()
             nodeAddress: ""
 
           })
+
+
+
+
+
+
 
 
         } else {
@@ -1645,14 +1649,17 @@ const dispatch = useDispatch()
             beaconObject = await getValBeaconStats(pubkey);
 
 
-            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" ||  beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+            if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
               newValBalance = beaconObject[0].end_balance
 
 
-            }
+          } else {
 
+              newValBalance = 0
 
-            for (const beaconLog of beaconObject) {
+          }
+
+            for (const beaconLog  of beaconObject) {
 
               let blocks = beaconLog.proposed_blocks
 

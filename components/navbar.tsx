@@ -612,10 +612,8 @@ const Navbar: NextPage = () => {
 
 
 
-
-
           seperateMinipoolObjects.push({
-            address: "",
+            address:  address !== undefined? address.toString() : "",
             statusResult: "Empty",
             statusTimeResult: "",
             timeRemaining: "",
@@ -636,6 +634,13 @@ const Navbar: NextPage = () => {
             nodeAddress: ""
 
           })
+
+
+
+
+
+
+       
 
 
         } else {
@@ -794,12 +799,15 @@ const Navbar: NextPage = () => {
 
             beaconObject = await getValBeaconStats(pubkey);
 
-
-            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" ||  beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+            if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
               newValBalance = beaconObject[0].end_balance
 
 
-            }
+          } else {
+
+              newValBalance = 0
+
+          }
 
 
             for (const beaconLog of beaconObject) {
@@ -910,14 +918,14 @@ const Navbar: NextPage = () => {
     <header style={{backgroundColor: reduxDarkMode? "#333": "white",  color: reduxDarkMode?  "white" : "#222"}} className="p-2 w-full h-auto bg-white flex flex-col items-center justify-center sticky top-0 z-50 shadow-md lg:h-[8vh]">
 
       <div className="mx-auto w-[90%] flex items-center justify-center gap-5">
-        <div className="flex h-14 items-center justify-between w-full rounded-lg md:px-3">
+        <div className="flex h-14 items-center  justify-between w-full rounded-lg md:px-3">
 
 
 
 
 
-          <div className="flex items-center justify-center gap-8">
-            <Link className="flex flex-row items-center justify-center gap-2" href="/">
+          <div className="hidden items-center justify-center gap-8 lg:flex ">
+            <Link className="flex flex-row items-left justify-center gap-2" href="/">
               <Image
                 height={30}
                 width={30}
@@ -943,12 +951,12 @@ const Navbar: NextPage = () => {
 
 
           </div>
-          <nav className="flex grow w-auto">
-            <ul className="flex grow flex-wrap gap-x-5 items-center justify-end">
+          <nav className="flex grow  w-full lg:w-auto ">
+            <ul className="flex grow flex-wrap gap-x-5  sm:pl-5 items-center justify-start lg:justify-end">
 
 
 
-              <li className="ml-1">
+              <li className=" ml-0 ml-1">
                 <ConnectButton />
               </li>
               {
@@ -973,10 +981,20 @@ const Navbar: NextPage = () => {
       </div>
       {
 
-        address !== undefined ? (<div className="ml-1 block lg:hidden">
-          <Link href="/account" className="hover:text-gray-600">
+        address !== undefined ? (<div className="ml-1 mt-4 gap-5 flex w-full items-center justify-center gap-2 block lg:hidden">
+           <Link href="/" className="hover:text-gray-600 text-xs">
+            Home
+          </Link>
+          <Link href="/account" className="hover:text-gray-600 text-xs">
             Go to Account
           </Link>
+          <Link href="/payments" className="hover:text-gray-600 text-xs">
+              Payments
+            </Link>
+
+            <Link href="/rpl" className=" hover:text-gray-600 text-xs">
+              RPL
+            </Link>
           <Toggle/>
 
         </div>) : (<></>)

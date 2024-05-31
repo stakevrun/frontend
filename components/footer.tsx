@@ -20,18 +20,18 @@ const Footer: NextPage = () => {
   return (
 
 
-    <footer  className="p-4 w-full h-[100px] flex items-center justify-center mt-[100px] gap-8 bg-[#333] justify-center z-[999]">
+    <footer  className="p-4 w-full h-auto lg:h-[100px] flex flex-col items-center justify-center lg:flex-row mt-[100px] gap-8 bg-[#333] justify-center z-[999]">
 
-        <div className='w-[60]  flex items-center justify-center gap-8'>
+        <div className='w-[100%] lg:w-auto flex flex-col lg:flex-row items-start lg:items-center justify-center gap-8'>
 
-        <p className="text-white">Vrun website and staking service Copyright 2024</p>
+        <p className="text-white">Vrün website and staking service Copyright 2024</p>
 
-<p className="text-white">This app is a work in progress, please email any inquiries to admin@vrun.com</p>
+<p className="text-white">This app is a work in progress, please email any inquiries to admin@vrün.com</p>
 
 
         </div>
 
-        <div className='w-[60] flex flex-col items-center justify-center gap-2'>
+        <div className='w-[100%] lg:w-auto flex flex-col  items-start lg:items-center justify-center gap-2'>
 
 <p className="font-bold hover:text-yellow-100 cursor-pointer text-white">Terms & Conditions</p>
 

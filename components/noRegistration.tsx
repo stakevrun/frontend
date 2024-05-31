@@ -3,6 +3,23 @@ import timezones from "./timezones.json"
 import Image from 'next/image';
 import { ethers } from 'ethers';
 import { useAccount, useChainId } from 'wagmi';
+import { GrSatellite } from "react-icons/gr";
+import { AiOutlineClose } from 'react-icons/ai'
+import { HiOutlinePaperAirplane } from "react-icons/hi";
+import { FaSignature } from "react-icons/fa";
+import { PieChart, LineChart } from '@mui/x-charts'
+import { Line, getElementsAtEvent } from 'react-chartjs-2';
+import { PiSignatureBold } from "react-icons/pi";
+import { FaEthereum } from "react-icons/fa";
+import { FaCoins } from "react-icons/fa";
+import { VscActivateBreakpoints } from "react-icons/vsc";
+import Modal from 'react-modal';
+import confetti from 'canvas-confetti';
+import styles from '../styles/Home.module.css';
+import BounceLoader from "react-spinners/BounceLoader";
+import { TiTick } from "react-icons/ti";
+import { BiSolidErrorAlt } from "react-icons/bi";
+
 
 
 
@@ -51,7 +68,15 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
 
 
 
+
+
+  const triggerConfetti = () => {
+    confetti();
+  };
+
+
   const [selectedTimezone, setSelectedTimezone] = useState('');
+  const [registrationError, setRegistrationError] = useState("")
 
   // Function to handle the change event of the select element
   const handleTimezoneChange = (event: any) => {
@@ -61,8 +86,23 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
   };
 
 
+
+
+  const setIncrementerWithDelay = (value: number, delay: number) => {
+    setTimeout(() => {
+      setIncrementer(value);
+    }, delay);
+  };
+
+
   const handleRocketRegistration = async () => {
+
+
+    setShowFormRegister(true)
+    setIncrementer(0)
     if (typeof (window as any).ethereum !== "undefined") {
+
+
       try {
 
 
@@ -82,23 +122,49 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
         const tx = await rocketNodeManager.registerNode(selectedTimezone)
         console.log(tx);
 
+        setIncrementer(1)
+
         // Listen for transaction confirmation
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
         // Check if transaction was successful
         if (receipt.status === 1) {
+
+          setIncrementer(2)
+          setIncrementerWithDelay(4, 400)
           // Transaction successful, update state
           onRegistrationResult({ result: "success" });
         } else {
           // Transaction failed, update state with error
+         
+          setRegistrationError("Transaction Failed")
+          setIncrementer(5)
           onRegistrationResult({ error: "Transaction failed" });
         }
-      } catch (err) {
-        console.log(err)
+      } catch (e: any) {
+
         // Update state with error
-        onRegistrationResult({ error: err });
+        onRegistrationResult({ error: e });
+
+        if (e.reason) {
+          setRegistrationError(e.reason.toString())
+
+        }
+        else if (e.error) {
+          setRegistrationError(e.error["message"].toString())
+        } else {
+
+          setRegistrationError("Error: check you have input a valid ETH value.")
+
+        }
+
+        setIncrementer(5)
+
       }
+    } else {
+      setIncrementer(5)
+      setRegistrationError("No Browser Provider! Unable to continue Transaction... ")
     }
   }
 
@@ -109,6 +175,83 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
 
 
   const alphaArray = alphabetizeArray(timezones)
+
+
+
+  const [incrementer, setIncrementer] = useState(0);
+  const [showFormRegister, setShowFormRegister] = useState(false)
+  const [showFormEffectRegister, setShowFormEffectRegister] = useState(false)
+
+
+  useEffect(() => {
+
+
+    setShowFormEffectRegister(showFormRegister);
+
+
+    if (showFormRegister === false) {
+      setIncrementer(0)
+    }
+
+
+  }, [showFormRegister]);
+
+
+
+  const [currentRegisterStatus1, setCurrentRegisterStatus1] = useState(0)
+  const [currentRegisterStatus2, setCurrentRegisterStatus2] = useState(0)
+  const [currentRegisterStatus3, setCurrentRegisterStatus3] = useState(0)
+
+
+  useEffect(() => {
+
+    if (currentRegisterStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentRegisterStatus3])
+
+
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentRegisterStatus1(1)
+      setCurrentRegisterStatus2(1)
+
+
+    } else if (incrementer === 2) {
+      setCurrentRegisterStatus2(2)
+
+
+
+
+    } else if (incrementer === 4) {
+      setCurrentRegisterStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentRegisterStatus3(4)
+    }
+
+
+
+    else {
+
+      setCurrentRegisterStatus1(0)
+      setCurrentRegisterStatus2(0)
+      setCurrentRegisterStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
+
+
+
 
 
 
@@ -138,7 +281,7 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
 
         <div className="inline-block relative">
           <select
-            className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+            className="block appearance-none w-full bg-white border  text-black border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
             onChange={handleTimezoneChange} // Attach the function to the onChange event
             value={selectedTimezone} // Set the value of the select element to the selectedTimezone state
           >
@@ -160,6 +303,201 @@ const NoRegistration = ({ onRegistrationResult }: any) => {
           </button>
         </div>
       </div>
+
+
+
+      <Modal
+        isOpen={showFormRegister}
+        onRequestClose={() => setShowFormRegister(false)}
+        contentLabel="Register with Rocket Pool Transaction Modal"
+        className={`${styles.modal} ${showFormEffectRegister ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+        ariaHideApp={false}
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: "999999999999999999999999999999999999",
+            transition: "0.2s transform ease-in-out",
+          },
+          content: {
+            width: 'auto',
+            height: 'auto',
+            minWidth: "280px",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+
+            color: 'black',
+            backgroundColor: "#fff",
+            border: "0",
+            borderRadius: "20px",
+            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+            overflow: "auto",
+            WebkitOverflowScrolling: "touch", // For iOS Safari
+            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+          },
+        }}
+      >
+        <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+          <div className="flex items-start justify-center gap-3 w-full">
+
+            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                setShowFormRegister(false)
+              }} />
+
+            </div>
+          </div>
+          {currentRegisterStatus3 === 3 ? (
+
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]">You are now Registered with Rocket Pool!</h3>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+              <button onClick={() => { setShowFormRegister(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+          ) : currentRegisterStatus3 === 4 ? (
+
+            <div className='w-full flex items-center flex-col gap-2 justify-center'>
+              <h3 className="font-bold text-[30px]"> Registration Failed!</h3>
+
+              <p className='my-3 text-lg text-red-400 '>{registrationError}</p>
+
+              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+              <button onClick={() => { setShowFormRegister(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+            </div>
+
+
+
+
+
+          ) : (
+
+
+            <>
+
+
+
+
+              <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                <h3 className="font-bold text-[30px]">Register your Node with Rocket Pool</h3>
+                {/* <p className="text-[25px]">{RPLinput} RPL</p> */}
+              </div>
+
+              <hr className="w-full my-3" />
+
+              <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                <div className='flex items-start justify-between gap-6 w-full'>
+                  <div className="flex items-center justify-start gap-4">
+                    <p> <FaSignature/></p>
+
+                    <p className="text-left">Confirm Registration</p>
+                  </div>
+                  <p className='self-end'>
+
+                    {
+
+                      currentRegisterStatus1 === 0 ? (
+                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                      ) : (
+
+                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                      )
+
+
+
+
+                    }
+
+
+                  </p>
+                </div>
+
+
+
+
+                <div className='flex items-start justify-between gap-6 w-full'>
+                  <div className="flex items-center justify-start gap-4">
+                    <p><FaEthereum /></p>
+
+                    <p className="text-left">Confirming change...</p>
+                  </div>
+                  <p className='self-end'>
+
+                    {
+
+                      currentRegisterStatus2 === 0 ? (
+                        <p></p>
+
+                      ) : currentRegisterStatus2 === 1 ? (
+
+                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                      ) : (
+
+                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                      )
+
+
+
+
+                    }
+
+
+                  </p>
+
+
+                </div>
+
+
+
+
+
+
+
+              </div>
+
+
+
+
+
+
+
+            </>
+
+
+
+
+
+
+          )}
+
+
+        </div>
+
+
+      </Modal>
+
+
 
 
 

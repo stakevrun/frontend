@@ -295,18 +295,28 @@ const AccountMain: NextPage = () => {
   const [graphTimeout, setGraphTimeout] = useState(false)
 
   useEffect(() => {
+
+
+
+
+    if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
+
+      setGraphTimeout(true);
+
+    } 
+
     const timer = setTimeout(() => {
-      if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
-
-        setGraphTimeout(true);
-
-      }
 
 
-    }, 500);
 
-    return () => clearTimeout(timer); // Cleanup timeout if the component unmounts
-  }, []);
+      setGraphTimeout(true);
+
+    }, 7000);
+
+    return () => clearTimeout(timer);
+    // Cleanup timeout if the component unmounts
+
+  }, [reduxData]);
 
 
 
@@ -1346,7 +1356,7 @@ const AccountMain: NextPage = () => {
 
           minipoolObjects.push({
 
-            address: "",
+            address: address !== undefined ? address.toString() : "",
             statusResult: "Empty",
             statusTimeResult: "",
             timeRemaining: "",
@@ -1384,6 +1394,10 @@ const AccountMain: NextPage = () => {
             nodeAddress: ""
 
           })
+
+
+
+
 
 
         } else {
@@ -1532,12 +1546,15 @@ const AccountMain: NextPage = () => {
             beaconObject = await getValBeaconStats(pubkey);
 
 
-            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+            if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
               newValBalance = beaconObject[0].end_balance
 
 
-            }
+            } else {
 
+              newValBalance = 0
+
+            }
 
             for (const beaconLog of beaconObject) {
 
@@ -1677,7 +1694,7 @@ const AccountMain: NextPage = () => {
 
 
 
-        if (log.beaconStatus === "active_ongoing" || log.beaconStatus === "active_exiting" || log.beaconStatus === "exited_unslashed" || log.beaconStatus === "exited_slashed" || log.beaconStatus === "active_slashed" || log.beaconStatus === "withdrawal_possible" || log.beaconStatus === "withdrawal_done") {
+        if (log.beaconStatus === "active_ongoing") {
 
           newRunningVals += 1;
           newTotalVals += 1;
@@ -1702,7 +1719,7 @@ const AccountMain: NextPage = () => {
 
           }
 
-          else if (log.statusResult === "Staking") {
+          else if (log.statusResult === "Staking" && log.beaconStatus !== "withdrawal_done" && Number(log.valBalance) > 0) {
             newTotalVals += 1;
 
           }
@@ -2127,25 +2144,33 @@ const AccountMain: NextPage = () => {
     // Check if newPlotPointsArray is not empty
     if (newPlotPointsArray.length > 0) {
       const numArrays = newPlotPointsArray.length;
-      const arrayLength = newPlotPointsArray[0].length; // Assuming all inner arrays have the same length
 
-      // Iterate over each index of the inner arrays
-      for (let i = 0; i < arrayLength; i++) {
+      // Find the maximum length among all inner arrays
+      const maxLength = newPlotPointsArray.reduce((max, arr) => Math.max(max, arr.length), 0);
+
+      // Iterate over each index up to the maximum length
+      for (let i = 0; i < maxLength; i++) {
         let sum = 0;
+        let count = 0;
 
         // Calculate the sum of values at the current index across all inner arrays
-        
         for (let j = 0; j < numArrays; j++) {
-          sum += newPlotPointsArray[j][i];
+          if (i < newPlotPointsArray[j].length) {
+            sum += newPlotPointsArray[j][i];
+            count++;
+          }
         }
 
         // Calculate the average and push it to the averagePlotPoints array
-        averagePlotPoints.push(sum / numArrays);
+        if (count > 0) {
+          averagePlotPoints.push(sum / count);
+        }
       }
-    } 
+    }
 
     return averagePlotPoints;
   }
+
 
   const [TotalGraphPlotPoints, setTotalGraphPlotPoints] = useState<Array<number>>([])
   const [xAxisData, setXAxisData] = useState<Array<number>>([]);
@@ -2237,12 +2262,12 @@ const AccountMain: NextPage = () => {
 
       }
 
-      if (object.statusResult === "Staking") {
 
-        newPlotPointsArray.push(newPlotPoints)
-        newMissedAttestationsArray.push(newMissedAttestations)
 
-      }
+      newPlotPointsArray.push(newPlotPoints)
+      newMissedAttestationsArray.push(newMissedAttestations)
+
+
 
 
     }
@@ -2520,8 +2545,11 @@ const AccountMain: NextPage = () => {
       console.log("Deffo here...")
 
 
+      // https://fee.vrun.com
 
-      const charges: number = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/${data.pubkey}/charges`, {
+
+
+      const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
         method: "GET",
 
         headers: {
@@ -2603,7 +2631,7 @@ const AccountMain: NextPage = () => {
     let paymentData: Array<RowType> = [];
 
 
-    const payments: string = await fetch(`https://xrchz.net/stakevrun/fee/${currentChain}/${address}/payments`, {
+    const payments: string = await fetch(`https://fee.vrün.com/${currentChain}/${address}/payments`, {
       method: "GET",
 
       headers: {
@@ -3006,7 +3034,7 @@ const AccountMain: NextPage = () => {
     scales: {
       y: {
         min: 0,
-        max: 0.01
+        max: 0.05
       }
     }
 
@@ -3083,9 +3111,9 @@ const AccountMain: NextPage = () => {
 
         if (receipt.status === 1) {
 
-        setIncrementer(2)
+          setIncrementer(2)
 
-        const data = await getMinipoolData();
+          const data = await getMinipoolData();
 
           setIncrementerWithDelay(4, 300)
 
@@ -3096,7 +3124,7 @@ const AccountMain: NextPage = () => {
           setErrorBoxTest2("An Unknown error has occured. Please try again.")
 
 
-          
+
 
 
         }
@@ -3110,7 +3138,7 @@ const AccountMain: NextPage = () => {
 
         let input: any = error
 
-    
+
 
         if (input.reason) {
           setErrorBoxTest2(input.info.error.message.toString())
@@ -3119,11 +3147,11 @@ const AccountMain: NextPage = () => {
 
         else if (input.error) {
 
-          
+
           setErrorBoxTest2(input.error["message"].toString())
 
 
-        } else{
+        } else {
 
           setErrorBoxTest2("An Unknown error has occured")
 
@@ -3140,7 +3168,7 @@ const AccountMain: NextPage = () => {
   }
 
 
-  
+
 
 
   const [showForm5, setShowForm5] = useState(false)
@@ -3390,11 +3418,11 @@ const AccountMain: NextPage = () => {
   useEffect(() => {
 
 
-      setShowFormSmoothingPoolEffect(showFormSmoothingPool);
+    setShowFormSmoothingPoolEffect(showFormSmoothingPool);
 
-      if (showFormSmoothingPool === false) {
-          setIncrementer(0)
-      }
+    if (showFormSmoothingPool === false) {
+      setIncrementer(0)
+    }
 
 
   }, [showFormSmoothingPool]);
@@ -3410,10 +3438,10 @@ const AccountMain: NextPage = () => {
 
   useEffect(() => {
 
-      if (currentSmoothingPoolStatus3 === 3) {
+    if (currentSmoothingPoolStatus3 === 3) {
 
-          triggerConfetti();
-      }
+      triggerConfetti();
+    }
 
   }, [currentSmoothingPoolStatus3])
 
@@ -3423,33 +3451,33 @@ const AccountMain: NextPage = () => {
   useEffect(() => {
 
 
-      if (incrementer === 1) {
+    if (incrementer === 1) {
 
-          setCurrentSmoothingPoolStatus1(1)
-          setCurrentSmoothingPoolStatus2(1)
+      setCurrentSmoothingPoolStatus1(1)
+      setCurrentSmoothingPoolStatus2(1)
 
-      } else if (incrementer === 2) {
-          setCurrentSmoothingPoolStatus2(2)
-
-
-
-      } else if (incrementer === 4) {
-          setCurrentSmoothingPoolStatus3(3)
-      } else if (incrementer === 5) {
-          setCurrentSmoothingPoolStatus3(4)
-      }
+    } else if (incrementer === 2) {
+      setCurrentSmoothingPoolStatus2(2)
 
 
 
-      else {
+    } else if (incrementer === 4) {
+      setCurrentSmoothingPoolStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentSmoothingPoolStatus3(4)
+    }
 
-          setCurrentSmoothingPoolStatus1(0)
-          setCurrentSmoothingPoolStatus2(0)
-          setCurrentSmoothingPoolStatus3(0)
+
+
+    else {
+
+      setCurrentSmoothingPoolStatus1(0)
+      setCurrentSmoothingPoolStatus2(0)
+      setCurrentSmoothingPoolStatus3(0)
 
 
 
-      }
+    }
 
   }, [incrementer])
 
@@ -3476,14 +3504,14 @@ const AccountMain: NextPage = () => {
             <>
               {!preloader ? (
 
-                <div className="w-full flex flex-col items-center  justify-center">
+                <div className="w-full flex flex-col pt-[3vh] items-center gap-7 lg:gap-0 justify-center">
 
 
-                  <div className="w-full h-auto lg:h-[90vh] flex flex-col items-center justify-center gap-[8vh]">
+                  <div className="w-full h-auto lg:h-[90vh] pt-[8vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[8vh]">
 
 
                     <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="w-full flex flex-col justify-center items-center gap-4 ">
-                      <h2 className="text-4xl font-bold  ">Account Overview</h2>
+                      <h2 className=" text-2xl lg:text-4xl font-bold  ">Account Overview</h2>
 
 
 
@@ -3491,74 +3519,76 @@ const AccountMain: NextPage = () => {
                     </div>
 
 
-                    <div className="w-full h-auto flex-col flex gap-[10vh] pt-8 items-center justify-center lg:flex-row lg:pt-0">
+                    <div className="w-full h-auto lg:h-auto flex-col flex gap-[10vh] items-center justify-center lg:flex-row lg:pt-0 ">
 
 
-                      <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-5 shadow-2xl md:h-auto ">
+                      <div className="h-auto w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl md:h-auto ">
 
-                        <div style={{ backgroundColor: reduxDarkMode ? "#333" : "#fff" }} className="grid h-full w-full grid-cols-1 gap-4 p-6 overflow-hidden rounded-2xl ">
+                        <div className=" h-full w-full gap-4 overflow-hidden rounded-2xl ">
 
-                          {graphData.labels.length > 0 || graphTimeout ? (
-
-
-                            <div className="w-auto h-[auto]  flex flex-col items-center justify-center p-8 px-[6vh]">
+                          <div style={{ backgroundColor: reduxDarkMode ? "#333" : "#fff" }} className="flex items-center w-auto  h-auto justify-center p-3 lg:p-6  ">
 
 
+                            {(graphData.labels.length > 0 && graphTimeout) || ( reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) ? (
 
 
-
-
-
-                              <Line
-
-                                data={graphData}
-                                options={options}
-                                onClick={onClick}
-                                ref={charRef}
-
-
-                              >
+                              <div className="w-[270px] sm:w-auto h-auto  flex flex-col items-center justify-center p-2 lg:p-8 px-[0.5vh] lg:px-[6vh]">
 
 
 
-                              </Line>
 
-                              <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
 
-                                <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+                                <Line
+
+                                  data={graphData}
+                                  options={options}
+                                  onClick={onClick}
+                                  ref={charRef}
+
+
+                                >
+
+
+
+                                </Line>
+
+                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                  <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                  <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                  <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                  <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                                </div>
+                                <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
+
+
+
 
 
 
                               </div>
-                              <p className=" w-[100%] self-center text-wrap text-md py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
 
 
+                            ) : (
+
+                              <div className="w-auto h-auto gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
 
 
+                                <h3>Please wait while we retrieve your rewards data...</h3>
 
+                                <BounceLoader />
 
-                            </div>
-
-
-                          ) : (
-
-                            <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
-
-
-                              <h3>Please wait while we retrieve your rewards data...</h3>
-
-                              <BounceLoader />
-
-                            </div>
-                          )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
 
 
-                      <div className="xl:flex xl:flex-row lg:flex-col w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
+                      <div className="xl:flex xl:flex-row lg:flex-col w-[90%] lg:w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
@@ -3616,7 +3646,7 @@ const AccountMain: NextPage = () => {
                               <FaCoins className="text-yellow-500 text-xl" />
 
                             </div>
-                            <div className=" w-full max-w-3xl flex  items-center justify-start gap-10 text-left">
+                            <div className=" w-full max-w-3xl flex  flex-col lg:flex-row items-start lg:items-center justify-start gap-1.5 lg:gap-10 text-left">
 
 
 
@@ -3723,7 +3753,7 @@ const AccountMain: NextPage = () => {
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
 
                         <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                          <h3 className="text-4xl font-bold ">Validators</h3>
+                          <h3 className=" text-2xl lg:text-4xl font-bold ">Validators</h3>
                           <Link href="/createValidator">
 
                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16  rounded-full ">
@@ -3740,7 +3770,7 @@ const AccountMain: NextPage = () => {
                     </div>
 
 
-                    <div ref={targetRef} className="w-auto overflow-hidden shadow-xl border rounded-lg mb-10 ">
+                    <div ref={targetRef} id="accountTable" className="w-[90%] lg:w-auto overflow-scroll shadow-xl border rounded-lg mb-10 ">
 
 
                       <table className="w-full">
@@ -3752,14 +3782,14 @@ const AccountMain: NextPage = () => {
 
 
                               <td className=" px-4 pl-10 w-[200px] ">
-                                <span className='text-green-500 self-center font-bold text-lg ' >
+                                <span className='text-green-500 self-center font-bold text-sm lg:text-lg ' >
 
                                   {data.valBalance}
                                 </span>
                               </td>
 
                               <td className="px-4 py-3 w-[200px]">
-                                <div className="flex items-center text-lg">
+                                <div className="flex items-center text-sm lg:text-lg">
 
 
                                   <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
@@ -3796,12 +3826,12 @@ const AccountMain: NextPage = () => {
                               <td className="px-4 py-3 w-[200px]">
                                 <div className="flex items-center flex-col gap-1 text-l ">
 
-                                  <h3 className='text-center font-semibold text-[18px]'>Validator Status</h3>
+                                  <h3 className='text-center font-semibold text-sm lg:text-lg'>Validator Status</h3>
                                   <GrSatellite />
 
                                   {data.statusResult === "Staking" && data.beaconStatus !== "" ? (<p className="text-yellow-500  text-center  text-md">{data.beaconStatus}</p>) :
                                     (
-                                      <p className="text-yellow-500 text-center  text-md">
+                                      <p className="text-yellow-500 text-center  text-sm lg:text-lg">
 
                                         {
                                           data.statusResult === "Staking" && data.beaconStatus === "" && "waiting_for_beaconchain"
@@ -3838,7 +3868,7 @@ const AccountMain: NextPage = () => {
                                 <div className="flex items-center text-l  flex-col gap-1">
                                   {data.valProposals !== "" &&
 
-                                    <h3 className='text-center  font-semibold text-lg'>Blocks Proposed</h3>
+                                    <h3 className='text-center  font-semibold text-sm lg:text-lg'>Blocks Proposed</h3>
 
                                   }
 
@@ -3856,13 +3886,13 @@ const AccountMain: NextPage = () => {
                   </div>
 
 
-                  <div className='flex w-full h-auto flex-col justify-center items-center gap-4 lg:min-h-[90vh]'>
+                  <div className='flex w-full h-auto px-6vh mx-6vh lg:px-[0vh] flex-col justify-center items-center gap-4 lg:min-h-[90vh]'>
 
                     <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
 
                         <div className="w-full gap-6 flex  items-center justify-center px-12 py-6 h-auto" >
-                          <h3 className="text-4xl font-bold ">Account Details</h3>
+                          <h3 className=" text-2xl lg:text-4xl font-bold ">Account Details</h3>
 
 
                         </div>
@@ -3889,7 +3919,7 @@ const AccountMain: NextPage = () => {
                         <div className='flex h-full flex-col items-start gap-0.5 justify-center w-full'>
 
 
-                          <p className="block text-lg  font-bold">Batch Change Graffiti</p>
+                          <p className="block  text-md lg:text-lg  font-bold">Batch Change Graffiti</p>
 
                           <div className='w-full flex flex-col gap-1 items-start justify-center'>
 
@@ -3911,7 +3941,7 @@ const AccountMain: NextPage = () => {
 
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
-                            <span className="block text-lg  font-bold" >Successful Attestations</span>
+                            <span className="block text-md lg:text-lg  font-bold" >Successful Attestations</span>
 
                             <span className="block text-gray-500 mt-1 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
 
@@ -3919,7 +3949,7 @@ const AccountMain: NextPage = () => {
 
                         ) : (
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
-                            <span className="block text-lg font-bold">Attestations</span>
+                            <span className="block text-md lg:text-lg font-bold">Attestations</span>
                             <span className="block text-gray-500 mt-1 text-[18px]" >0</span>
 
                           </div>
@@ -3941,7 +3971,7 @@ const AccountMain: NextPage = () => {
 
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
-                            <span className="block text-lg  font-bold">Smoothing Pool</span>
+                            <span className="block text-md lg:text-lg font-bold">Smoothing Pool</span>
 
 
 
@@ -3950,7 +3980,7 @@ const AccountMain: NextPage = () => {
                               <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Opted-in</p> <TiTick /></div>
 
                             ) : (
-                              <p className="text-red-400 text-[18px]">Opted-out</p>
+                              <p className="text-red-400 text-md lg:text-lg text-[18px]">Opted-out</p>
 
                             )}
 
@@ -4696,7 +4726,7 @@ const AccountMain: NextPage = () => {
                         </button>
                       </div>
 
-               
+
 
 
 

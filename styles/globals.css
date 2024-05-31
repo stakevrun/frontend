@@ -32,13 +32,16 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  display: none;
+  position: relative;
 }
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+  display: none;
+  position: relative;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgb(179, 179, 179);
+  display: none;
+  position: relative;
 }
 
 .sidebarWrapper {
@@ -78,6 +81,13 @@ a {
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+
+
+#accountTable::-webkit-scrollbar {
+  display: none;
+  position: relative;
 }
 
 
