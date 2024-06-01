@@ -8,7 +8,7 @@ body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, "Helvetica Neue", sans-serif;
 }
 
 a {
@@ -18,6 +18,8 @@ a {
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 
@@ -30,13 +32,16 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  display: none;
+  position: relative;
 }
 ::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
+  display: none;
+  position: relative;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgb(179, 179, 179);
+  display: none;
+  position: relative;
 }
 
 .sidebarWrapper {
@@ -76,6 +81,13 @@ a {
   padding: 0;
   margin: 0;
   list-style: none;
+}
+
+
+
+#accountTable::-webkit-scrollbar {
+  display: none;
+  position: relative;
 }
 
 

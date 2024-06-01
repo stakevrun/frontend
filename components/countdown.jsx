@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from 'react';
 
-const CountdownComponent = ({ milliseconds }) => {
+const CountdownComponent = ({ milliseconds, reset }) => {
   const [formattedTime, setFormattedTime] = useState('');
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       // Calculate remaining time
+
       const now = new Date().getTime();
-      const remainingTime = milliseconds - now;
+
+    
+      console.log("NOW:" + now)
+      console.log("MILIS:" + milliseconds)
+      const remainingTime =  milliseconds - now;
+
+      console.log("Remaing time:" + remainingTime)
 
       // If remaining time is less than or equal to 0, stop countdown
       if (remainingTime <= 0) {
         clearInterval(intervalId);
-        setFormattedTime("No countdowns initiated");
+        setFormattedTime("");
+        reset();
         return;
       }
 
@@ -33,7 +41,10 @@ const CountdownComponent = ({ milliseconds }) => {
   }, [milliseconds]);
 
   return (
-    <div>{formattedTime}</div>
+    <div className="flex flex-col items-start justify-center gap-2">
+    <div className="font-bold text-gray-400 text-md">{formattedTime}</div>
+   
+    </div>
   );
 };
 

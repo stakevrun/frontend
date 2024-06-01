@@ -1,12 +1,18 @@
 import React, { useState } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Navbar from './components/navbar';
+import Navbar from '../components/navbar';
 import { NextPage } from 'next';
-import Leftbar from './components/leftbar';
-import AccountMain from './components/accountMain';
+import Leftbar from '../components/leftbar';
+import AccountMain from '../components/accountMain';
 import Head from 'next/head';
+import Footer from '../components/footer';
+import type { RootState } from '../globalredux/store';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Account: NextPage = () => {
+
+
+  const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -16,7 +22,7 @@ const Account: NextPage = () => {
 
 
   return (
-    <div className="flex w-full mx-auto flex-col ">
+    <div style={{backgroundColor: reduxDarkMode? "#222": "white", height: "auto", width: "100%", color: reduxDarkMode?  "white" : "#222"}} className="flex w-full mx-auto flex-col ">
 
 <Head>
         <title>Vrün | Nodes & Staking</title>
@@ -27,13 +33,9 @@ const Account: NextPage = () => {
         <link href="/favicon.ico" rel="icon" />
       </Head>
       <Navbar />
-      <div className='flex w-full sticky top-16'>
-       {/* <Leftbar /> */}
+      <div className='flex w-full h-auto sticky top-[8vh] mb-8 pb-[34vh]'>
+      {/* <Leftbar /> */}
       <AccountMain/>
-
-
-
-
 
 
       </div>
@@ -43,7 +45,7 @@ const Account: NextPage = () => {
 
 
 
-
+<Footer/>
     </div>
   )
 }
