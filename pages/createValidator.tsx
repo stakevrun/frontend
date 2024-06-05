@@ -581,6 +581,7 @@ const dispatch = useDispatch()
       } else {
         setIncrementer(5)
         setStakeButtonBool(true)
+        setErrorBoxTest("An unknown error occured.");
         // Handle failed transaction
       }
     } catch (e: any) {
