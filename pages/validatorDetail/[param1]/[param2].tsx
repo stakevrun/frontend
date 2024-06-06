@@ -1172,11 +1172,33 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                await minipool.stake(depositSignature, depositDataRoot);
+                const tx = await minipool.stake(depositSignature, depositDataRoot);
 
-                setIncrementer(3)
 
-                setIncrementerWithDelay(4, 1500);
+
+                const receipt = await tx.wait()
+
+
+                if(receipt.status === 1) {
+
+                    setIncrementer(3)
+
+                    setIncrementerWithDelay(4, 1500);
+
+                     
+                } else {
+
+                    setIncrementer(5)
+
+                
+                        setStakeErrorMessage("An unknown error has occured. Please try again.")
+        
+        
+                 
+
+                }
+
+           
 
 
             } else {
@@ -1220,16 +1242,31 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                await minipool.stake(depositSignature, depositDataRoot);
+                const tx = await minipool.stake(depositSignature, depositDataRoot);
 
 
-                setIncrementer(3)
 
-                getMinipoolData();
-
-                setIncrementerWithDelay(4, 1500);
+                const receipt = await tx.wait()
 
 
+                if(receipt.status === 1) {
+
+                    setIncrementer(3)
+
+                    setIncrementerWithDelay(4, 1500);
+
+                     
+                } else {
+
+                    setIncrementer(5)
+
+                
+                        setStakeErrorMessage("An unknown error has occured. Please try again.")
+        
+        
+                 
+
+                }
 
 
 
