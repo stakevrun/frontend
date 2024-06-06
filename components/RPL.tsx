@@ -439,6 +439,11 @@ const RPLBlock: NextPage = () => {
 
 
   const handleApproveRPL = async () => {
+
+    
+    const run =   isValidPositiveWholeNumber(RPLinput)
+
+    if(run === true) {
     if (typeof (window as any).ethereum !== "undefined") {
       try {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
@@ -461,12 +466,29 @@ const RPLBlock: NextPage = () => {
 
         await approvalTx.wait();
         return NodeStakingAddress;
-      } catch (error) {
-        console.log(error);
+      } catch (e : any) {
+      
+
+        if (e.reason !== undefined) {
+          setErrorBoxTest(e.reason.toString());
+  
+  
+      } else if (e.error) {
+          setErrorBoxTest(e.error["message"].toString())
+      } else {
+          setErrorBoxTest("An Unknown error occured.")
+  
+      }
+        setIncrementer(5)
+        setStakeButtonBool(true)
       }
     } else {
       console.log("Metamask not available");
 
+    } } else {
+      setIncrementer(5)
+      setStakeButtonBool(true)
+      setErrorBoxTest("You must enter a valid number.")
     }
   };
 
@@ -631,7 +653,28 @@ const RPLBlock: NextPage = () => {
 
 
 
+  function isValidPositiveWholeNumber(str:string) {
+    // Convert the string to a number
+    const num = Number(str);
+    
+    // Check if the conversion results in a valid number, if the number is greater than zero,
+    // and if the number is a whole number
+    if (!isNaN(num) && num > 0 && Number.isInteger(num)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
   const handleUnstakeRPL = async () => {
+
+
+
+    const run =   isValidPositiveWholeNumber(RPLinput)
+
+    if(run === true) {
+    
     try {
 
 
@@ -688,6 +731,20 @@ const RPLBlock: NextPage = () => {
       setStakeButtonBool(true)
 
     }
+  } else {
+    setIncrementer(5)
+    setStakeButtonBool(true)
+
+
+    setErrorBoxTest("You must enter a valid number");
+
+
+
+  }
+
+
+
+
   };
 
 
@@ -940,6 +997,7 @@ const RPLBlock: NextPage = () => {
         isOpen={showFormStakeRPL}
         onRequestClose={() => setShowFormStakeRPL(false)}
         contentLabel="Create Validator Modal"
+        shouldCloseOnOverlayClick={false}
         className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
         ariaHideApp={false}
         style={{
@@ -973,16 +1031,7 @@ const RPLBlock: NextPage = () => {
       >
         <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-          <div className="flex items-start justify-center gap-3 w-full">
-
-            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                setShowFormStakeRPL(false)
-              }} />
-
-            </div>
-          </div>
+         
           {currentStakeStatus3 === 3 ? (
 
 
@@ -1139,6 +1188,7 @@ const RPLBlock: NextPage = () => {
         isOpen={showFormUnstakeRPL}
         onRequestClose={() => setShowFormUnstakeRPL(false)}
         contentLabel="Unstake RPL Transaction Modal"
+        shouldCloseOnOverlayClick={false}
         className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
         ariaHideApp={false}
         style={{
@@ -1172,16 +1222,7 @@ const RPLBlock: NextPage = () => {
       >
         <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-          <div className="flex items-start justify-center gap-3 w-full">
-
-            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                setShowFormUnstakeRPL(false)
-              }} />
-
-            </div>
-          </div>
+          
           {currentUnstakeStatus3 === 3 ? (
 
 

@@ -83,6 +83,7 @@ if (process.browser) {
   Modal.setAppElement(document.body);
 }
 
+
 const AccountMain: NextPage = () => {
 
 
@@ -1094,7 +1095,7 @@ const AccountMain: NextPage = () => {
 
     for (const object of reduxData) {
 
-      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) > 0) {
+      if (object.beaconStatus === "withdrawl_done" && Number(object.minipoolBalance) > 0) {
         withdrawnNum += 1
       }
 
@@ -1725,14 +1726,8 @@ const AccountMain: NextPage = () => {
         } else {
 
 
-          if (reduxData[0].address !== "NO VALIDATORS" && reduxData[0].address !== "NO VALIDATORS checked" && log.beaconStatus !== "withdrawal_done" && Number(log.valBalance) > 0) {
 
-            console.log("Condition True")
-            newTotalVals += 1;
-
-          }
-
-          else if (log.statusResult === "Prelaunch") {
+         if (log.statusResult === "Prelaunch") {
             newTotalVals += 1;
 
           }
@@ -1742,11 +1737,11 @@ const AccountMain: NextPage = () => {
 
           }
 
-          else if (log.statusResult === "Staking" && (log.beaconStatus === "withdrawal_done" && Number(log.valBalance) > 0)) {
+          else if (log.statusResult === "Staking" && log.beaconStatus === "withdrawal_done" && Number(log.minipoolBalance) > 0) {
             newTotalVals += 1;
 
           }
-          else if (log.statusResult === "Staking") {
+          else if (log.statusResult === "Staking" && log.beaconStatus !== "withdrawal_done") {
             newTotalVals += 1;
 
           }
@@ -2263,7 +2258,7 @@ const AccountMain: NextPage = () => {
       for (const log of object.beaconLogs) {
 
 
-        if (object.statusResult === "Staking" && Number(log.start_balance) !== 0) {
+        if (object.statusResult === "Staking" && Number(log.end_balance) !== 0) {
 
           let variance = Math.abs(Number(log.end_effective_balance - log.end_balance))
 
@@ -2271,8 +2266,26 @@ const AccountMain: NextPage = () => {
 
           newPlotPoints.push(editedVariance)
 
+          let newMissed;
 
-          let newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+
+
+
+
+         if( Number(log.missed_attestations) > 0) {
+
+          newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+
+         }
+
+         else {
+          newMissed = 100
+         }
+
+
+         console.log(newMissed)
+
+          
 
           console.log("New Missed:" + newMissed);
 
@@ -2452,6 +2465,9 @@ const AccountMain: NextPage = () => {
   useEffect(() => {
 
     setPercentageAttestations(calculateAverage(reduxAttestations))
+
+
+    console.log("Redux attestations:" + reduxAttestations)
 
   }, [reduxAttestations])
 
@@ -3846,26 +3862,29 @@ const AccountMain: NextPage = () => {
                     </div>
 
 
-                    <div ref={targetRef} id="accountTable" className="w-[90%] lg:w-auto overflow-scroll shadow-xl border rounded-lg mb-10 ">
+                    <div ref={targetRef} id="accountTable" className="w-[90%] sm:w-auto overflow-scroll shadow-xl border rounded-lg ">
 
 
-                      <table className="w-full">
+                      <table className="w-auto">
                         <tbody>
 
                           {reduxData.map((data, index) => (
-                            <tr key={index} className=" hover:bg-gray-200 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
+                            <tr key={index} className=" w-full flex hover:bg-gray-200 cursor-pointer" style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }} onClick={() => handleClick(data.pubkey, index)}>
 
 
 
-                              <td className=" px-4 pl-10 w-[200px] ">
+                              <td className=" px-2 py-3  ">
+
+                              <div className="flex items-center flex-col w-[100px] lg:w-[170px] text-sm lg:text-lg">
                                 <span className='text-green-500 self-center font-bold text-sm lg:text-lg ' >
 
                                   {data.valBalance}
                                 </span>
+                                </div>
                               </td>
 
-                              <td className="px-4 py-3 w-[200px]">
-                                <div className="flex items-center text-sm lg:text-lg">
+                              <td className="px-4 py-3 ">
+                                <div className="flex items-center flex-col w-[150px] lg:w-[200px] pr-4 text-sm lg:text-lg">
 
 
                                   <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
@@ -3884,7 +3903,7 @@ const AccountMain: NextPage = () => {
 
                                     ) : (
                                       <div className='flex items-center justify-center'>
-                                        {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-red-600 bg-red-100 rounded-full mr-6">
+                                        {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-red-600 bg-red-100 rounded-full mr-3">
                                           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                                           </svg>
@@ -3899,8 +3918,8 @@ const AccountMain: NextPage = () => {
                                 </div>
                               </td>
 
-                              <td className="px-4 py-3 w-[200px]">
-                                <div className="flex items-center flex-col gap-1 text-l ">
+                              <td className="px-4 py-3 ">
+                              <div className="flex items-center pl-4 flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
 
                                   <h3 className='text-center font-semibold text-sm lg:text-lg'>Validator Status</h3>
                                   <GrSatellite />
@@ -3941,7 +3960,7 @@ const AccountMain: NextPage = () => {
 
 
                               <td className="px-4 pr-10 py-3 w-[auto]">
-                                <div className="flex items-center text-l  flex-col gap-1">
+                              <div className="flex items-center flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
                                   {data.valProposals !== "" &&
 
                                     <h3 className='text-center  font-semibold text-sm lg:text-lg'>Blocks Proposed</h3>
@@ -4107,6 +4126,7 @@ const AccountMain: NextPage = () => {
                     isOpen={showFormSmoothingPool}
                     onRequestClose={() => setShowFormSmoothingPool(false)}
                     contentLabel="Smoothing Pool Transaction Modal"
+                    shouldCloseOnOverlayClick={false}
                     className={`${styles.modal} ${showFormSmoothingPoolEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                     ariaHideApp={false}
                     style={{
@@ -4140,16 +4160,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                      <div className="flex items-start justify-center gap-3 w-full">
-
-                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                            setShowFormSmoothingPool(false)
-                          }} />
-
-                        </div>
-                      </div>
+                    
                       {currentSmoothingPoolStatus3 === 3 ? (
 
 
@@ -4305,6 +4316,7 @@ const AccountMain: NextPage = () => {
                     isOpen={showFormEditGraffiti}
                     onRequestClose={() => setShowFormEditGraffiti(false)}
                     contentLabel="Graffiti Transaction Modal"
+                    shouldCloseOnOverlayClick={false}
                     className={`${styles.modal} ${showFormEditGraffitiEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                     ariaHideApp={false}
                     style={{
@@ -4338,16 +4350,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                      <div className="flex items-start justify-center gap-3 w-full">
-
-                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                            setShowFormEditGraffiti(false)
-                          }} />
-
-                        </div>
-                      </div>
+                      
                       {currentEditGraffitiStatus3 === 3 ? (
 
 
@@ -4508,6 +4511,7 @@ const AccountMain: NextPage = () => {
                     isOpen={showForm}
                     onRequestClose={() => setShowForm(false)}
                     contentLabel="Batch Graffiti Modal"
+                    
                     className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                     ariaHideApp={false}
                     style={{
@@ -4541,12 +4545,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                      <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                          setShowForm(false)
-                        }} />
-
-                      </div>
+                     
 
 
                       <h2 className="text-[20px] font-bold">Graffiti Update</h2>

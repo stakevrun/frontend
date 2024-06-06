@@ -46,7 +46,7 @@ import { getData } from "../globalredux/Features/validator/valDataSlice"
 const CreateValidator: NextPage = () => {
 
 
-const dispatch = useDispatch()
+  const dispatch = useDispatch()
 
 
 
@@ -508,6 +508,18 @@ const dispatch = useDispatch()
 
   }
 
+  function isValidPositiveWholeNumber(str:string) {
+    // Convert the string to a number
+    const num = Number(str);
+    
+    // Check if the conversion results in a valid number, if the number is greater than zero,
+    // and if the number is a whole number
+    if (!isNaN(num) && num > 0 && Number.isInteger(num)) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
 
@@ -515,6 +527,11 @@ const dispatch = useDispatch()
 
 
   const handleApproveRPL = async () => {
+
+    
+    const run =   isValidPositiveWholeNumber(RPLinput)
+
+    if(run === true) {
     if (typeof (window as any).ethereum !== "undefined") {
       try {
         let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
@@ -537,13 +554,29 @@ const dispatch = useDispatch()
 
         await approvalTx.wait();
         return NodeStakingAddress;
-      } catch (error) {
-        console.log(error);
+      } catch (e : any) {
+      
 
+        if (e.reason !== undefined) {
+          setErrorBoxTest(e.reason.toString());
+  
+  
+      } else if (e.error) {
+          setErrorBoxTest(e.error["message"].toString())
+      } else {
+          setErrorBoxTest("An Unknown error occured.")
+  
+      }
+        setIncrementer(5)
+        setStakeButtonBool(true)
       }
     } else {
       console.log("Metamask not available");
 
+    } } else {
+      setIncrementer(5)
+      setStakeButtonBool(true)
+      setErrorBoxTest("You must enter a valid number.")
     }
   };
   const handleStakeRPL = async (NodeStakingAddress: any) => {
@@ -566,19 +599,19 @@ const dispatch = useDispatch()
 
       const receipt = await tx.wait();
       console.log("Transaction confirmed:", receipt);
-  
+
 
       if (receipt.status === 1) {
-        
-          setIncrementer(2)
 
-          setRPLinput("");
+        setIncrementer(2)
 
-         
-          setIncrementerWithDelay(4, 700)
-          setStakeButtonBool(true)
+        setRPLinput("");
 
-        
+
+        setIncrementerWithDelay(4, 700)
+        setStakeButtonBool(true)
+
+
       } else {
         setIncrementer(5)
         setStakeButtonBool(true)
@@ -586,21 +619,21 @@ const dispatch = useDispatch()
         // Handle failed transaction
       }
     } catch (e: any) {
-      
-      
+
+
       if (e.reason !== undefined) {
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error["message"]) {
+      } else if (e.error["message"]) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
       setStakeButtonBool(true)
-    
+
     }
   };
 
@@ -612,7 +645,7 @@ const dispatch = useDispatch()
       setShowFormStakeRPL(true);
       setStakingMessage("Processing approval to spend RPL...")
       setStakeButtonBool(false)
-  
+
 
       const nodeAddress = await handleApproveRPL();
       if (nodeAddress) {
@@ -621,13 +654,13 @@ const dispatch = useDispatch()
 
         setStakingMessage("Approval sucessful, now initiating Stake transaction...")
 
-       const newStake =  await handleStakeRPL(nodeAddress);
+        const newStake = await handleStakeRPL(nodeAddress);
 
 
-       if (address !== undefined) {
-        handleCheckRPL(address);
-        handleCheckStakeRPL(address);
-       }
+        if (address !== undefined) {
+          handleCheckRPL(address);
+          handleCheckStakeRPL(address);
+        }
 
 
 
@@ -636,7 +669,7 @@ const dispatch = useDispatch()
         setIncrementer(5)
         setStakeButtonBool(true)
         setRPLinput("");
-   
+
 
       }
     }
@@ -645,12 +678,12 @@ const dispatch = useDispatch()
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error["message"]) {
+      } else if (e.error["message"]) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
       setStakeButtonBool(true)
     }
@@ -663,29 +696,29 @@ const dispatch = useDispatch()
 
     try {
 
-    setIncrementer(0)
-    setShowFormStakeRPL(true);
+      setIncrementer(0)
+      setShowFormStakeRPL(true);
 
-   
 
-    const newStake = await handleUnstakeRPL();
-   
-  
 
-    console.log(newStake);
+      const newStake = await handleUnstakeRPL();
 
-    } catch (e : any) {
-   
+
+
+      console.log(newStake);
+
+    } catch (e: any) {
+
       if (e.reason !== undefined) {
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error["message"]) {
+      } else if (e.error["message"]) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
 
     }
@@ -700,6 +733,13 @@ const dispatch = useDispatch()
 
 
   const handleUnstakeRPL = async () => {
+
+
+
+    const run =   isValidPositiveWholeNumber(RPLinput)
+
+    if(run === true) {
+    
     try {
 
 
@@ -756,6 +796,20 @@ const dispatch = useDispatch()
       setStakeButtonBool(true)
 
     }
+  } else {
+    setIncrementer(5)
+    setStakeButtonBool(true)
+
+
+    setErrorBoxTest("You must enter a valid number");
+
+
+
+  }
+
+
+
+
   };
 
 
@@ -869,7 +923,7 @@ const dispatch = useDispatch()
 
 
       if (typeof bool === "boolean") {
-       
+
 
         newBool = bool
 
@@ -879,7 +933,7 @@ const dispatch = useDispatch()
     } catch (error) {
 
       console.log(error)
-    
+
 
 
 
@@ -944,7 +998,7 @@ const dispatch = useDispatch()
   }
 
 
-  
+
   const getGraffiti = async (pubkey: string) => {
 
 
@@ -1267,138 +1321,45 @@ const dispatch = useDispatch()
 
   const getMinipoolData = async () => {
 
-    if(address) {
-    
-
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner();
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
+    if (address) {
 
 
-    //Get latest index
-
-    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
-      method: "GET",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner();
+      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+      const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+      const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
 
 
-        console.log("Result of get next index" + jsonString)
+      //Get latest index
 
+      const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+        method: "GET",
 
-        return jsonString;
-
+        headers: {
+          "Content-Type": "application/json"
+        },
       })
-      .catch(error => {
+        .then(async response => {
 
-        console.log(error);
-      });
-
-    console.log("Next index:" + newNextIndex)
+          var jsonString = await response.json()
 
 
-    let seperateMinipoolObjects: Array<rowObject2> = [];
+          console.log("Result of get next index" + jsonString)
 
 
+          return jsonString;
 
-    
-
-
-
-    if (newNextIndex === 0) {
-
-
-
-
-
-
-      seperateMinipoolObjects.push({
-        address: "NO VALIDATORS checked",
-        statusResult: "Empty",
-        statusTimeResult: "",
-        timeRemaining: "",
-        graffiti: "",
-        beaconStatus: "",
-        activationEpoch: "",
-        smoothingPoolTruth: false,
-        withdrawalEpoch: "",
-        withdrawalCountdown: "",
-        feeRecipient: "",
-        valBalance: "",
-        valProposals: "",
-        valDayVariance: "",
-        minipoolBalance: "",
-        pubkey: "",
-        isEnabled: false,
-        valIndex: "",
-        nodeAddress: ""
-
-      })
-
-
-
-      dispatch(getData(seperateMinipoolObjects))
-
-
-
-
-
-
-
-
-    } else {
-
-
-      //Get all pubkeys
-
-      let attachedPubkeyArray: Array<Array<string>> = [];
-
-
-      for (let i = 0; i <= newNextIndex - 1; i++) {
-
-
-
-        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
-          method: "GET",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
         })
-          .then(async response => {
+        .catch(error => {
 
-            let pubkey = await response.json()
+          console.log(error);
+        });
 
-
-            let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
-
-
+      console.log("Next index:" + newNextIndex)
 
 
-
-
-
-
-
-
-            if (minipoolAddress === nullAddress) {
-              attachedPubkeyArray.push(["Null minipool", pubkey])
-            }
-
-            else {
-              attachedPubkeyArray.push([minipoolAddress, pubkey]);
-            }
-
-
-            console.log("Get minipool result:" + minipoolAddress);
+      let seperateMinipoolObjects: Array<rowObject2> = [];
 
 
 
@@ -1406,19 +1367,74 @@ const dispatch = useDispatch()
 
 
 
+      if (newNextIndex === 0) {
 
 
 
 
+
+
+        seperateMinipoolObjects.push({
+          address: "NO VALIDATORS checked",
+          statusResult: "Empty",
+          statusTimeResult: "",
+          timeRemaining: "",
+          graffiti: "",
+          beaconStatus: "",
+          activationEpoch: "",
+          smoothingPoolTruth: false,
+          withdrawalEpoch: "",
+          withdrawalCountdown: "",
+          feeRecipient: "",
+          valBalance: "",
+          valProposals: "",
+          valDayVariance: "",
+          minipoolBalance: "",
+          pubkey: "",
+          isEnabled: false,
+          valIndex: "",
+          nodeAddress: ""
+
+        })
+
+
+
+        dispatch(getData(seperateMinipoolObjects))
+
+
+
+
+
+
+
+
+      } else {
+
+
+        //Get all pubkeys
+
+        let attachedPubkeyArray: Array<Array<string>> = [];
+
+
+        for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+          await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+            method: "GET",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
           })
-          .catch(error => {
+            .then(async response => {
 
+              let pubkey = await response.json()
 
-          });
 
+              let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
 
 
-      }
 
 
 
@@ -1426,292 +1442,330 @@ const dispatch = useDispatch()
 
 
 
-      let newRunningVals = 0;
-      let newTotalVals = 0;
 
+              if (minipoolAddress === nullAddress) {
+                attachedPubkeyArray.push(["Null minipool", pubkey])
+              }
 
-      for (const [minAddress, pubkey] of attachedPubkeyArray) {
+              else {
+                attachedPubkeyArray.push([minipoolAddress, pubkey]);
+              }
 
 
-       
+              console.log("Get minipool result:" + minipoolAddress);
 
 
 
 
 
-        if (minAddress === "Null minipool" ) {
 
 
 
-          seperateMinipoolObjects.push({
-            address:  address !== undefined? address.toString() : "",
-            statusResult: "Empty",
-            statusTimeResult: "",
-            timeRemaining: "",
-            graffiti: "",
-            beaconStatus: "",
-            activationEpoch: "",
-            smoothingPoolTruth: false,
-            withdrawalEpoch: "",
-            withdrawalCountdown: "",
-            feeRecipient: "",
-            minipoolBalance: "",
-            valBalance: "",
-            valProposals: "",
-            valDayVariance: "",
-            pubkey: pubkey,
-            isEnabled: false,
-            valIndex: "",
-            nodeAddress: ""
 
-          })
 
 
+            })
+            .catch(error => {
 
 
-
-
-
-
-        } else {
-
-
-          const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
-
-
-          const statusResult = await minipool.getStatus();
-          const statusTimeResult = await minipool.getStatusTime();
-          const numStatusTime = Number(statusTimeResult) * 1000;
-
-          console.log("Status Result:" + statusResult)
-
-          console.log("Status Time Result:" + statusTimeResult)
-
-          console.log(Date.now());
-          console.log(numStatusTime);
-
-
-
-          const MinipoolStatus = [
-            "Initialised",
-            "Prelaunch",
-            "Staking",
-            "Withdrawable",
-            "Dissolved"
-          ];
-
-
-
-          let currentStatus = "";
-
-       
-
-         
-
-
-
-          if (MinipoolStatus[statusResult] === "Staking") {
-
-            newRunningVals += 1;
-            newTotalVals += 1;
-
-          } else {
-
-            newTotalVals += 1;
-
-          }
-
-
-
-          const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
-
-          const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
-
-          const scrubPeriod: any = await DAOContract.getScrubPeriod();
-
-          const numScrub = Number(scrubPeriod) * 1000;
-          console.log(numScrub);
-
-          const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
-
-
-          const string = formatTime(timeRemaining);
-
-          console.log("Time Remaining:" + string);
-
-
-
-
-          const printGraff = await getGraffiti(pubkey);
-
-          type statusType = {
-
-            index: string,
-            balance: string,
-            status: string,
-            validator: {
-              pubkey: string,
-              withdrawal_credentials: string,
-              effective_balance: string,
-              slashed: boolean,
-              activation_eligibility_epoch: string,
-              activation_epoch: string,
-              exit_epoch: string,
-              withdrawable_epoch: string
-
-            }
-          }
-
-          let beaconStatusObject: statusType = {
-            index: "",
-            balance: "",
-            status: "",
-            validator: {
-              pubkey: "",
-              withdrawal_credentials: "",
-              effective_balance: "",
-              slashed: false,
-              activation_eligibility_epoch: "",
-              activation_epoch: "",
-              exit_epoch: "",
-              withdrawable_epoch: ""
-            }
-          }
-
-          let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
-
-          beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
-          const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
-          const activationEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
-          const withdrawalEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.withdrawable_epoch : "";
-          const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
-
-          const smoothingBool = await getMinipoolTruth2()
-
-          const theTime = Date.now()
-
-          const genesisTime = 1695902400 * 1000;
-
-          const currentEpoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
-
-          const withdrawalCountdown = (Number(withdrawalEpoch) - Number(currentEpoch)) * 12 * 32 * 1000;
-
-          const isEnabled = await getEnabled(pubkey)
-
-          const balance =  await browserProvider.getBalance(minAddress)
-
-          console.log("Status:" + beaconStatusObject.status)
-
-
-          const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
-
-
-
-          
-
-
-
-
-
-
-
-
-
-
-          let beaconObject = []
-
-          let newValProposals = 0;
-          let newValBalance = 0
-          let newValVariance = 0
-
-
-          if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
-
-            beaconObject = await getValBeaconStats(pubkey);
-
-
-            if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
-              newValBalance = beaconObject[0].end_balance
-
-
-          } else {
-
-              newValBalance = 0
-
-          }
-
-            for (const beaconLog  of beaconObject) {
-
-              let blocks = beaconLog.proposed_blocks
-
-              newValProposals += blocks
-            }
-
-            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" ||  beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
-
-              newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
-
-            }
-
-          }
-
-       
-
-          if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
-
-            currentStatus = "Empty"
-
-
-
-          } else {
-
-            currentStatus = MinipoolStatus[statusResult];
-
-          }
-
-
-
-          seperateMinipoolObjects.push({
-            address: minAddress,
-            statusResult: currentStatus,
-            statusTimeResult: numStatusTime.toString(),
-            timeRemaining: timeRemaining.toString(),
-            graffiti: typeof printGraff === "string" ? printGraff : "",
-            beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-            activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
-            smoothingPoolTruth: smoothingBool,
-            withdrawalEpoch: withdrawalEpoch,
-            withdrawalCountdown: withdrawalCountdown.toString(),
-            feeRecipient: newFeeRecipient,
-            minipoolBalance: ethers.formatEther(balance),
-
-            valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-            valProposals: newValProposals.toString(),
-            valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-            isEnabled: isEnabled,
-            valIndex: valIndex,
-            pubkey: pubkey,
-            nodeAddress: address !== undefined ? address.toString() : ""
-          })
-
-
+            });
 
 
 
         }
 
+
+
+
+
+
+
+        let newRunningVals = 0;
+        let newTotalVals = 0;
+
+
+        for (const [minAddress, pubkey] of attachedPubkeyArray) {
+
+
+
+
+
+
+
+
+          if (minAddress === "Null minipool") {
+
+
+
+            seperateMinipoolObjects.push({
+              address: address !== undefined ? address.toString() : "",
+              statusResult: "Empty",
+              statusTimeResult: "",
+              timeRemaining: "",
+              graffiti: "",
+              beaconStatus: "",
+              activationEpoch: "",
+              smoothingPoolTruth: false,
+              withdrawalEpoch: "",
+              withdrawalCountdown: "",
+              feeRecipient: "",
+              minipoolBalance: "",
+              valBalance: "",
+              valProposals: "",
+              valDayVariance: "",
+              pubkey: pubkey,
+              isEnabled: false,
+              valIndex: "",
+              nodeAddress: ""
+
+            })
+
+
+
+
+
+
+
+
+          } else {
+
+
+            const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+
+
+            const statusResult = await minipool.getStatus();
+            const statusTimeResult = await minipool.getStatusTime();
+            const numStatusTime = Number(statusTimeResult) * 1000;
+
+            console.log("Status Result:" + statusResult)
+
+            console.log("Status Time Result:" + statusTimeResult)
+
+            console.log(Date.now());
+            console.log(numStatusTime);
+
+
+
+            const MinipoolStatus = [
+              "Initialised",
+              "Prelaunch",
+              "Staking",
+              "Withdrawable",
+              "Dissolved"
+            ];
+
+
+
+            let currentStatus = "";
+
+
+
+
+
+
+
+            if (MinipoolStatus[statusResult] === "Staking") {
+
+              newRunningVals += 1;
+              newTotalVals += 1;
+
+            } else {
+
+              newTotalVals += 1;
+
+            }
+
+
+
+            const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
+
+            const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+
+            const scrubPeriod: any = await DAOContract.getScrubPeriod();
+
+            const numScrub = Number(scrubPeriod) * 1000;
+            console.log(numScrub);
+
+            const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
+
+
+            const string = formatTime(timeRemaining);
+
+            console.log("Time Remaining:" + string);
+
+
+
+
+            const printGraff = await getGraffiti(pubkey);
+
+            type statusType = {
+
+              index: string,
+              balance: string,
+              status: string,
+              validator: {
+                pubkey: string,
+                withdrawal_credentials: string,
+                effective_balance: string,
+                slashed: boolean,
+                activation_eligibility_epoch: string,
+                activation_epoch: string,
+                exit_epoch: string,
+                withdrawable_epoch: string
+
+              }
+            }
+
+            let beaconStatusObject: statusType = {
+              index: "",
+              balance: "",
+              status: "",
+              validator: {
+                pubkey: "",
+                withdrawal_credentials: "",
+                effective_balance: "",
+                slashed: false,
+                activation_eligibility_epoch: "",
+                activation_epoch: "",
+                exit_epoch: "",
+                withdrawable_epoch: ""
+              }
+            }
+
+            let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
+
+            beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
+            const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
+            const activationEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+            const withdrawalEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.withdrawable_epoch : "";
+            const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
+
+            const smoothingBool = await getMinipoolTruth2()
+
+            const theTime = Date.now()
+
+            const genesisTime = 1695902400 * 1000;
+
+            const currentEpoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
+
+            const withdrawalCountdown = (Number(withdrawalEpoch) - Number(currentEpoch)) * 12 * 32 * 1000;
+
+            const isEnabled = await getEnabled(pubkey)
+
+            const balance = await browserProvider.getBalance(minAddress)
+
+            console.log("Status:" + beaconStatusObject.status)
+
+
+            const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            let beaconObject = []
+
+            let newValProposals = 0;
+            let newValBalance = 0
+            let newValVariance = 0
+
+
+            if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
+
+              beaconObject = await getValBeaconStats(pubkey);
+
+
+              if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
+                newValBalance = beaconObject[0].end_balance
+
+
+              } else {
+
+                newValBalance = 0
+
+              }
+
+              for (const beaconLog of beaconObject) {
+
+                let blocks = beaconLog.proposed_blocks
+
+                newValProposals += blocks
+              }
+
+              if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+
+                newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+
+              }
+
+            }
+
+
+
+            if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
+
+              currentStatus = "Empty"
+
+
+
+            } else {
+
+              currentStatus = MinipoolStatus[statusResult];
+
+            }
+
+
+
+            seperateMinipoolObjects.push({
+              address: minAddress,
+              statusResult: currentStatus,
+              statusTimeResult: numStatusTime.toString(),
+              timeRemaining: timeRemaining.toString(),
+              graffiti: typeof printGraff === "string" ? printGraff : "",
+              beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+              activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
+              smoothingPoolTruth: smoothingBool,
+              withdrawalEpoch: withdrawalEpoch,
+              withdrawalCountdown: withdrawalCountdown.toString(),
+              feeRecipient: newFeeRecipient,
+              minipoolBalance: ethers.formatEther(balance),
+
+              valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+              valProposals: newValProposals.toString(),
+              valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+              isEnabled: isEnabled,
+              valIndex: valIndex,
+              pubkey: pubkey,
+              nodeAddress: address !== undefined ? address.toString() : ""
+            })
+
+
+
+
+
+          }
+
+        }
+
+
+        dispatch(getData(seperateMinipoolObjects))
+
+
       }
 
-   
-      dispatch(getData(seperateMinipoolObjects))
 
-
+    } else {
+      console.log("Cannot run Minipool function without a connected account")
     }
-
-
-  } else {
-    console.log("Cannot run Minipool function without a connected account")
-  }
 
 
 
@@ -1838,8 +1892,8 @@ const dispatch = useDispatch()
 
 
 
-      setCurrentIndex(newNextIndex)
-    
+    setCurrentIndex(newNextIndex)
+
 
 
   }
@@ -1956,21 +2010,21 @@ const dispatch = useDispatch()
 
 
 
+    setIncrementer(0)
+    setShowForm4(true);
 
 
 
 
-
-    if (address !== undefined && grafittiInput !== "" ) {
+    if (address !== undefined && grafittiInput !== "") {
 
 
       try {
 
 
 
-        setIncrementer(0)
-        setShowForm4(true);
-    
+     
+
 
 
 
@@ -2090,7 +2144,7 @@ const dispatch = useDispatch()
 
         let feeRecipient = nullAddress
 
-      
+
 
 
 
@@ -2168,7 +2222,7 @@ const dispatch = useDispatch()
 
         }
 
-        console.log( "The value:" + Object.entries(value))
+        console.log("The value:" + Object.entries(value))
 
 
         const APIType = "AddValidators";
@@ -2294,7 +2348,7 @@ const dispatch = useDispatch()
 
         // Check if the transaction was successful
         if (receipt.status === 1) {
-        
+
 
           // Read the emitted event logs
           let logs = receipt.logs;
@@ -2302,15 +2356,15 @@ const dispatch = useDispatch()
 
           // Call checkIndex function regardless of the transaction status
           checkIndex();
-      
+
 
           const newData = await getMinipoolData();
 
           setIncrementer(3); // Trigger immediately
 
 
-           
-          
+
+
           setIncrementerWithDelay(4, 1500);
 
         } else {
@@ -2333,12 +2387,12 @@ const dispatch = useDispatch()
 
         if (e.reason === "rejected") {
           setAddValidatorError(e.info.error.message.toString())
-   
+
 
         }
         else {
           setAddValidatorError(e.error["message"].toString())
-        
+
 
         }
 
@@ -2352,12 +2406,12 @@ const dispatch = useDispatch()
     }
 
     else {
-      setAddValidatorError("You must enter a grafitti for the Validator!")  
+      setAddValidatorError("You must enter a grafitti for the Validator!")
       setIncrementer(5)
 
     }
 
-   
+
   }
 
 
@@ -2532,7 +2586,7 @@ const dispatch = useDispatch()
 
       let newFeeRecipient = nullAddress
 
-     
+
 
 
       const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
@@ -2569,7 +2623,7 @@ const dispatch = useDispatch()
         .catch(error => {
           // Handle error here
           console.log(error);
-          setErrorBoxTest3("setFeeRecipient failed...") 
+          setErrorBoxTest3("setFeeRecipient failed...")
         });
 
 
@@ -2611,7 +2665,7 @@ const dispatch = useDispatch()
 
 
 
-  
+
 
   const [showFormSmoothingPool, setShowFormSmoothingPool] = useState(false)
   const [showFormSmoothingPoolEffect, setShowFormSmoothingPoolEffect] = useState(false)
@@ -2756,14 +2810,14 @@ const dispatch = useDispatch()
 
 
         if (input.reason) {
-          setErrorBoxTest2(input.info.error.message.toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.info.error.message.toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
         }
 
         else if (input.error) {
 
 
-          setErrorBoxTest2(input.error["message"].toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.error["message"].toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
 
         } else {
@@ -2791,7 +2845,7 @@ const dispatch = useDispatch()
   const [currentStatus1, setCurrentStatus1] = useState(0)
   const [currentStatus2, setCurrentStatus2] = useState(0)
   const [currentStatus3, setCurrentStatus3] = useState(0)
- 
+
 
 
   useEffect(() => {
@@ -2872,7 +2926,7 @@ const dispatch = useDispatch()
 
     setShowFormEffect4(showForm4);
 
-    if(showForm4 === false) {
+    if (showForm4 === false) {
       setIncrementer(0)
     }
 
@@ -2944,7 +2998,7 @@ const dispatch = useDispatch()
 
     setShowFormEffectStakeRPL(showFormStakeRPL);
 
-    if(showFormStakeRPL === false) {
+    if (showFormStakeRPL === false) {
       setIncrementer(0)
     }
 
@@ -2952,7 +3006,7 @@ const dispatch = useDispatch()
   }, [showFormStakeRPL]);
 
 
-  
+
 
 
 
@@ -2970,7 +3024,7 @@ const dispatch = useDispatch()
 
 
 
-  
+
   const [showFormUnstakeRPL, setShowFormUnstakeRPL] = useState(false)
   const [showFormEffectUnstakeRPL, setShowFormEffectUnstakeRPL] = useState(false)
 
@@ -2981,7 +3035,7 @@ const dispatch = useDispatch()
     setShowFormEffectUnstakeRPL(showFormUnstakeRPL);
 
 
-    if(showFormUnstakeRPL === false) {
+    if (showFormUnstakeRPL === false) {
       setIncrementer(0)
     }
 
@@ -2990,7 +3044,7 @@ const dispatch = useDispatch()
   }, [showFormUnstakeRPL]);
 
 
-  
+
   const [currentUnstakeStatus1, setCurrentUnstakeStatus1] = useState(0)
   const [currentUnstakeStatus2, setCurrentUnstakeStatus2] = useState(0)
   const [currentUnstakeStatus3, setCurrentUnstakeStatus3] = useState(0)
@@ -3016,7 +3070,7 @@ const dispatch = useDispatch()
       setCurrentUnstakeStatus1(1)
 
 
-    }  else if (incrementer === 4) {
+    } else if (incrementer === 4) {
       setCurrentUnstakeStatus3(3)
     } else if (incrementer === 5) {
       setCurrentUnstakeStatus3(4)
@@ -3046,7 +3100,7 @@ const dispatch = useDispatch()
 
 
   return (
-    <div style={{backgroundColor: reduxDarkMode? "#222": "white",  color: reduxDarkMode?  "white" : "#222"}} className="flex w-full flex-col items-center bg-white justify-center ">
+    <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full flex-col items-center bg-white justify-center ">
 
       <Head>
         <title>Vrün | Nodes & Staking</title>
@@ -3105,7 +3159,7 @@ const dispatch = useDispatch()
 
                   <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
-                 
+
 
 
                     <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
@@ -3180,7 +3234,7 @@ const dispatch = useDispatch()
                   </button>
                 </div>
 
-             
+
               </div>
 
 
@@ -3189,6 +3243,7 @@ const dispatch = useDispatch()
 
               <Modal
                 isOpen={showForm}
+             
                 onRequestClose={() => setShowForm(false)}
                 contentLabel="Smoothing Pool Opt Modal"
                 className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
@@ -3223,13 +3278,12 @@ const dispatch = useDispatch()
                 }}
               >
                 <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+                <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                          setShowForm(false)
+                        }} />
 
-                  <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                      setShowForm(false)
-                    }} />
-
-                  </div>
+                      </div>
 
                   <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Opt-in/opt-out of Smoothing Pool</h2>
 
@@ -3242,29 +3296,29 @@ const dispatch = useDispatch()
 
 
 
-                
+
 
                   <div className="flex items-center justify-center w-full gap-4">
-                      <span>Opt in?</span>
-                      <label className="flex items-center justify-center gap-1">
-                        <input
-                          type="radio"
-                          name="optIn"
-                          checked={checked2 === true}
-                          onChange={() => setChecked2(true)}
-                        />
-                        Yes
-                      </label>
-                      <label className="flex items-center justify-center gap-1">
-                        <input
-                          type="radio"
-                          name="optIn"
-                          checked={checked2 === false}
-                          onChange={() => setChecked2(false)}
-                        />
-                        No
-                      </label>
-                    </div>
+                    <span>Opt in?</span>
+                    <label className="flex items-center justify-center gap-1">
+                      <input
+                        type="radio"
+                        name="optIn"
+                        checked={checked2 === true}
+                        onChange={() => setChecked2(true)}
+                      />
+                      Yes
+                    </label>
+                    <label className="flex items-center justify-center gap-1">
+                      <input
+                        type="radio"
+                        name="optIn"
+                        checked={checked2 === false}
+                        onChange={() => setChecked2(false)}
+                      />
+                      No
+                    </label>
+                  </div>
 
                   <div className='w-full flex gap-2 items-center justify-center'>
                     <button onClick={handleOptSmoothingPool} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
@@ -3290,6 +3344,7 @@ const dispatch = useDispatch()
                 isOpen={showForm4}
                 onRequestClose={() => setShowForm4(false)}
                 contentLabel="Create Validator Modal"
+                shouldCloseOnOverlayClick={false}
                 className={`${styles.modal} ${showFormEffect4 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                 ariaHideApp={false}
                 style={{
@@ -3323,16 +3378,7 @@ const dispatch = useDispatch()
               >
                 <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                  <div className="flex items-start justify-center gap-3 w-full">
 
-                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                      <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                        setShowForm4(false)
-                      }} />
-
-                    </div>
-                  </div>
                   {currentStatus3 === 3 ? (
 
 
@@ -3349,22 +3395,22 @@ const dispatch = useDispatch()
                   ) : currentStatus3 === 4 ? (
 
                     <div className='w-full flex items-center flex-col gap-2 justify-center'>
-                        <h3 className="font-bold text-[30px]">Deposit Failed.</h3>
+                      <h3 className="font-bold text-[30px]">Deposit Failed.</h3>
 
-                        <p className='my-3 text-lg text-red-400 '>{addValidatorError}</p>
+                      <p className='my-3 text-lg text-red-400 '>{addValidatorError}</p>
 
-                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
-                        <button onClick={() => { setShowForm4(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                      <button onClick={() => { setShowForm4(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
 
-                        
+
                     </div>
 
 
 
-                       
 
 
-                ) : (
+
+                  ) : (
 
 
                     <>
@@ -3491,7 +3537,7 @@ const dispatch = useDispatch()
                       </div>
 
 
-                
+
 
 
 
@@ -3520,534 +3566,499 @@ const dispatch = useDispatch()
 
 
 
-              
+
               <Modal
-                    isOpen={showFormSmoothingPool}
-                    onRequestClose={() => setShowFormSmoothingPool(false)}
-                    contentLabel="Smoothing Pool Transaction Modal"
-                    className={`${styles.modal} ${showFormSmoothingPoolEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
-                    ariaHideApp={false}
-                    style={{
-                      overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: "999999999999999999999999999999999999",
-                        transition: "0.2s transform ease-in-out",
-                      },
-                      content: {
-                        width: 'auto',
-                        height: 'auto',
-                        minWidth: "280px",
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-
-                        color: 'black',
-                        backgroundColor: "#fff",
-                        border: "0",
-                        borderRadius: "20px",
-                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-                        overflow: "auto",
-                        WebkitOverflowScrolling: "touch", // For iOS Safari
-                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-                      },
-                    }}
-                  >
-                    <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
-
-                      <div className="flex items-start justify-center gap-3 w-full">
-
-                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                            setShowFormSmoothingPool(false)
-                          }} />
-
-                        </div>
-                      </div>
-                      {currentSmoothingPoolStatus3 === 3 ? (
-
-
-                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
-                          <h3 className="font-bold text-[30px]">Change succesful!</h3>
-
-                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
-                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-                        </div>
-
-
-
-
-                      ) : currentSmoothingPoolStatus3 === 4 ? (
-
-                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
-                          <h3 className="font-bold text-[30px]">Failed to Toggle Smoothing Pool!</h3>
-
-                          <p className='my-3 text-lg text-red-400 '>{errorBoxText2}</p>
-
-                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
-                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-                        </div>
-
-
-
-
-
-                      ) : (
-
-
-                        <>
-
-
-
-
-                          <div className='w-full flex items-start flex-col gap-2 justify-center'>
-                            <h3 className="font-bold text-[30px]">Change Enabled Status: </h3>
-
-                          </div>
-
-                          <hr className="w-full my-3" />
-
-                          <div className='flex flex-col gap-3 items-center justify-center w-full'>
-
-
-                            <div className='flex items-start justify-between gap-6 w-full'>
-                              <div className="flex items-center justify-start gap-4">
-                                <p> <HiOutlinePaperAirplane /></p>
-
-                                <p className="text-left">Change Smoothing Pool Status </p>
-                              </div>
-                              <p className='self-end'>
-
-                                {
-
-                                  currentSmoothingPoolStatus1 === 0 ? (
-                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
-
-                                  ) : (
-
-                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
-
-
-                                  )
-
-
-
-
-                                }
-
-
-                              </p>
-                            </div>
-
-
-                            <div className='flex items-start justify-between gap-6 w-full'>
-                              <div className="flex items-center justify-start gap-4">
-                                <p><FaEthereum /></p>
-
-                                <p className="text-left">Confirming change...</p>
-                              </div>
-                              <p className='self-end'>
-
-                                {
-
-                                  currentSmoothingPoolStatus2 === 0 ? (
-                                    <p></p>
-
-                                  ) : currentSmoothingPoolStatus2 === 1 ? (
-
-                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
-
-
-                                  ) : (
-
-                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
-
-
-
-                                  )
-
-
-
-
-                                }
-
-
-                              </p>
-
-
-                            </div>
-
-
-
-
-
-
-
-
-
-
-                          </div>
-
-
-
-
-
-
-
-                        </>
-
-
-
-
-
-
-                      )}
-
-
+                isOpen={showFormSmoothingPool}
+                onRequestClose={() => setShowFormSmoothingPool(false)}
+                contentLabel="Smoothing Pool Transaction Modal"
+                shouldCloseOnOverlayClick={false}
+                className={`${styles.modal} ${showFormSmoothingPoolEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                ariaHideApp={false}
+                style={{
+                  overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: "999999999999999999999999999999999999",
+                    transition: "0.2s transform ease-in-out",
+                  },
+                  content: {
+                    width: 'auto',
+                    height: 'auto',
+                    minWidth: "280px",
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+
+                    color: 'black',
+                    backgroundColor: "#fff",
+                    border: "0",
+                    borderRadius: "20px",
+                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                    overflow: "auto",
+                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                  },
+                }}
+              >
+                <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+
+                  {currentSmoothingPoolStatus3 === 3 ? (
+
+
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">Change succesful!</h3>
+
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                      <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
                     </div>
 
 
-                  </Modal>
 
 
+                  ) : currentSmoothingPoolStatus3 === 4 ? (
 
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">Failed to Toggle Smoothing Pool!</h3>
 
-              
-      <Modal
-        isOpen={showFormStakeRPL}
-        onRequestClose={() => setShowFormStakeRPL(false)}
-        contentLabel="Create Validator Modal"
-        className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
-        ariaHideApp={false}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: "999999999999999999999999999999999999",
-            transition: "0.2s transform ease-in-out",
-          },
-          content: {
-            width: 'auto',
-            height: 'auto',
-            minWidth: "280px",
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
+                      <p className='my-3 text-lg text-red-400 '>{errorBoxText2}</p>
 
-            color: 'black',
-            backgroundColor: "#fff",
-            border: "0",
-            borderRadius: "20px",
-            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-            overflow: "auto",
-            WebkitOverflowScrolling: "touch", // For iOS Safari
-            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-          },
-        }}
-      >
-        <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                      <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                    </div>
 
-          <div className="flex items-start justify-center gap-3 w-full">
 
-            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
 
-              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                setShowFormStakeRPL(false)
-              }} />
 
-            </div>
-          </div>
-          {currentStakeStatus3 === 3 ? (
 
+                  ) : (
 
-            <div className='w-full flex items-center flex-col gap-2 justify-center'>
-              <h3 className="font-bold text-[30px]">RPL Staked</h3>
 
-              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
-              <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-            </div>
+                    <>
 
 
 
 
-          ) : currentStakeStatus3 === 4 ? (
+                      <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                        <h3 className="font-bold text-[30px]">Change Enabled Status: </h3>
 
-            <div className='w-full flex items-center flex-col gap-2 justify-center'>
-              <h3 className="font-bold text-[30px]">RPL Stake Failed!</h3>
+                      </div>
 
-              <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
+                      <hr className="w-full my-3" />
 
-              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
-              <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-            </div>
+                      <div className='flex flex-col gap-3 items-center justify-center w-full'>
 
 
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p> <HiOutlinePaperAirplane /></p>
 
+                            <p className="text-left">Change Smoothing Pool Status </p>
+                          </div>
+                          <p className='self-end'>
 
+                            {
 
-          ) : (
+                              currentSmoothingPoolStatus1 === 0 ? (
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
 
+                              ) : (
 
-            <>
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
 
+                              )
 
 
-              <div className='w-full flex items-start flex-col gap-2 justify-center'>
-                <h3 className="font-bold text-[30px]">Stake RPL</h3>
-                <p className="text-[25px]">{RPLinput} RPL</p>
-              </div>
 
-              <hr className="w-full my-3" />
 
-              <div className='flex flex-col gap-3 items-center justify-center w-full'>
+                            }
 
 
-                <div className='flex items-start justify-between gap-6 w-full'>
-                  <div className="flex items-center justify-start gap-4">
-                    <p> <FaEthereum /></p>
+                          </p>
+                        </div>
 
-                    <p className="text-left">Approve spending of RPL </p>
-                  </div>
-                  <p className='self-end'>
 
-                    {
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p><FaEthereum /></p>
 
-                      currentStakeStatus1 === 0 ? (
-                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+                            <p className="text-left">Confirming change...</p>
+                          </div>
+                          <p className='self-end'>
 
-                      ) : (
+                            {
 
-                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+                              currentSmoothingPoolStatus2 === 0 ? (
+                                <p></p>
 
+                              ) : currentSmoothingPoolStatus2 === 1 ? (
 
-                      )
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
 
 
+                              ) : (
 
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
-                    }
 
 
-                  </p>
-                </div>
+                              )
 
 
 
-                <div className='flex items-start justify-between gap-6 w-full'>
-                  <div className="flex items-center justify-start gap-4">
-                    <p><HiOutlinePaperAirplane /></p>
 
-                    <p className="text-left" >Stake RPL</p>
-                  </div>
-                  <p className='self-end'>
+                            }
 
-                    {
 
-                      currentStakeStatus2 === 0 ? (
-                        <p></p>
+                          </p>
 
-                      ) : currentStakeStatus2 === 1 ? (
 
-                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+                        </div>
 
 
-                      ) : (
 
-                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
 
 
-                      )
 
 
 
 
-                    }
+                      </div>
 
 
-                  </p>
+
+
+
+
+
+                    </>
+
+
+
+
+
+
+                  )}
 
 
                 </div>
 
 
+              </Modal>
 
 
 
 
 
-              </div>
+              <Modal
+                isOpen={showFormStakeRPL}
+                onRequestClose={() => setShowFormStakeRPL(false)}
+                contentLabel="Create Validator Modal"
+                shouldCloseOnOverlayClick={false}
+                className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                ariaHideApp={false}
+                style={{
+                  overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: "999999999999999999999999999999999999",
+                    transition: "0.2s transform ease-in-out",
+                  },
+                  content: {
+                    width: 'auto',
+                    height: 'auto',
+                    minWidth: "280px",
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
 
+                    color: 'black',
+                    backgroundColor: "#fff",
+                    border: "0",
+                    borderRadius: "20px",
+                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                    overflow: "auto",
+                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                  },
+                }}
+              >
+                <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
 
+                  {currentStakeStatus3 === 3 ? (
 
 
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">RPL Staked</h3>
 
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                      <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                    </div>
 
-            </>
 
 
 
+                  ) : currentStakeStatus3 === 4 ? (
 
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">RPL Stake Failed!</h3>
 
+                      <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
 
-          )}
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                      <button onClick={() => { setShowFormStakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                    </div>
 
 
 
 
 
+                  ) : (
 
 
+                    <>
 
-        </div>
 
 
-      </Modal>
 
+                      <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                        <h3 className="font-bold text-[30px]">Stake RPL</h3>
+                        <p className="text-[25px]">{RPLinput} RPL</p>
+                      </div>
 
+                      <hr className="w-full my-3" />
 
+                      <div className='flex flex-col gap-3 items-center justify-center w-full'>
 
-      <Modal
-        isOpen={showFormUnstakeRPL}
-        onRequestClose={() => setShowFormUnstakeRPL(false)}
-        contentLabel="Create Validator Modal"
-        className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
-        ariaHideApp={false}
-        style={{
-          overlay: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: "999999999999999999999999999999999999",
-            transition: "0.2s transform ease-in-out",
-          },
-          content: {
-            width: 'auto',
-            height: 'auto',
-            minWidth: "280px",
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
 
-            color: 'black',
-            backgroundColor: "#fff",
-            border: "0",
-            borderRadius: "20px",
-            boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
-            overflow: "auto",
-            WebkitOverflowScrolling: "touch", // For iOS Safari
-            scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
-            scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
-          },
-        }}
-      >
-        <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p> <FaEthereum /></p>
 
-          <div className="flex items-start justify-center gap-3 w-full">
+                            <p className="text-left">Approve spending of RPL </p>
+                          </div>
+                          <p className='self-end'>
 
-            <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                            {
 
-              <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                setShowFormUnstakeRPL(false)
-              }} />
+                              currentStakeStatus1 === 0 ? (
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
 
-            </div>
-          </div>
-          {currentUnstakeStatus3 === 3 ? (
+                              ) : (
 
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
-            <div className='w-full flex items-center flex-col gap-2 justify-center'>
-              <h3 className="font-bold text-[30px]">RPL Staked</h3>
 
-              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
-              <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-            </div>
+                              )
 
 
 
 
-          ) : currentUnstakeStatus3 === 4 ? (
+                            }
 
-            <div className='w-full flex items-center flex-col gap-2 justify-center'>
-              <h3 className="font-bold text-[30px]">RPL Unstake Failed!</h3>
 
-              <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
+                          </p>
+                        </div>
 
-              <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
-              <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
-            </div>
 
 
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p><HiOutlinePaperAirplane /></p>
 
+                            <p className="text-left" >Stake RPL</p>
+                          </div>
+                          <p className='self-end'>
 
+                            {
 
-          ) : (
+                              currentStakeStatus2 === 0 ? (
+                                <p></p>
 
+                              ) : currentStakeStatus2 === 1 ? (
 
-            <>
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
 
 
+                              ) : (
 
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
-              <div className='w-full flex items-start flex-col gap-2 justify-center'>
-                <h3 className="font-bold text-[30px]">Unstake RPL</h3>
-                <p className="text-[25px]">{RPLinput} RPL</p>
-              </div>
 
-              <hr className="w-full my-3" />
 
-              <div className='flex flex-col gap-3 items-center justify-center w-full'>
+                              )
 
 
-                <div className='flex items-start justify-between gap-6 w-full'>
-                  <div className="flex items-center justify-start gap-4">
-                    <p> <FaEthereum /></p>
 
-                    <p className="text-left">Unstake RPL </p>
-                  </div>
-                  <p className='self-end'>
 
-                    {
+                            }
 
-                      currentUnstakeStatus1 === 0 ? (
-                        <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
 
-                      ) : (
+                          </p>
 
-                        <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
 
+                        </div>
 
-                      )
 
 
 
 
-                    }
 
 
-                  </p>
+                      </div>
+
+
+
+
+
+
+
+                    </>
+
+
+
+
+
+
+                  )}
+
+
+
+
+
+
+
+
                 </div>
 
 
-
-              
-
+              </Modal>
 
 
 
 
+              <Modal
+                isOpen={showFormUnstakeRPL}
+                onRequestClose={() => setShowFormUnstakeRPL(false)}
+                shouldCloseOnOverlayClick={false}
+                contentLabel="Create Validator Modal"
+                className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                ariaHideApp={false}
+                style={{
+                  overlay: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: "999999999999999999999999999999999999",
+                    transition: "0.2s transform ease-in-out",
+                  },
+                  content: {
+                    width: 'auto',
+                    height: 'auto',
+                    minWidth: "280px",
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
 
-              </div>
+                    color: 'black',
+                    backgroundColor: "#fff",
+                    border: "0",
+                    borderRadius: "20px",
+                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                    overflow: "auto",
+                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                  },
+                }}
+              >
+                <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                 
+                  {currentUnstakeStatus3 === 3 ? (
+
+
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">RPL Unstaked</h3>
+
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                      <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                    </div>
+
+
+
+
+                  ) : currentUnstakeStatus3 === 4 ? (
+
+                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                      <h3 className="font-bold text-[30px]">RPL Unstake Failed!</h3>
+
+                      <p className='my-3 text-lg text-red-400 '>{errorBoxText}</p>
+
+                      <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                      <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                    </div>
+
+
+
+
+
+                  ) : (
+
+
+                    <>
+
+
+
+
+                      <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                        <h3 className="font-bold text-[30px]">Unstake RPL</h3>
+                        <p className="text-[25px]">{RPLinput} RPL</p>
+                      </div>
+
+                      <hr className="w-full my-3" />
+
+                      <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                        <div className='flex items-start justify-between gap-6 w-full'>
+                          <div className="flex items-center justify-start gap-4">
+                            <p> <FaEthereum /></p>
+
+                            <p className="text-left">Unstake RPL </p>
+                          </div>
+                          <p className='self-end'>
+
+                            {
+
+                              currentUnstakeStatus1 === 0 ? (
+                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                              ) : (
+
+                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                              )
+
+
+
+
+                            }
+
+
+                          </p>
+                        </div>
 
 
 
@@ -4055,20 +4066,31 @@ const dispatch = useDispatch()
 
 
 
-            </>
+
+
+
+                      </div>
 
 
 
 
 
 
-          )}
+
+                    </>
 
 
-        </div>
 
 
-      </Modal>
+
+
+                  )}
+
+
+                </div>
+
+
+              </Modal>
 
 
 
