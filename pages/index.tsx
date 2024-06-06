@@ -75,13 +75,13 @@ const Home: NextPage = () => {
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
-            <div className="w-full flex h-full items-center  flex-col justify-center lg:items-end p-4 gap-8 lg:w-[50%] ">
+            <div className="w-full flex h-full items-center  flex-col justify-center xl:items-end p-4 gap-8 lg:w-[50%] ">
 
               <h1 className='text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left  font-bold'>
                 Welcome to Vrün!
               </h1>
 
-              <p className="text-md text-black-100  text-center lg:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
+              <p className="text-md text-black-100  text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
               </p>
 
@@ -95,7 +95,7 @@ const Home: NextPage = () => {
 
             </div>
 
-            <div className="w-full flex h-full items-center flex-col justify-center lg:items-end p-9 gap-6 lg:w-[50%]">
+            <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-9 gap-6 lg:w-[50%]">
 
 
               <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] bg-blue-100 rounded-full lg:h-[400px] lg:w-[400px]">

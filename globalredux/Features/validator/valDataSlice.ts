@@ -60,6 +60,7 @@ export type beaconLogs = Array<beaconLog>
     valBalance: string
     valProposals: string
     valDayVariance: string
+    minipoolBalance: string
     graffiti: string
     valIndex: string
     isEnabled: boolean
@@ -118,6 +119,7 @@ const initialState: stateType =  {
     valBalance: "",
     valProposals: "",
     valDayVariance: "",
+    minipoolBalance: "",
     activationEpoch: "", 
     smoothingPoolTruth: false,
     withdrawalEpoch: "", 

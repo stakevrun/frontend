@@ -15,6 +15,7 @@ import managerABI from "../json/managerABI.json"
 import distributorABI from "../json/distributorABI.json"
 import type { RootState } from '../globalredux/store';
 import Toggle from "./toggle"
+import GetMinipoolData from '../functions/getMinipoolData';
 
 const Navbar: NextPage = () => {
 
@@ -48,6 +49,7 @@ const Navbar: NextPage = () => {
     valBalance: string
     valProposals: string
     valDayVariance: string
+    minipoolBalance: string
     activationEpoch: string
     smoothingPoolTruth: boolean
     withdrawalEpoch: string
@@ -505,6 +507,7 @@ const Navbar: NextPage = () => {
         valBalance: "",
         valProposals: "",
         valDayVariance: "",
+        minipoolBalance: "",
         pubkey: "",
         isEnabled: false,
         valIndex: "",
@@ -624,7 +627,7 @@ const Navbar: NextPage = () => {
             withdrawalEpoch: "",
             withdrawalCountdown: "",
             feeRecipient: "",
-
+            minipoolBalance: "",
             valBalance: "",
             valProposals: "",
             valDayVariance: "",
@@ -776,7 +779,7 @@ const Navbar: NextPage = () => {
           const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
 
 
-
+          const balance =  await browserProvider.getBalance(minAddress)
           
 
 
@@ -825,18 +828,19 @@ const Navbar: NextPage = () => {
 
           }
 
-
-          if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
-
-            currentStatus = "Empty"
-
-          } else {
-            
-            currentStatus = MinipoolStatus[statusResult];
+            if(Number(ethers.formatEther(balance)) > 0) {
 
 
-          }
+              currentStatus = MinipoolStatus[statusResult];
 
+
+            } else {
+              currentStatus = "Empty"
+            }
+           
+
+
+    
 
 
 
@@ -854,7 +858,7 @@ const Navbar: NextPage = () => {
             withdrawalCountdown: withdrawalCountdown.toString(),
             feeRecipient: newFeeRecipient,
 
-
+            minipoolBalance: ethers.formatEther(balance),
             valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
             valProposals: newValProposals.toString(),
             valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),

@@ -1094,7 +1094,7 @@ const AccountMain: NextPage = () => {
 
     for (const object of reduxData) {
 
-      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) >= 0) {
+      if (object.beaconStatus === "withdrawl_done" && Number(object.valBalance) > 0) {
         withdrawnNum += 1
       }
 
@@ -1243,6 +1243,7 @@ const AccountMain: NextPage = () => {
         valBalance: "",
         valProposals: "",
         valDayVariance: "",
+        minipoolBalance: "",
         pubkey: "",
         isEnabled: false,
         valIndex: "",
@@ -1388,6 +1389,7 @@ const AccountMain: NextPage = () => {
             valBalance: "",
             valProposals: "",
             valDayVariance: "",
+            minipoolBalance: "",
             pubkey: pubkey,
             isEnabled: false,
             valIndex: "",
@@ -1403,11 +1405,23 @@ const AccountMain: NextPage = () => {
         } else {
 
 
-          const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+          const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)',
+           'function getNodeDepositBalance() view returns (uint256)',
+           'function getNodeRefundBalance() view returns (uint256)',
+           'function getUserDistributed() view returns (bool)',
+           'function getVacant() view returns (bool)',
+           'function getUserDepositBalance() view returns (uint256)'], signer)
 
 
           const statusResult = await minipool.getStatus();
           const statusTimeResult = await minipool.getStatusTime();
+
+          const balance =  await browserProvider.getBalance(minAddress)
+
+
+          console.log("Minipool balance:" + balance)
+
+        
           const numStatusTime = Number(statusTimeResult) * 1000;
 
           console.log("Status Result:" + statusResult)
@@ -1419,6 +1433,9 @@ const AccountMain: NextPage = () => {
 
 
 
+     
+
+
           const MinipoolStatus = [
             "Initialised",
             "Prelaunch",
@@ -1428,7 +1445,7 @@ const AccountMain: NextPage = () => {
           ];
 
 
-          let currentStatus = "MinipoolStatus[statusResult]";
+          let currentStatus = "";
 
           if (MinipoolStatus[statusResult] === "Staking") {
 
@@ -1573,17 +1590,20 @@ const AccountMain: NextPage = () => {
 
 
 
-          if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
+     
 
-            currentStatus = "Empty"
+          if(Number(ethers.formatEther(balance)) > 0) {
 
-          } else {
 
             currentStatus = MinipoolStatus[statusResult];
 
 
+          } else {
+            currentStatus = "Empty"
           }
 
+
+  
 
           minipoolObjects.push({
             address: minAddress,
@@ -1619,6 +1639,7 @@ const AccountMain: NextPage = () => {
             valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
             valProposals: newValProposals.toString(),
             valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+            minipoolBalance: ethers.formatEther(balance),
             isEnabled: isEnabled,
             valIndex: valIndex,
             pubkey: pubkey,
@@ -1719,13 +1740,10 @@ const AccountMain: NextPage = () => {
 
           }
 
-          else if (log.statusResult === "Staking" && log.beaconStatus !== "withdrawal_done" && Number(log.valBalance) > 0) {
+          else if (log.statusResult === "Staking" && (log.beaconStatus === "withdrawal_done" && Number(log.valBalance) > 0)) {
             newTotalVals += 1;
 
           }
-
-
-
         }
 
 
@@ -2404,6 +2422,7 @@ const AccountMain: NextPage = () => {
     valBalance: string
     valProposals: string
     valDayVariance: string
+    minipoolBalance: string
     activationEpoch: string
     smoothingPoolTruth: boolean
     withdrawalEpoch: string
@@ -3482,9 +3501,56 @@ const AccountMain: NextPage = () => {
   }, [incrementer])
 
 
+const [prelaunchTruth, setPrelaunchTruth] = useState(false)
+
+
+useEffect(() => {
+
+//DISCOVER GRAPH TIMEOUT
+
+let i = 0
+
+
+for (const object of reduxData) {
+  if (object.statusResult === "Prelaunch"  || object.statusResult === "Initialised") {
+
+    setPrelaunchTruth(true)
+
+    return;
+
+
+  }
+}
+
+
+ 
+
+}, [reduxData])
+
+const [waitBeaconchainTruth, setWaitBeaconchainTruth] = useState(false)
 
 
 
+useEffect(() => {
+
+  //DISCOVER GRAPH TIMEOUT
+  
+  let i = 0
+  
+  
+  for (const object of reduxData) {
+    if (object.statusResult === "Staking"  || object.beaconStatus !== "active_ongoing") {
+  
+      setWaitBeaconchainTruth(true)
+  
+      return;
+  
+  
+    }
+  }
+   
+  
+  }, [reduxData])
 
 
 
@@ -3529,7 +3595,11 @@ const AccountMain: NextPage = () => {
                           <div style={{ backgroundColor: reduxDarkMode ? "#333" : "#fff" }} className="flex items-center w-auto  h-auto justify-center p-3 lg:p-6  ">
 
 
-                            {(graphData.labels.length > 0 && graphTimeout) || ( reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) ? (
+                            {(graphData.labels.length > 0 && graphTimeout) || ( reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) || 
+                            ( (reduxData[0].statusResult === "Prelaunch"  || reduxData[0].statusResult === "Initialised")  && graphTimeout) || (prelaunchTruth && graphTimeout)  || (waitBeaconchainTruth && graphTimeout)
+                            
+                            
+                            ? (
 
 
                               <div className="w-[270px] sm:w-auto h-auto  flex flex-col items-center justify-center p-2 lg:p-8 px-[0.5vh] lg:px-[6vh]">

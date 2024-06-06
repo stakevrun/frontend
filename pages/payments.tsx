@@ -16,13 +16,15 @@ import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
 import { FaCoins } from "react-icons/fa";
-import BounceLoader from "react-spinners/BounceLoader";
+
 import Modal from 'react-modal';
 import { FaEthereum } from "react-icons/fa";
 import styles from '../styles/Home.module.css';
 import { TiTick } from "react-icons/ti";
 import { BiSolidErrorAlt } from "react-icons/bi";
 import { AiOutlineClose } from 'react-icons/ai'
+import ContractTag from "../components/contractTag"
+import BounceLoader from "react-spinners/BounceLoader";
 
 
 const Payments: NextPage = () => {
@@ -91,7 +93,7 @@ const Payments: NextPage = () => {
 
         setIncrementer(0)
         setShowFormMakePayment(true)
-        
+
 
 
 
@@ -115,14 +117,14 @@ const Payments: NextPage = () => {
 
                 setIncrementer(1)
 
-               
+
                 getPayments();
 
-             
-              setIncrementerWithDelay(4, 700)
 
-              setFeeETHInput("")
-              
+                setIncrementerWithDelay(4, 700)
+
+                setFeeETHInput("")
+
 
                 console.log("Transaction successful:", receipt);
             } else {
@@ -165,18 +167,25 @@ const Payments: NextPage = () => {
 
     }
 
+    const [chargesData, setChargesData] = useState<Array<edittedObject>>([])
+    const [paymentEntryData, setPaymentEntryData] = useState<Array<edittedObject>>([])
+    const [totalData, setTotalData] = useState<Array<edittedObject>>([])
+
 
 
     const getPayments = async () => {
 
 
 
-        type RowType = {
-            payments: number; // Assuming payments are numbers for calculation
-        }
 
 
-        let paymentData: Array<RowType> = [];
+
+        let paymentData: Array<edittedObject> = [];
+
+
+
+
+
 
 
         const payments: string = await fetch(`https://fee.vrün.com/${currentChain}/${address}/payments`, {
@@ -190,7 +199,7 @@ const Payments: NextPage = () => {
 
                 var jsonObject = await response.json()
 
-                console.log("Running Payments")
+                console.log("Running Payments:" + Object.entries(jsonObject))
 
 
 
@@ -206,6 +215,9 @@ const Payments: NextPage = () => {
                         balance += BigInt(amount);
 
 
+                        paymentData = [...paymentData, { fee: amount, date: convertTimestampToDate(timestamp), pubkey: "payment" }]
+
+
 
                     }
 
@@ -214,6 +226,8 @@ const Payments: NextPage = () => {
                 }
 
 
+
+                setPaymentEntryData(paymentData)
 
 
                 return ethers.formatEther(balance);
@@ -240,10 +254,86 @@ const Payments: NextPage = () => {
 
 
 
+    type chargeObject = {
+        startTime: number
+        endTime: number
+        lastDay: number
+        firstDay: number
+        numDays: number
+
+    }
+
+
+    type edittedObject = {
+        date: string
+        fee: number
+        pubkey: string
+    }
+
+
+
+
+
+
+
+
+
+    useEffect(() => {
+
+
+        const newArray = sortInReverseChronologicalOrder([...chargesData, ...paymentEntryData])
+
+
+        setTotalData(newArray)
+
+
+    }, [chargesData, paymentEntryData])
+
+
+
+
+    // Function to generate the breakdown of days
+    function breakdownDays(chargeObj: chargeObject, pubkey: string) {
+        const result = [];
+        const startDate = new Date(chargeObj.firstDay);
+        const endDate = new Date(chargeObj.lastDay);
+        const fee = 0.00001;
+
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            result.push({
+                date: d.toISOString().split('T')[0], // Format the date as YYYY-MM-DD
+                fee: fee,
+                pubkey: pubkey
+            });
+        }
+
+        return result;
+    }
+
+    function sortInReverseChronologicalOrder(array: Array<edittedObject>): Array<edittedObject> {
+        return array.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+
+    function convertTimestampToDate(timestamp: number) {
+        // Convert the timestamp from seconds to milliseconds
+        const date = new Date(timestamp * 1000);
+
+        // Format the date as YYYY-MM-DD
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+
     const getCharges = async () => {
 
 
 
+
+        let newChargesArray: Array<edittedObject> = [];
 
 
 
@@ -272,8 +362,18 @@ const Payments: NextPage = () => {
                     var jsonObject = await response.json()
 
 
+
+
+
+
                     console.log("An Object of Power:" + Object.entries(jsonObject))
                     let numDays = 0;
+
+
+
+
+
+
 
 
 
@@ -282,6 +382,12 @@ const Payments: NextPage = () => {
                         console.log("Charges object:" + Object.entries(object));
 
                         numDays += object.numDays
+
+
+
+                        const newObject = breakdownDays(object, data.pubkey)
+
+                        newChargesArray = [...newChargesArray, ...newObject]
 
 
                     }
@@ -304,6 +410,9 @@ const Payments: NextPage = () => {
 
             totalCharges += charges
 
+
+
+
         }
 
 
@@ -316,6 +425,9 @@ const Payments: NextPage = () => {
 
 
         dispatch(getChargesData(totalETH))
+
+        const finalArray = sortInReverseChronologicalOrder(newChargesArray)
+        setChargesData(finalArray)
 
 
 
@@ -412,9 +524,9 @@ const Payments: NextPage = () => {
 
     const setIncrementerWithDelay = (value: number, delay: number) => {
         setTimeout(() => {
-          setIncrementer(value);
+            setIncrementer(value);
         }, delay);
-      };
+    };
 
 
 
@@ -445,73 +557,81 @@ const Payments: NextPage = () => {
 
 
 
-    
+
+    useEffect(() => {
+
+        console.log("Charges data:" + chargesData)
+
+    }, [chargesData])
 
 
 
-      const [showFormMakePayment, setShowFormMakePayment] = useState(false)
-      const [showFormMakePaymentEffect, setShowFormMakePaymentEffect] = useState(false)
-    
-    
-      useEffect(() => {
-    
-    
+
+
+
+    const [showFormMakePayment, setShowFormMakePayment] = useState(false)
+    const [showFormMakePaymentEffect, setShowFormMakePaymentEffect] = useState(false)
+
+
+    useEffect(() => {
+
+
         setShowFormMakePaymentEffect(showFormMakePayment);
-        if(showFormMakePayment === false) {
+        if (showFormMakePayment === false) {
             setIncrementer(0)
         }
-    
-    
-      }, [showFormMakePayment]);
-    
-    
-      
-      const [currentMakePaymentStatus1, setCurrentMakePaymentStatus1] = useState(0)
-    
-      const [currentMakePaymentStatus3, setCurrentMakePaymentStatus3] = useState(0)
-      const [incrementer, setIncrementer] = useState(0)
-    
-    
-      useEffect(() => {
-    
+
+
+    }, [showFormMakePayment]);
+
+
+
+    const [currentMakePaymentStatus1, setCurrentMakePaymentStatus1] = useState(0)
+
+    const [currentMakePaymentStatus3, setCurrentMakePaymentStatus3] = useState(0)
+    const [incrementer, setIncrementer] = useState(0)
+
+
+    useEffect(() => {
+
         if (currentMakePaymentStatus3 === 3) {
-    
-          triggerConfetti();
+
+            triggerConfetti();
         }
-    
-      }, [currentMakePaymentStatus3])
-    
-    
-    
-    
-      useEffect(() => {
-    
-    
+
+    }, [currentMakePaymentStatus3])
+
+
+
+
+    useEffect(() => {
+
+
         if (incrementer === 1) {
-    
-          setCurrentMakePaymentStatus1(1)
-    
-    
-        }  else if (incrementer === 4) {
-          setCurrentMakePaymentStatus3(3)
+
+            setCurrentMakePaymentStatus1(1)
+
+
+        } else if (incrementer === 4) {
+            setCurrentMakePaymentStatus3(3)
         } else if (incrementer === 5) {
-          setCurrentMakePaymentStatus3(4)
+            setCurrentMakePaymentStatus3(4)
         }
-    
-    
-    
+
+
+
         else {
-    
-          setCurrentMakePaymentStatus1(0)
-        
-          setCurrentMakePaymentStatus3(0)
-    
-    
-    
+
+            setCurrentMakePaymentStatus1(0)
+
+            setCurrentMakePaymentStatus3(0)
+
+
+
         }
-    
-      }, [incrementer])
-    
+
+    }, [incrementer])
+
 
 
 
@@ -557,7 +677,7 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 
@@ -609,51 +729,113 @@ const Payments: NextPage = () => {
                             </div>
 
 
-                            <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 ">
-                                <div className="w-auto overflow-hidden shadow-xl border rounded-lg mb-10 ">
+                            <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 py-[8vh]">
+                                {chargesData.length > 0 && totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg mb-10 ">
 
 
-                                    <table className="w-full bg-white">
+                                    <table className="w-full">
+
                                         <tbody>
 
-                                            {reduxData.map((data, index) => (
-                                                <tr key={index} style={data.statusResult === "Empty" ? { display: "none" } : { display: "block" }}>
+                                            {totalData.map((data, index) => (
+                                                <tr key={index} >
+                                                    <td className="px-4 py-5 w-[200px]">
+                                                        <span className='text-center text-black-500 text-md lg:text-xl'>
 
-
-
-                                                    <td className=" px-4 pl-10 w-[200px] ">
-
-                                                    </td>
-
-                                                    <td className="px-4 py-3 w-[200px]">
+                                                            <p>{data.date}</p>
+                                                        </span>
 
                                                     </td>
 
-                                                    <td className="px-4 py-3 w-[180px]">
+                                                    <td className="px-4 py-5 w-[180px]">
+                                                        <span className='text-center text-grey-700 font-bold text-sm lg:text-lg'>
+                                                            {data.pubkey === "payment" ?
+
+
+                                                                (<p className="text-center">Vrün Account Deposit</p>) :
+
+
+                                                                (<p className="text-center">Daily Validator Charge</p>)
+
+                                                            }
+                                                        </span>
 
                                                     </td>
 
-                                                    <td className="px-4 py-3 text-xs w-[180px]">
+                                                    <td className=" hidden lg:block px-4 pl-10 py-5 w-[300px] ">
+
+
+
+                                                        {data.pubkey === "payment" ?
+
+
+                                                            (<></>) :
+
+
+                                                            (<span >
+                                                                <ContractTag pubkey={data.pubkey} />
+                                                            </span>)
+
+                                                        }
+
+
+                                                    </td>
+
+                                                    <td className="px-4 py-5  w-[200px]">
+
+
+
+                                                        {data.pubkey === "payment" ?
+
+
+                                                            (<span className='text-center  text-sm lg:text-xl'>
+                                                                <p className='text-green-500'>+{ethers.formatEther(data.fee)}</p>
+
+                                                            </span>) :
+
+
+                                                            (<span className='text-center  text-sm lg:text-xl'>
+                                                                <p className='text-red-500'>-{data.fee}</p>
+
+                                                            </span>)
+
+                                                        }
+
+
+
 
 
 
                                                     </td>
 
-                                                    <td className="px-4 pr-10 py-3 w-[auto]">
 
-                                                    </td>
+
+
+
+
 
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
-                                </div>
+                                </div>) : (
+                                    <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
+
+                                        <h3>Please wait while we retrieve your Vrün statement... </h3>
+
+                                        <BounceLoader />
+
+
+                                    </div>
+                                )
+
+                                }
 
 
                             </div>
 
 
-                       
+
 
 
                             <Modal
@@ -740,7 +922,7 @@ const Payments: NextPage = () => {
 
 
                                             <div className='w-full flex items-start flex-col gap-2 justify-center'>
-                                                <h3 className="font-bold text-[30px]">Top-up Vrun Account</h3>
+                                                <h3 className="font-bold text-[30px]">Top-up Vrün Account</h3>
                                                 <p className="text-[25px]">{feeETHInput} ETH</p>
                                             </div>
 
@@ -751,7 +933,7 @@ const Payments: NextPage = () => {
 
                                                 <div className='flex items-start justify-between gap-6 w-full'>
                                                     <div className="flex items-center justify-start gap-4">
-                                                        <p> <FaCoins/></p>
+                                                        <p> <FaCoins /></p>
 
                                                         <p className="text-left">Confirm Deposit </p>
                                                     </div>
@@ -809,7 +991,7 @@ const Payments: NextPage = () => {
 
 
                             </Modal>
-                        
+
                         </>
 
 
