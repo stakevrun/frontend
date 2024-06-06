@@ -71,17 +71,17 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh]'>
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start  py-[10vh] xl:pt-[10vh]'>
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
-            <div className="w-full flex h-full items-center  flex-col justify-center lg:items-end p-4 gap-8 lg:w-[50%] ">
+            <div className="w-full flex h-full items-center  flex-col justify-center xl:items-end p-4 gap-8 lg:w-[50%] ">
 
               <h1 className='text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left  font-bold'>
                 Welcome to Vrün!
               </h1>
 
-              <p className="text-md text-black-100  text-center lg:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
+              <p className="text-md text-black-100  text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for Forward-Thinking Node Operators.
               </p>
 
@@ -95,7 +95,7 @@ const Home: NextPage = () => {
 
             </div>
 
-            <div className="w-full flex h-full items-center flex-col justify-center lg:items-end p-9 gap-6 lg:w-[50%]">
+            <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-9 gap-6 lg:w-[50%]">
 
 
               <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] bg-blue-100 rounded-full lg:h-[400px] lg:w-[400px]">
@@ -111,7 +111,7 @@ const Home: NextPage = () => {
 
         <div className='h-auto w-full flex flex-col gap-[10vh] py-[10vh] justify-center items-center ' style={{ backgroundColor: "#8A2BE2" }}>
 
-          <h2 className="text-2xl  md:text-3xl  lg:text-4xl  xl:text-5xl  self-center text-center  font-bold text-white">Resources & Documentation</h2>
+          <h2 className="text-2xl  md:text-3xl  lg:text-4xl  xl:text-5xl  max-w-[80%] self-center text-center  font-bold text-white">Resources & Documentation</h2>
 
           <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl md:h-[40rem] lg:max-w-5xl">
 

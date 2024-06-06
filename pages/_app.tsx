@@ -19,7 +19,7 @@ const mainnetRPCKey = process.env.MAINNET_RPC
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
-    mainnet,
+   // mainnet,
     //polygon,
     //optimism,
     //arbitrum,

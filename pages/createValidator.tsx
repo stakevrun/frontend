@@ -268,6 +268,7 @@ const dispatch = useDispatch()
     valBalance: string
     valProposals: string
     valDayVariance: string
+    minipoolBalance: string
     activationEpoch: string
     smoothingPoolTruth: boolean
     withdrawalEpoch: string
@@ -581,6 +582,7 @@ const dispatch = useDispatch()
       } else {
         setIncrementer(5)
         setStakeButtonBool(true)
+        setErrorBoxTest("An unknown error occured.");
         // Handle failed transaction
       }
     } catch (e: any) {
@@ -1355,6 +1357,7 @@ const dispatch = useDispatch()
         valBalance: "",
         valProposals: "",
         valDayVariance: "",
+        minipoolBalance: "",
         pubkey: "",
         isEnabled: false,
         valIndex: "",
@@ -1474,7 +1477,7 @@ const dispatch = useDispatch()
             withdrawalEpoch: "",
             withdrawalCountdown: "",
             feeRecipient: "",
-
+            minipoolBalance: "",
             valBalance: "",
             valProposals: "",
             valDayVariance: "",
@@ -1617,7 +1620,7 @@ const dispatch = useDispatch()
 
           const isEnabled = await getEnabled(pubkey)
 
-
+          const balance =  await browserProvider.getBalance(minAddress)
 
           console.log("Status:" + beaconStatusObject.status)
 
@@ -1674,18 +1677,15 @@ const dispatch = useDispatch()
 
           }
 
+          if(Number(ethers.formatEther(balance)) > 0) {
 
-          if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
 
-            currentStatus = "Empty"
-
-          } else {
-            
             currentStatus = MinipoolStatus[statusResult];
 
 
+          } else {
+            currentStatus = "Empty"
           }
-
 
 
 
@@ -1702,7 +1702,7 @@ const dispatch = useDispatch()
             withdrawalEpoch: withdrawalEpoch,
             withdrawalCountdown: withdrawalCountdown.toString(),
             feeRecipient: newFeeRecipient,
-
+            minipoolBalance: ethers.formatEther(balance),
 
             valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
             valProposals: newValProposals.toString(),

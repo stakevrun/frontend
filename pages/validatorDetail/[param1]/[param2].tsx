@@ -219,6 +219,7 @@ const ValidatorDetail: NextPage = () => {
         valBalance: string
         valProposals: string
         valDayVariance: string
+        minipoolBalance: string
         activationEpoch: string
         smoothingPoolTruth: boolean
         withdrawalEpoch: string
@@ -504,6 +505,7 @@ const ValidatorDetail: NextPage = () => {
                     valBalance: "",
                     valProposals: "",
                     valDayVariance: "",
+                    minipoolBalance: "",
                     pubkey: pubkey,
                     isEnabled: false,
                     valIndex: "",
@@ -639,10 +641,15 @@ const ValidatorDetail: NextPage = () => {
 
                 const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
 
+                const balance =  await browserProvider.getBalance(minAddress)
+
                 let beaconObject = [];
                 let newValProposals = 0;
                 let newValBalance = 0;
                 let newValVariance = 0;
+
+
+                
 
 
                 setChecked2(smoothingBool)
@@ -683,16 +690,17 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                if (beaconStatus === "withdrawal_done" && newValBalance <= 0) {
+            
 
-                    currentStatus = "Empty"
+                if(Number(ethers.formatEther(balance)) > 0) {
 
-                } else {
 
                     currentStatus = MinipoolStatus[statusResult];
-
-
-                }
+      
+      
+                  } else {
+                    currentStatus = "Empty"
+                  }
 
 
 
@@ -712,6 +720,7 @@ const ValidatorDetail: NextPage = () => {
                     valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
                     valProposals: newValProposals.toString(),
                     valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+                    minipoolBalance: ethers.formatEther(balance),
                     isEnabled: isEnabled,
                     valIndex: valIndex,
                     activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
@@ -1163,11 +1172,33 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                await minipool.stake(depositSignature, depositDataRoot);
+                const tx = await minipool.stake(depositSignature, depositDataRoot);
 
-                setIncrementer(3)
 
-                setIncrementerWithDelay(4, 1500);
+
+                const receipt = await tx.wait()
+
+
+                if(receipt.status === 1) {
+
+                    setIncrementer(3)
+
+                    setIncrementerWithDelay(4, 1500);
+
+                     
+                } else {
+
+                    setIncrementer(5)
+
+                
+                        setStakeErrorMessage("An unknown error has occured. Please try again.")
+        
+        
+                 
+
+                }
+
+           
 
 
             } else {
@@ -1211,16 +1242,31 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                await minipool.stake(depositSignature, depositDataRoot);
+                const tx = await minipool.stake(depositSignature, depositDataRoot);
 
 
-                setIncrementer(3)
 
-                getMinipoolData();
-
-                setIncrementerWithDelay(4, 1500);
+                const receipt = await tx.wait()
 
 
+                if(receipt.status === 1) {
+
+                    setIncrementer(3)
+
+                    setIncrementerWithDelay(4, 1500);
+
+                     
+                } else {
+
+                    setIncrementer(5)
+
+                
+                        setStakeErrorMessage("An unknown error has occured. Please try again.")
+        
+        
+                 
+
+                }
 
 
 
@@ -1308,17 +1354,41 @@ const ValidatorDetail: NextPage = () => {
 
             console.log("Mini Address:" + minipoolAddress)
             const minipool = new ethers.Contract(minipoolAddress, ['function distributeBalance(bool)'], signer)
-            await minipool.distributeBalance(false)
+            const tx = await  minipool.distributeBalance(false)
 
             setIncrementer(1)
 
 
-            const data = await getMinipoolData();
+           
+            const receipt = await tx.wait(); 
 
 
-            setIncrementer(2)
+          
+            console.log("Transaction confirmed:", receipt);
+    
+    
+    
+            if (receipt.status === 1) {
+    
+                setIncrementer(2)
+    
+              const data = await getMinipoolData();
+    
+              setIncrementerWithDelay(4, 300)
+    
+    
+            } else {
+    
+              setIncrementer(5)
+              setDistributeErrorBoxText("An Unknown error has occured. Please try again.")
+    
+    
+    
+    
+    
+            }
+    
 
-            setIncrementerWithDelay(4, 300)
         } catch (e: any) {
 
             if (e.reason) {
@@ -1379,13 +1449,31 @@ const ValidatorDetail: NextPage = () => {
 
             console.log("Mini Address:" + minipoolAddress)
             const minipool = new ethers.Contract(minipoolAddress, ['function close()'], signer)
-            const returnValue = await minipool.close()
+            const tx = await minipool.close()
 
             setIncrementer(1)
 
-            const data = await getMinipoolData()
-            setIncrementer(2)
-            setIncrementerWithDelay(4, 700)
+
+            const receipt = await  tx.wait()
+
+            if (receipt.status === 1) {
+    
+                setIncrementer(2)
+    
+              const data = await getMinipoolData();
+    
+              setIncrementerWithDelay(4, 300)
+    
+    
+            } else {
+    
+              setIncrementer(5)
+              setCloseDissolvedErrorMessage("An Unknown error has occured. Please try again.")
+    
+            }
+    
+    
+    
 
 
 
@@ -3351,6 +3439,16 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
+{
+                                                        reduxData.statusResult === "Prelaunch" &&  (
+
+                                                            <p className="text-yellow-500  text-md">prelaunch</p>
+
+                                                        )
+
+                                                    }
+
+
                                                     {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) > 0 &&
                                                         <>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
@@ -3544,7 +3642,8 @@ const ValidatorDetail: NextPage = () => {
                                         </div>}
 
 
-                                    {reduxData.statusResult === "Staking" && (reduxData.beaconStatus === "active_ongoing" || reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed" || reduxData.beaconStatus === "withdrawal_possible" || reduxData.beaconStatus === "withdrawal_done") &&
+                                    {reduxData.statusResult === "Staking" && (reduxData.beaconStatus === "active_ongoing" || reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed" 
+                                    || reduxData.beaconStatus === "withdrawal_possible")  &&
                                         <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
 
                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
@@ -3561,7 +3660,7 @@ const ValidatorDetail: NextPage = () => {
                                     }
 
 
-                                    {reduxData.beaconStatus === "withdrawal_done" && Number(reduxData.valBalance) > 0 &&
+                                    {reduxData.beaconStatus === "withdrawal_done"  &&
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-yellow-100 rounded-full mr-6">
                                                 <FaCoins className="text-yellow-500 text-xl" />
@@ -3578,7 +3677,8 @@ const ValidatorDetail: NextPage = () => {
                                     }
 
 
-                                    {reduxData.statusResult !== "Empty" && (reduxData.beaconStatus === "active_ongoing" || reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed" || reduxData.beaconStatus === "withdrawal_possible" || reduxData.beaconStatus === "withdrawal_done") &&
+                                    {reduxData.statusResult !== "Empty" && (reduxData.beaconStatus === "active_ongoing" || reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed" || reduxData.beaconStatus === "withdrawal_possible" 
+                                    ) &&
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
 
                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
