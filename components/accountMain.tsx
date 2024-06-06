@@ -3596,7 +3596,7 @@ useEffect(() => {
 
 
                             {(graphData.labels.length > 0 && graphTimeout) || ( reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) || 
-                            ( (reduxData[0].statusResult === "Prelaunch"  || reduxData[0].statusResult === "Initialised")  && graphTimeout) || (prelaunchTruth && graphTimeout)  || (waitBeaconchainTruth && graphTimeout)
+                            ( (reduxData[0].statusResult === "Prelaunch"  || reduxData[0].statusResult === "Initialised")  && graphTimeout) || ( prelaunchTruth && graphTimeout)  || (  waitBeaconchainTruth && graphTimeout)
                             
                             
                             ? (

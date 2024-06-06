@@ -71,7 +71,7 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start xl:pt-[10vh]'>
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start  py-[10vh] xl:pt-[10vh]'>
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
@@ -111,7 +111,7 @@ const Home: NextPage = () => {
 
         <div className='h-auto w-full flex flex-col gap-[10vh] py-[10vh] justify-center items-center ' style={{ backgroundColor: "#8A2BE2" }}>
 
-          <h2 className="text-2xl  md:text-3xl  lg:text-4xl  xl:text-5xl  self-center text-center  font-bold text-white">Resources & Documentation</h2>
+          <h2 className="text-2xl  md:text-3xl  lg:text-4xl  xl:text-5xl  max-w-[80%] self-center text-center  font-bold text-white">Resources & Documentation</h2>
 
           <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl md:h-[40rem] lg:max-w-5xl">
 
