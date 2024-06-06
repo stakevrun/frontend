@@ -22,7 +22,7 @@ const Navbar: NextPage = () => {
 
   const { address } = useAccount({
     onConnect: ({ address }) => {
-      console.log("Ethereum Wallet Connected!")
+      getMinipoolData()
     }
   })
 

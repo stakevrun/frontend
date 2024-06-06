@@ -10,8 +10,8 @@ import managerABI from "../json/managerABI.json"
 import confetti from 'canvas-confetti';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../globalredux/store';
-import { getPaymentsData } from "../globalredux/Features/payments/paymentSlice"
-import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
+import { getPaymentsData, getPaymentsEntryData } from "../globalredux/Features/payments/paymentSlice"
+import { getChargesData, getChargesEntryData } from "../globalredux/Features/charges/chargesSlice"
 import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
@@ -31,6 +31,8 @@ const Payments: NextPage = () => {
 
     const reduxPayments = useSelector((state: RootState) => state.paymentsData.data)
     const reduxCharges = useSelector((state: RootState) => state.chargesData.data)
+    const reduxChargesEntries = useSelector((state: RootState) => state.chargesData.entryData)
+    const reduxPaymentsEntries = useSelector((state: RootState) => state.paymentsData.entryData)
     const reduxData = useSelector((state: RootState) => state.valData.data);
 
 
@@ -228,7 +230,7 @@ const Payments: NextPage = () => {
 
 
                 setPaymentEntryData(paymentData)
-
+                dispatch(getPaymentsEntryData(paymentData))
 
                 return ethers.formatEther(balance);
 
@@ -242,7 +244,10 @@ const Payments: NextPage = () => {
 
 
 
+
         dispatch(getPaymentsData(Number(payments)))
+
+
 
 
 
@@ -281,13 +286,28 @@ const Payments: NextPage = () => {
     useEffect(() => {
 
 
-        const newArray = sortInReverseChronologicalOrder([...chargesData, ...paymentEntryData])
+        console.log("Redux Entries:" + reduxChargesEntries + reduxPaymentsEntries)
+
+        if (reduxChargesEntries.length > 0 && reduxPaymentsEntries.length > 0) {
 
 
-        setTotalData(newArray)
+            if (reduxChargesEntries[0].date !== "defaultState" && reduxPaymentsEntries[0].date !== "defaultState") {
+
+                const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-    }, [chargesData, paymentEntryData])
+                setTotalData(newArray)
+
+
+            }
+
+
+        }
+
+
+
+
+    }, [reduxChargesEntries, reduxPaymentsEntries])
 
 
 
@@ -428,6 +448,8 @@ const Payments: NextPage = () => {
 
         const finalArray = sortInReverseChronologicalOrder(newChargesArray)
         setChargesData(finalArray)
+
+        dispatch(getChargesEntryData(finalArray))
 
 
 

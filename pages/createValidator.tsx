@@ -811,28 +811,6 @@ const dispatch = useDispatch()
   ///
 
 
-  useEffect(() => {
-
-
-    if (errorBoxText2 !== "") {
-
-
-      const handleText = () => {
-        setErrorBoxTest2("")
-
-      }
-
-
-      const timeoutId = setTimeout(handleText, 6000);
-
-      return () => clearTimeout(timeoutId);
-
-
-
-
-    }
-
-  }, [errorBoxText2])
 
 
 
@@ -2633,9 +2611,91 @@ const dispatch = useDispatch()
 
 
 
+  
+
+  const [showFormSmoothingPool, setShowFormSmoothingPool] = useState(false)
+  const [showFormSmoothingPoolEffect, setShowFormSmoothingPoolEffect] = useState(false)
+  const [incrementer, setIncrementer] = useState(0);
+
+  useEffect(() => {
+
+
+    setShowFormSmoothingPoolEffect(showFormSmoothingPool);
+
+    if (showFormSmoothingPool === false) {
+      setIncrementer(0)
+    }
+
+
+  }, [showFormSmoothingPool]);
+
+
+
+  const [currentSmoothingPoolStatus1, setCurrentSmoothingPoolStatus1] = useState(0)
+
+  const [currentSmoothingPoolStatus2, setCurrentSmoothingPoolStatus2] = useState(0)
+  const [currentSmoothingPoolStatus3, setCurrentSmoothingPoolStatus3] = useState(0)
+
+
+
+  useEffect(() => {
+
+    if (currentSmoothingPoolStatus3 === 3) {
+
+      triggerConfetti();
+    }
+
+  }, [currentSmoothingPoolStatus3])
+
+
+
+
+  useEffect(() => {
+
+
+    if (incrementer === 1) {
+
+      setCurrentSmoothingPoolStatus1(1)
+      setCurrentSmoothingPoolStatus2(1)
+
+    } else if (incrementer === 2) {
+      setCurrentSmoothingPoolStatus2(2)
+
+
+
+    } else if (incrementer === 4) {
+      setCurrentSmoothingPoolStatus3(3)
+    } else if (incrementer === 5) {
+      setCurrentSmoothingPoolStatus3(4)
+    }
+
+
+
+    else {
+
+      setCurrentSmoothingPoolStatus1(0)
+      setCurrentSmoothingPoolStatus2(0)
+      setCurrentSmoothingPoolStatus3(0)
+
+
+
+    }
+
+  }, [incrementer])
+
+
+
+
+  const [showForm6, setShowForm6] = useState(false)
 
 
   const handleOptSmoothingPool = async () => {
+
+
+    setIncrementer(0)
+    setShowFormSmoothingPool(true)
+    setShowForm6(false)
+
     if (typeof (window as any).ethereum !== "undefined") {
       try {
 
@@ -2656,23 +2716,31 @@ const dispatch = useDispatch()
         const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(checked2)
         console.log(tx);
 
+        setIncrementer(1)
+
         // Listen for transaction confirmation
         const receipt = await tx.wait();
         console.log("Transaction confirmed:", receipt);
 
-   
 
-        if (checked2 === false) {
 
-          alert("Opt-out of Smoothing Pool Sucessful")
-          setShowForm(false)
+        if (receipt.status === 1) {
+
+          setIncrementer(2)
+
+          const data = await getMinipoolData();
+
+          setIncrementerWithDelay(4, 300)
 
 
         } else {
 
+          setIncrementer(5)
+          setErrorBoxTest2("An Unknown error has occured. Please try again.")
 
-          alert("Opt-in to Smoothing Pool Sucessful")
-          setShowForm(false)
+
+
+
 
         }
 
@@ -2687,13 +2755,26 @@ const dispatch = useDispatch()
 
 
 
-        if (input.reason === "rejected") {
-          setErrorBoxTest3(input.info.error.message.toString())
+        if (input.reason) {
+          setErrorBoxTest2(input.info.error.message.toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
         }
-        else {
-          setErrorBoxTest3(input.reason.toString())
+
+        else if (input.error) {
+
+
+          setErrorBoxTest2(input.error["message"].toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+
+
+        } else {
+
+          setErrorBoxTest2("An Unknown error has occured.")
+
+
         }
+
+
+        setIncrementer(5)
 
 
 
@@ -2710,7 +2791,7 @@ const dispatch = useDispatch()
   const [currentStatus1, setCurrentStatus1] = useState(0)
   const [currentStatus2, setCurrentStatus2] = useState(0)
   const [currentStatus3, setCurrentStatus3] = useState(0)
-  const [incrementer, setIncrementer] = useState(0);
+ 
 
 
   useEffect(() => {
@@ -3435,6 +3516,204 @@ const dispatch = useDispatch()
 
 
               </Modal>
+
+
+
+
+              
+              <Modal
+                    isOpen={showFormSmoothingPool}
+                    onRequestClose={() => setShowFormSmoothingPool(false)}
+                    contentLabel="Smoothing Pool Transaction Modal"
+                    className={`${styles.modal} ${showFormSmoothingPoolEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                    ariaHideApp={false}
+                    style={{
+                      overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: "999999999999999999999999999999999999",
+                        transition: "0.2s transform ease-in-out",
+                      },
+                      content: {
+                        width: 'auto',
+                        height: 'auto',
+                        minWidth: "280px",
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+
+                        color: 'black',
+                        backgroundColor: "#fff",
+                        border: "0",
+                        borderRadius: "20px",
+                        boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                        overflow: "auto",
+                        WebkitOverflowScrolling: "touch", // For iOS Safari
+                        scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                        scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                      },
+                    }}
+                  >
+                    <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+                      <div className="flex items-start justify-center gap-3 w-full">
+
+                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+
+                          <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                            setShowFormSmoothingPool(false)
+                          }} />
+
+                        </div>
+                      </div>
+                      {currentSmoothingPoolStatus3 === 3 ? (
+
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Change succesful!</h3>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+                      ) : currentSmoothingPoolStatus3 === 4 ? (
+
+                        <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                          <h3 className="font-bold text-[30px]">Failed to Toggle Smoothing Pool!</h3>
+
+                          <p className='my-3 text-lg text-red-400 '>{errorBoxText2}</p>
+
+                          <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                          <button onClick={() => { setShowFormSmoothingPool(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                        </div>
+
+
+
+
+
+                      ) : (
+
+
+                        <>
+
+
+
+
+                          <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                            <h3 className="font-bold text-[30px]">Change Enabled Status: </h3>
+
+                          </div>
+
+                          <hr className="w-full my-3" />
+
+                          <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p> <HiOutlinePaperAirplane /></p>
+
+                                <p className="text-left">Change Smoothing Pool Status </p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentSmoothingPoolStatus1 === 0 ? (
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+                            </div>
+
+
+                            <div className='flex items-start justify-between gap-6 w-full'>
+                              <div className="flex items-center justify-start gap-4">
+                                <p><FaEthereum /></p>
+
+                                <p className="text-left">Confirming change...</p>
+                              </div>
+                              <p className='self-end'>
+
+                                {
+
+                                  currentSmoothingPoolStatus2 === 0 ? (
+                                    <p></p>
+
+                                  ) : currentSmoothingPoolStatus2 === 1 ? (
+
+                                    <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                  ) : (
+
+                                    <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                  )
+
+
+
+
+                                }
+
+
+                              </p>
+
+
+                            </div>
+
+
+
+
+
+
+
+
+
+
+                          </div>
+
+
+
+
+
+
+
+                        </>
+
+
+
+
+
+
+                      )}
+
+
+                    </div>
+
+
+                  </Modal>
+
+
 
 
               

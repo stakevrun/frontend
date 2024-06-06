@@ -3166,14 +3166,14 @@ const AccountMain: NextPage = () => {
 
 
         if (input.reason) {
-          setErrorBoxTest2(input.info.error.message.toString())
+          setErrorBoxTest2(input.info.error.message.toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
         }
 
         else if (input.error) {
 
 
-          setErrorBoxTest2(input.error["message"].toString())
+          setErrorBoxTest2(input.error["message"].toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
 
         } else {
