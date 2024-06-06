@@ -303,7 +303,7 @@ const AccountMain: NextPage = () => {
 
       setGraphTimeout(true);
 
-    } 
+    }
 
     const timer = setTimeout(() => {
 
@@ -1406,22 +1406,22 @@ const AccountMain: NextPage = () => {
 
 
           const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)',
-           'function getNodeDepositBalance() view returns (uint256)',
-           'function getNodeRefundBalance() view returns (uint256)',
-           'function getUserDistributed() view returns (bool)',
-           'function getVacant() view returns (bool)',
-           'function getUserDepositBalance() view returns (uint256)'], signer)
+            'function getNodeDepositBalance() view returns (uint256)',
+            'function getNodeRefundBalance() view returns (uint256)',
+            'function getUserDistributed() view returns (bool)',
+            'function getVacant() view returns (bool)',
+            'function getUserDepositBalance() view returns (uint256)'], signer)
 
 
           const statusResult = await minipool.getStatus();
           const statusTimeResult = await minipool.getStatusTime();
 
-          const balance =  await browserProvider.getBalance(minAddress)
+          const balance = await browserProvider.getBalance(minAddress)
 
 
           console.log("Minipool balance:" + balance)
 
-        
+
           const numStatusTime = Number(statusTimeResult) * 1000;
 
           console.log("Status Result:" + statusResult)
@@ -1433,7 +1433,7 @@ const AccountMain: NextPage = () => {
 
 
 
-     
+
 
 
           const MinipoolStatus = [
@@ -1590,20 +1590,22 @@ const AccountMain: NextPage = () => {
 
 
 
-     
-
-          if(Number(ethers.formatEther(balance)) > 0) {
 
 
-            currentStatus = MinipoolStatus[statusResult];
+          if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
+
+            currentStatus = "Empty"
+
 
 
           } else {
-            currentStatus = "Empty"
+
+            currentStatus = MinipoolStatus[statusResult];
+
           }
 
 
-  
+
 
           minipoolObjects.push({
             address: minAddress,
@@ -1741,6 +1743,10 @@ const AccountMain: NextPage = () => {
           }
 
           else if (log.statusResult === "Staking" && (log.beaconStatus === "withdrawal_done" && Number(log.valBalance) > 0)) {
+            newTotalVals += 1;
+
+          }
+          else if (log.statusResult === "Staking") {
             newTotalVals += 1;
 
           }
@@ -3501,55 +3507,55 @@ const AccountMain: NextPage = () => {
   }, [incrementer])
 
 
-const [prelaunchTruth, setPrelaunchTruth] = useState(false)
+  const [prelaunchTruth, setPrelaunchTruth] = useState(false)
 
 
-useEffect(() => {
+  useEffect(() => {
 
-//DISCOVER GRAPH TIMEOUT
+    //DISCOVER GRAPH TIMEOUT
 
-let i = 0
-
-
-for (const object of reduxData) {
-  if (object.statusResult === "Prelaunch"  || object.statusResult === "Initialised") {
-
-    setPrelaunchTruth(true)
-
-    return;
+    let i = 0
 
 
-  }
-}
+    for (const object of reduxData) {
+      if (object.statusResult === "Prelaunch" || object.statusResult === "Initialised") {
+
+        setPrelaunchTruth(true)
+
+        return;
 
 
- 
-
-}, [reduxData])
-
-const [waitBeaconchainTruth, setWaitBeaconchainTruth] = useState(false)
-
-
-
-useEffect(() => {
-
-  //DISCOVER GRAPH TIMEOUT
-  
-  let i = 0
-  
-  
-  for (const object of reduxData) {
-    if (object.statusResult === "Staking"  || object.beaconStatus !== "active_ongoing") {
-  
-      setWaitBeaconchainTruth(true)
-  
-      return;
-  
-  
+      }
     }
-  }
-   
-  
+
+
+
+
+  }, [reduxData])
+
+  const [waitBeaconchainTruth, setWaitBeaconchainTruth] = useState(false)
+
+
+
+  useEffect(() => {
+
+    //DISCOVER GRAPH TIMEOUT
+
+    let i = 0
+
+
+    for (const object of reduxData) {
+      if (object.statusResult === "Staking" || object.beaconStatus !== "active_ongoing") {
+
+        setWaitBeaconchainTruth(true)
+
+        return;
+
+
+      }
+    }
+
+
   }, [reduxData])
 
 
@@ -3595,64 +3601,64 @@ useEffect(() => {
                           <div style={{ backgroundColor: reduxDarkMode ? "#333" : "#fff" }} className="flex items-center w-auto  h-auto justify-center p-3 lg:p-6  ">
 
 
-                            {(graphData.labels.length > 0 && graphTimeout) || ( reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) || 
-                            ( (reduxData[0].statusResult === "Prelaunch"  || reduxData[0].statusResult === "Initialised")  && graphTimeout) || ( prelaunchTruth && graphTimeout)  || (  waitBeaconchainTruth && graphTimeout)
-                            
-                            
-                            ? (
+                            {(graphData.labels.length > 0 && graphTimeout) || (reduxData[0].address === "NO VALIDATORS checked" && graphTimeout) ||
+                              ((reduxData[0].statusResult === "Prelaunch" || reduxData[0].statusResult === "Initialised") && graphTimeout) || (prelaunchTruth && graphTimeout) || (waitBeaconchainTruth && graphTimeout)
 
 
-                              <div className="w-[270px] sm:w-auto h-auto  flex flex-col items-center justify-center p-2 lg:p-8 px-[0.5vh] lg:px-[6vh]">
+                              ? (
 
 
-
-
-
-                                <Line
-
-                                  data={graphData}
-                                  options={options}
-                                  onClick={onClick}
-                                  ref={charRef}
-
-
-                                >
+                                <div className="w-[270px] sm:w-auto h-auto  flex flex-col items-center justify-center p-2 lg:p-8 px-[0.5vh] lg:px-[6vh]">
 
 
 
-                                </Line>
 
-                                <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
 
-                                  <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
-                                  <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
-                                  <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
-                                  <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+                                  <Line
+
+                                    data={graphData}
+                                    options={options}
+                                    onClick={onClick}
+                                    ref={charRef}
+
+
+                                  >
+
+
+
+                                  </Line>
+
+                                  <div className='flex gap-2 items-center my-2 mt-5 justify-center'>
+
+                                    <button onClick={() => { setGraphState("All") }} style={graphState === "All" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">All</button>
+                                    <button onClick={() => { setGraphState("Year") }} style={graphState === "Year" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 ">Year</button>
+                                    <button onClick={() => { setGraphState("Month") }} style={graphState === "Month" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4  ">Month</button>
+                                    <button onClick={() => { setGraphState("Week") }} style={graphState === "Week" ? { backgroundColor: "orange" } : { backgroundColor: "grey" }} className="bg-blue-500 mt-2 text-xs lg:text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 ">Week</button>
+
+
+
+                                  </div>
+                                  <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
+
+
+
 
 
 
                                 </div>
-                                <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target='_blank' href="https://rocketsweep.app/">rocketsweep.app</a></p>
 
 
+                              ) : (
+
+                                <div className="w-auto h-auto gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
 
 
+                                  <h3>Please wait while we retrieve your rewards data...</h3>
 
+                                  <BounceLoader />
 
-                              </div>
-
-
-                            ) : (
-
-                              <div className="w-auto h-auto gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
-
-
-                                <h3>Please wait while we retrieve your rewards data...</h3>
-
-                                <BounceLoader />
-
-                              </div>
-                            )}
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>

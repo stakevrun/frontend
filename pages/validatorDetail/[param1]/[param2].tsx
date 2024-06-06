@@ -692,16 +692,17 @@ const ValidatorDetail: NextPage = () => {
 
             
 
-                if(Number(ethers.formatEther(balance)) > 0) {
+          if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
+
+            currentStatus = "Empty"
 
 
-                    currentStatus = MinipoolStatus[statusResult];
-      
-      
-                  } else {
-                    currentStatus = "Empty"
-                  }
 
+          } else {
+
+            currentStatus = MinipoolStatus[statusResult];
+
+          }
 
 
 

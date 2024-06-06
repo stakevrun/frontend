@@ -1677,16 +1677,19 @@ const dispatch = useDispatch()
 
           }
 
-          if(Number(ethers.formatEther(balance)) > 0) {
+       
 
+          if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
 
-            currentStatus = MinipoolStatus[statusResult];
+            currentStatus = "Empty"
+
 
 
           } else {
-            currentStatus = "Empty"
-          }
 
+            currentStatus = MinipoolStatus[statusResult];
+
+          }
 
 
 
