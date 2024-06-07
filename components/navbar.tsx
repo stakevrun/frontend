@@ -22,7 +22,7 @@ const Navbar: NextPage = () => {
 
   const { address } = useAccount({
     onConnect: ({ address }) => {
-      console.log("Ethereum Wallet Connected!")
+      getMinipoolData()
     }
   })
 
@@ -907,7 +907,7 @@ const Navbar: NextPage = () => {
     getMinipoolData();
 
     // Set up the interval to call the function every 30 seconds
-    const intervalId = setInterval(getMinipoolData, 30000);
+    const intervalId = setInterval(getMinipoolData, 300000);
 
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);

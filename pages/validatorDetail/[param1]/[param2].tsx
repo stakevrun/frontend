@@ -1567,7 +1567,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-        if (reduxData.beaconStatus === "withdrawl_done" && Number(reduxData.valBalance) >= 0) {
+        if (reduxData.beaconStatus === "withdrawl_done" && Number(reduxData.minipoolBalance) > 0) {
             withdrawnNum += 1
         }
 
@@ -3776,7 +3776,9 @@ const ValidatorDetail: NextPage = () => {
                                                 <p>Balance</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
-                                                {reduxData.valBalance}
+                                                {Number(reduxData.valBalance) === 0 && reduxData.beaconStatus  === "withdrawal_done" &&  reduxData.valBalance}
+                                                {Number(reduxData.valBalance) === 0 && reduxData.beaconStatus  !== "withdrawal_done" &&  <p className='font-bold '>Pending...</p>}
+                                                {Number(reduxData.valBalance) === 0 && reduxData.beaconStatus  === "withdrawal_done" &&  <p className='font-bold '>Exited from Beaconchain</p>}
                                             </td>
                                         </tr>
                                         <tr className="border-b-2 ">
@@ -3874,6 +3876,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormDissolve}
                             onRequestClose={() => setShowFormDissolve(false)}
                             contentLabel="Dissolve Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormEffectDissolve ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -3907,16 +3910,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormDissolve(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                                
                                 {currentDistributeStatus3 === 3 ? (
 
 
@@ -4069,6 +4063,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormDistribute}
                             onRequestClose={() => setShowFormDistribute(false)}
                             contentLabel="Distribute Balance Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormEffectDistribute ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -4102,16 +4097,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormDistribute(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                               
                                 {currentDistributeStatus3 === 3 ? (
 
 
@@ -4265,6 +4251,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormSetEnabled}
                             onRequestClose={() => setShowFormSetEnabled(false)}
                             contentLabel="Set Enabled Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormSetEnabledEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -4298,16 +4285,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormSetEnabled(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                               
                                 {currentSetEnabledStatus3 === 3 ? (
 
 
@@ -4745,6 +4723,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormStakeMinipool}
                             onRequestClose={() => setShowFormStakeMinipool(false)}
                             contentLabel="Stake Minipool Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormEffectStakeMinipool ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -4778,16 +4757,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormStakeMinipool(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                              
                                 {currentStakeStatus3 === 3 ? (
 
 
@@ -5066,6 +5036,7 @@ const ValidatorDetail: NextPage = () => {
                             contentLabel="Post Presigned Transaction Modal"
                             className={`${styles.modal} ${showFormEffectPostPresigned ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
+                            shouldCloseOnOverlayClick={false}
                             style={{
                                 overlay: {
                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -5097,16 +5068,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormPostPresigned(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                                
                                 {currentPostPresignedStatus3 === 3 ? (
 
 
@@ -5221,6 +5183,7 @@ const ValidatorDetail: NextPage = () => {
                             contentLabel="Alert Validators Modal"
                             className={`${styles.modal} ${showFormConfirmPostPresignedEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
+                            
                             style={{
                                 overlay: {
                                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -5284,6 +5247,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormEditGraffiti}
                             onRequestClose={() => setShowFormEditGraffiti(false)}
                             contentLabel="Graffiti Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormEditGraffitiEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -5317,16 +5281,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormEditGraffiti(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                                
                                 {currentEditGraffitiStatus3 === 3 ? (
 
 
@@ -5477,6 +5432,7 @@ const ValidatorDetail: NextPage = () => {
                             isOpen={showFormGetPresigned}
                             onRequestClose={() => setShowFormGetPresigned(false)}
                             contentLabel="Get Presigned Transaction Modal"
+                            shouldCloseOnOverlayClick={false}
                             className={`${styles.modal} ${showFormEffectGetPresigned ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -5510,16 +5466,7 @@ const ValidatorDetail: NextPage = () => {
                         >
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                <div className="flex items-start justify-center gap-3 w-full">
-
-                                    <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                        <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                            setShowFormGetPresigned(false)
-                                        }} />
-
-                                    </div>
-                                </div>
+                              
                                 {currentGetPresignedStatus3 === 3 ? (
 
 

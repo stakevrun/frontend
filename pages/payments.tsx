@@ -10,8 +10,8 @@ import managerABI from "../json/managerABI.json"
 import confetti from 'canvas-confetti';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '../globalredux/store';
-import { getPaymentsData } from "../globalredux/Features/payments/paymentSlice"
-import { getChargesData } from "../globalredux/Features/charges/chargesSlice"
+import { getPaymentsData, getPaymentsEntryData } from "../globalredux/Features/payments/paymentSlice"
+import { getChargesData, getChargesEntryData } from "../globalredux/Features/charges/chargesSlice"
 import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
@@ -31,6 +31,8 @@ const Payments: NextPage = () => {
 
     const reduxPayments = useSelector((state: RootState) => state.paymentsData.data)
     const reduxCharges = useSelector((state: RootState) => state.chargesData.data)
+    const reduxChargesEntries = useSelector((state: RootState) => state.chargesData.entryData)
+    const reduxPaymentsEntries = useSelector((state: RootState) => state.paymentsData.entryData)
     const reduxData = useSelector((state: RootState) => state.valData.data);
 
 
@@ -86,9 +88,24 @@ const Payments: NextPage = () => {
     }
 
 
+
+    function isValidPositiveNumber(str: string) {
+        // Convert the string to a number
+        const num = Number(str);
+        
+        // Check if the conversion results in a valid number and if the number is greater than zero
+        if (!isNaN(num) && num > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     const makePayment = async () => {
 
 
+
+        const run =  isValidPositiveNumber(feeETHInput)
 
 
         setIncrementer(0)
@@ -96,72 +113,87 @@ const Payments: NextPage = () => {
 
 
 
-
-        try {
-            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-            let signer = await browserProvider.getSigner()
-
-
-            const feeAddress = "0x272347F941fb5f35854D8f5DbDcEdef1A515dB41";
-
-
-            const FeeContract = new ethers.Contract(feeAddress, feeABI, signer);
-
-            let result = await FeeContract.payEther({ value: ethers.parseEther(feeETHInput) });
-
-            let receipt = await result.wait();
-
-            // Check if the transaction was successful (status === 1)
-            if (receipt.status === 1) {
-                // If successful, setShowForm3(false)
-
-                setIncrementer(1)
-
-
-                getPayments();
-
-
-                setIncrementerWithDelay(4, 700)
-
-                setFeeETHInput("")
-
-
-                console.log("Transaction successful:", receipt);
-            } else {
-                console.error("Transaction failed:", result);
-                // Handle the failure if needed
+        if (run === true) {
 
 
 
-                setPaymentErrorMessage(result)
+
+            try {
+                let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+                let signer = await browserProvider.getSigner()
+
+
+                const feeAddress = "0x272347F941fb5f35854D8f5DbDcEdef1A515dB41";
+
+
+                const FeeContract = new ethers.Contract(feeAddress, feeABI, signer);
+
+                let result = await FeeContract.payEther({ value: ethers.parseEther(feeETHInput) });
+
+                let receipt = await result.wait();
+
+                // Check if the transaction was successful (status === 1)
+                if (receipt.status === 1) {
+                    // If successful, setShowForm3(false)
+
+                    setIncrementer(1)
+
+
+                    getPayments();
+
+
+                    setIncrementerWithDelay(4, 700)
+
+                    setFeeETHInput("")
+
+
+                    console.log("Transaction successful:", receipt);
+                } else {
+                    console.error("Transaction failed:", result);
+                    // Handle the failure if needed
+
+
+
+                    setPaymentErrorMessage(result)
+                    setIncrementer(5)
+
+
+                }
+
+
+
+            } catch (e: any) {
+
+                if (e.reason) {
+                    setPaymentErrorMessage(e.reason.toString())
+
+                }
+                else if (e.error) {
+                    setPaymentErrorMessage(e.error["message"].toString())
+                } else {
+
+                    setPaymentErrorMessage("Error: check you have input a valid ETH value.")
+
+                }
+
                 setIncrementer(5)
 
 
-            }
-
-
-
-        } catch (e: any) {
-
-            if (e.reason) {
-                setPaymentErrorMessage(e.reason.toString())
 
             }
-            else if (e.error) {
-                setPaymentErrorMessage(e.error["message"].toString())
-            } else {
 
-                setPaymentErrorMessage("Error: check you have input a valid ETH value.")
+        } else {
 
-            }
+
+            setPaymentErrorMessage("You must enter a valid number")
+
+
 
             setIncrementer(5)
 
 
 
         }
-
-
 
 
 
@@ -228,7 +260,7 @@ const Payments: NextPage = () => {
 
 
                 setPaymentEntryData(paymentData)
-
+                dispatch(getPaymentsEntryData(paymentData))
 
                 return ethers.formatEther(balance);
 
@@ -242,7 +274,10 @@ const Payments: NextPage = () => {
 
 
 
+
         dispatch(getPaymentsData(Number(payments)))
+
+
 
 
 
@@ -281,13 +316,28 @@ const Payments: NextPage = () => {
     useEffect(() => {
 
 
-        const newArray = sortInReverseChronologicalOrder([...chargesData, ...paymentEntryData])
+        console.log("Redux Entries:" + reduxChargesEntries + reduxPaymentsEntries)
+
+        if (reduxChargesEntries.length > 0 && reduxPaymentsEntries.length > 0) {
 
 
-        setTotalData(newArray)
+            if (reduxChargesEntries[0].date !== "defaultState" && reduxPaymentsEntries[0].date !== "defaultState") {
+
+                const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-    }, [chargesData, paymentEntryData])
+                setTotalData(newArray)
+
+
+            }
+
+
+        }
+
+
+
+
+    }, [reduxChargesEntries, reduxPaymentsEntries])
 
 
 
@@ -429,6 +479,8 @@ const Payments: NextPage = () => {
         const finalArray = sortInReverseChronologicalOrder(newChargesArray)
         setChargesData(finalArray)
 
+        dispatch(getChargesEntryData(finalArray))
+
 
 
     }
@@ -563,6 +615,8 @@ const Payments: NextPage = () => {
         console.log("Charges data:" + chargesData)
 
     }, [chargesData])
+
+
 
 
 
@@ -730,7 +784,7 @@ const Payments: NextPage = () => {
 
 
                             <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 py-[8vh]">
-                                {chargesData.length > 0 && totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg mb-10 ">
+                                {chargesData.length > 0 && totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
 
 
                                     <table className="w-full">
@@ -844,6 +898,7 @@ const Payments: NextPage = () => {
                                 contentLabel="Unstake RPL Transaction Modal"
                                 className={`${styles.modal} ${showFormMakePaymentEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                                 ariaHideApp={false}
+                                shouldCloseOnOverlayClick={false}
                                 style={{
                                     overlay: {
                                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -875,16 +930,7 @@ const Payments: NextPage = () => {
                             >
                                 <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                                    <div className="flex items-start justify-center gap-3 w-full">
 
-                                        <div id={styles.icon} className="bg-gray-300 absolute right-5 top-5 text-[15px] hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-
-                                            <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                                setShowFormMakePayment(false)
-                                            }} />
-
-                                        </div>
-                                    </div>
                                     {currentMakePaymentStatus3 === 3 ? (
 
 
