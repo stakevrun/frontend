@@ -33,7 +33,7 @@ const Account: NextPage = () => {
         <link href="/favicon.ico" rel="icon" />
       </Head>
       <Navbar />
-      <div className='flex w-full h-auto sticky top-[8vh] mb-8 pb-[34vh]'>
+      <div className='flex w-full h-auto sticky top-[8vh] mb-6 lg:mb-2 pb-[34vh] mb-[7vh]  xl:pb-[10vh]'>
       {/* <Leftbar /> */}
       <AccountMain/>
 

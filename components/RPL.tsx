@@ -19,6 +19,9 @@ import styles from '../styles/Home.module.css';
 import { TiTick } from "react-icons/ti";
 import { BiSolidErrorAlt } from "react-icons/bi";
 import confetti from 'canvas-confetti';
+import { getData } from "../globalredux/Features/validator/valDataSlice"
+import { useSelector, useDispatch } from 'react-redux';
+
 
 
 const RPLBlock: NextPage = () => {
@@ -173,21 +176,7 @@ const RPLBlock: NextPage = () => {
 
 
 
-  useEffect(() => {
 
-    console.log(currentChain)
-
-    if (address !== undefined) {
-      handleCheckRPL(address);
-      handleCheckStakeRPL(address)
-
-
-    }
-
-    fetchData();
-
-
-  }, [currentChain, address])
 
 
 
@@ -218,6 +207,42 @@ const RPLBlock: NextPage = () => {
 
   }, [RPL])
 
+
+
+  const [RPLCheckRun, setRPLCheckRun] = useState(false)
+  const [stakeRPLCheckRun, setStakeRPLCheckRun] = useState(false)
+
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+
+    console.log(currentChain)
+
+    if (!isInitialRender) {
+     
+   
+
+      dispatch(getData([{address: "NO VALIDATORS"}]))
+
+      if (isRegistered && address !== undefined) {
+        handleCheckRPL(address);
+        handleCheckStakeRPL(address)
+
+
+      }
+
+      fetchData();
+
+    } else {
+
+      setIsInitialRender(false)
+
+    }
+
+
+
+  }, [currentChain, address])
 
 
 
@@ -259,13 +284,13 @@ const RPLBlock: NextPage = () => {
         const amount = await rplTOKEN.balanceOf(add)
 
 
-        console.log(typeof amount)
+        console.log(ethers.formatEther(amount))
 
 
         setRPL(amount);
 
 
-
+        setRPLCheckRun(true)
 
 
         console.log("Unstaked RPL amount:" + amount);
@@ -379,6 +404,7 @@ const RPLBlock: NextPage = () => {
         if (Number(ethers.formatEther(amount)) < Number(rplRequiredPerLEB8)) {
 
           setNewMinipools(BigInt(0))
+          setStakeRPLCheckRun(true)
 
 
         } else {
@@ -401,6 +427,8 @@ const RPLBlock: NextPage = () => {
 
 
           setNewMinipools(possibleNewMinpools)
+
+          setStakeRPLCheckRun(true)
 
 
         }
@@ -432,6 +460,20 @@ const RPLBlock: NextPage = () => {
 
 
 
+  function isValidPositiveNumber(str: string) {
+    // Convert the string to a number
+    const num = Number(str);
+
+    // Check if the conversion results in a valid number and if the number is greater than zero
+    if (!isNaN(num) && num > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
+
 
 
 
@@ -440,52 +482,53 @@ const RPLBlock: NextPage = () => {
 
   const handleApproveRPL = async () => {
 
-    
-    const run =   isValidPositiveWholeNumber(RPLinput)
 
-    if(run === true) {
-    if (typeof (window as any).ethereum !== "undefined") {
-      try {
-        let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
-        let signer = await browserProvider.getSigner();
+    const run = isValidPositiveNumber(RPLinput)
 
-        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
-        console.log("Node Staking Address:" + NodeStakingAddress);
+    if (run === true) {
+      if (typeof (window as any).ethereum !== "undefined") {
+        try {
+          let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+          let signer = await browserProvider.getSigner();
 
-        const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
-        const address = await signer.getAddress();
-        const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
+          const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+          const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+          console.log("Node Staking Address:" + NodeStakingAddress);
 
-        const val = ethers.parseEther(RPLinput);
+          const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
+          const address = await signer.getAddress();
+          const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
 
-        const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
-        console.log("Approval transaction:", approvalTx.hash);
-        setStakingMessage("Approval confirmed! Processing... ")
-        setIncrementer(1)
+          const val = ethers.parseEther(RPLinput);
 
-        await approvalTx.wait();
-        return NodeStakingAddress;
-      } catch (e : any) {
-      
+          const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
+          console.log("Approval transaction:", approvalTx.hash);
+          setStakingMessage("Approval confirmed! Processing... ")
+          setIncrementer(1)
 
-        if (e.reason !== undefined) {
-          setErrorBoxTest(e.reason.toString());
-  
-  
-      } else if (e.error) {
-          setErrorBoxTest(e.error["message"].toString())
+          await approvalTx.wait();
+          return NodeStakingAddress;
+        } catch (e: any) {
+
+
+          if (e.reason !== undefined) {
+            setErrorBoxTest(e.reason.toString());
+
+
+          } else if (e.error) {
+            setErrorBoxTest(e.error["message"].toString())
+          } else {
+            setErrorBoxTest("An Unknown error occured.")
+
+          }
+          setIncrementer(5)
+          setStakeButtonBool(true)
+        }
       } else {
-          setErrorBoxTest("An Unknown error occured.")
-  
-      }
-        setIncrementer(5)
-        setStakeButtonBool(true)
+        console.log("Metamask not available");
+
       }
     } else {
-      console.log("Metamask not available");
-
-    } } else {
       setIncrementer(5)
       setStakeButtonBool(true)
       setErrorBoxTest("You must enter a valid number.")
@@ -515,45 +558,45 @@ const RPLBlock: NextPage = () => {
 
       const receipt = await tx.wait();
       console.log("Transaction confirmed:", receipt);
-  
+
 
       if (receipt.status === 1) {
-        
-          setIncrementer(2)
 
-          setRPLinput("");
+        setIncrementer(2)
 
-          setStakeButtonBool(true)
-          setIncrementerWithDelay(4, 700)
+        setRPLinput("");
 
-        
+        setStakeButtonBool(true)
+        setIncrementerWithDelay(4, 700)
+
+
       } else {
         setIncrementer(5)
         setStakeButtonBool(true)
         // Handle failed transaction
       }
     } catch (e: any) {
-      
-      
+
+
       if (e.reason !== undefined) {
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error) {
+      } else if (e.error) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
       setStakeButtonBool(true)
-    
+
     }
   };
 
 
 
-  
+
 
   const [stakingMessage, setStakingMessage] = useState("")
 
@@ -566,7 +609,7 @@ const RPLBlock: NextPage = () => {
       setShowFormStakeRPL(true);
       setStakeButtonBool(false)
       setStakingMessage("Processing approval to spend RPL...")
-  
+
 
       const nodeAddress = await handleApproveRPL();
       if (nodeAddress) {
@@ -575,13 +618,13 @@ const RPLBlock: NextPage = () => {
 
         setStakingMessage("Approval sucessful, now initiating Stake transaction...")
 
-       const newStake =  await handleStakeRPL(nodeAddress);
+        const newStake = await handleStakeRPL(nodeAddress);
 
 
-       if (address !== undefined) {
-        handleCheckRPL(address);
-        handleCheckStakeRPL(address);
-       }
+        if (address !== undefined) {
+          handleCheckRPL(address);
+          handleCheckStakeRPL(address);
+        }
 
 
 
@@ -591,7 +634,7 @@ const RPLBlock: NextPage = () => {
 
         setRPLinput("");
         setStakeButtonBool(true)
-   
+
 
       }
     }
@@ -600,12 +643,12 @@ const RPLBlock: NextPage = () => {
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error["message"]) {
+      } else if (e.error["message"]) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
       setStakeButtonBool(true)
     }
@@ -618,30 +661,30 @@ const RPLBlock: NextPage = () => {
 
     try {
 
-    setIncrementer(0)
-    setShowFormStakeRPL(true);
-    setStakeButtonBool(false)
+      setIncrementer(0)
+      setShowFormStakeRPL(true);
+      setStakeButtonBool(false)
 
-   
 
-    const newStake = await handleUnstakeRPL();
-   
-  
 
-    console.log(newStake);
+      const newStake = await handleUnstakeRPL();
 
-    } catch (e : any) {
-   
+
+
+      console.log(newStake);
+
+    } catch (e: any) {
+
       if (e.reason !== undefined) {
         setErrorBoxTest(e.reason.toString());
 
 
-    } else if (e.error["message"]) {
+      } else if (e.error["message"]) {
         setErrorBoxTest(e.error["message"].toString())
-    } else {
+      } else {
         setErrorBoxTest("An Unknown error occured.")
 
-    }
+      }
       setIncrementer(5)
       setStakeButtonBool(true)
 
@@ -653,94 +696,83 @@ const RPLBlock: NextPage = () => {
 
 
 
-  function isValidPositiveWholeNumber(str:string) {
-    // Convert the string to a number
-    const num = Number(str);
-    
-    // Check if the conversion results in a valid number, if the number is greater than zero,
-    // and if the number is a whole number
-    if (!isNaN(num) && num > 0 && Number.isInteger(num)) {
-        return true;
-    } else {
-        return false;
-    }
-}
+
 
 
   const handleUnstakeRPL = async () => {
 
 
 
-    const run =   isValidPositiveWholeNumber(RPLinput)
+    const run = isValidPositiveNumber(RPLinput)
 
-    if(run === true) {
-    
-    try {
+    if (run === true) {
+
+      try {
 
 
-      let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
-      let signer = await browserProvider.getSigner();
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+        let signer = await browserProvider.getSigner();
 
-      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-      const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
-      console.log("Node Staking Address:" + NodeStakingAddress);
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+        const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+        console.log("Node Staking Address:" + NodeStakingAddress);
 
-      const rocketNodeStaking = new ethers.Contract(NodeStakingAddress, stakingABI, signer);
-      const val = ethers.parseEther(RPLinput);
+        const rocketNodeStaking = new ethers.Contract(NodeStakingAddress, stakingABI, signer);
+        const val = ethers.parseEther(RPLinput);
 
-      console.log("Here is ok")
-      const tx = await rocketNodeStaking.withdrawRPL(val);
-      console.log("Withdrawal transaction:", tx.hash);
+        console.log("Here is ok")
+        const tx = await rocketNodeStaking.withdrawRPL(val);
+        console.log("Withdrawal transaction:", tx.hash);
 
-      const receipt = await tx.wait();
-      console.log("Transaction confirmed:", receipt);
+        const receipt = await tx.wait();
+        console.log("Transaction confirmed:", receipt);
 
-      if (receipt.status === 1) {
-        if (address !== undefined) {
-          handleCheckRPL(address);
-          handleCheckStakeRPL(address);
-          setIncrementer(1)
-          setIncrementerWithDelay(4, 700)
-          setRPLinput("");
+        if (receipt.status === 1) {
+          if (address !== undefined) {
+            handleCheckRPL(address);
+            handleCheckStakeRPL(address);
+            setIncrementer(1)
+            setIncrementerWithDelay(4, 700)
+            setRPLinput("");
+            setStakeButtonBool(true)
+
+
+          }
+        } else {
+          // Handle failed transaction
+
+          setIncrementer(5)
           setStakeButtonBool(true)
-
-    
         }
-      } else {
-        // Handle failed transaction
+      } catch (e: any) {
 
+
+
+
+        if (e.reason !== undefined) {
+          setErrorBoxTest(e.reason.toString());
+
+
+        } else if (e.error["message"]) {
+          setErrorBoxTest(e.error["message"].toString())
+        } else {
+          setErrorBoxTest("An Unknown error occured.")
+
+        }
         setIncrementer(5)
         setStakeButtonBool(true)
+
       }
-    } catch (e: any) {
-  
-
-
-
-      if (e.reason !== undefined) {
-        setErrorBoxTest(e.reason.toString());
-
-
-    } else if (e.error["message"]) {
-        setErrorBoxTest(e.error["message"].toString())
     } else {
-        setErrorBoxTest("An Unknown error occured.")
-
-    }
       setIncrementer(5)
       setStakeButtonBool(true)
 
+
+      setErrorBoxTest("You must enter a valid number");
+
+
+
     }
-  } else {
-    setIncrementer(5)
-    setStakeButtonBool(true)
-
-
-    setErrorBoxTest("You must enter a valid number");
-
-
-
-  }
 
 
 
@@ -856,7 +888,7 @@ const RPLBlock: NextPage = () => {
   }, [showFormStakeRPL]);
 
 
-  
+
   const triggerConfetti = () => {
     confetti();
   };
@@ -873,13 +905,74 @@ const RPLBlock: NextPage = () => {
   }, [currentStakeStatus3])
 
 
+  const [stakeTruth, setStakeTruth] = useState(true)
+
+
+
+  useEffect(() => {
+
+    setRPLinput("")
+
+  }, [stakeTruth])
+
+
+
+  const setMaxUnstakedRPL = async () => {
+
+    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+    let signer = await browserProvider.getSigner()
+
+
+
+    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+
+    const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+    const rocketNodeStaking = new ethers.Contract(
+      NodeStakingAddress, // Replace with your staking contract address
+      stakingABI, // Replace with your staking contract ABI
+      signer
+    );
+
+    const tokenAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketTokenRPL"));
+
+
+
+
+    const rplTOKEN = new ethers.Contract(tokenAddress, tokenABI, signer)
+
+
+    let amount;
+
+
+    if(stakeTruth) {
+      amount = await rplTOKEN.balanceOf(address)
+    } else {
+
+      amount = await rocketNodeStaking.getNodeRPLStake(address)
+
+    }
+
+   
+
+
+
+    console.log(amount)
+
+    setRPLinput(ethers.formatEther(amount))
+
+
+  }
 
 
 
 
 
 
-  
+
+
+
   const [showFormUnstakeRPL, setShowFormUnstakeRPL] = useState(false)
   const [showFormEffectUnstakeRPL, setShowFormEffectUnstakeRPL] = useState(false)
 
@@ -893,7 +986,7 @@ const RPLBlock: NextPage = () => {
   }, [showFormUnstakeRPL]);
 
 
-  
+
   const [currentUnstakeStatus1, setCurrentUnstakeStatus1] = useState(0)
   const [currentUnstakeStatus2, setCurrentUnstakeStatus2] = useState(0)
   const [currentUnstakeStatus3, setCurrentUnstakeStatus3] = useState(0)
@@ -919,7 +1012,7 @@ const RPLBlock: NextPage = () => {
       setCurrentUnstakeStatus1(1)
 
 
-    }  else if (incrementer === 4) {
+    } else if (incrementer === 4) {
       setCurrentUnstakeStatus3(3)
     } else if (incrementer === 5) {
       setCurrentUnstakeStatus3(4)
@@ -943,52 +1036,98 @@ const RPLBlock: NextPage = () => {
 
 
 
+
+
+
+
   return (
     <div className="flex flex-col w-auto  h-auto gap-4 px-8 text-center items-center justify-center rounded-xl  border shadow-xl  border-black-100  py-4 ">
       <h2 className="text-2xl w-[90%] font-bold  sm:text-2xl"> RPL Interface</h2>
 
-      <div className="flex flex-col  items-center justify-center gap-1 shadow-lg text-lg my-3 py-3 px-3 rounded-lg border">
-        <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
-          <span className='text-yellow-500 font-bold'> <RollingNumber n={Number(ethers.formatEther(RPL))} bool={true} /> </span>
+      {RPLCheckRun && stakeRPLCheckRun ?
 
-        </label>
+        (<div className="flex flex-col w-auto px-3  items-center justify-center gap-1 shadow-lg text-md my-3 py-3 px-3 rounded-lg border">
+          <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
+            <span className='text-yellow-500 font-bold'> {ethers.formatEther(RPL)} </span>
 
-        <label className="flex flex-col items-center font-bold justify-center gap-1">
-          Staked RPL:
-          <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> <RollingNumber n={Number(ethers.formatEther(stakeRPL))} bool={true} /> </span>
-        </label>
-        <label className="flex flex-col font-bold items-center justify-center gap-1">
-          Active Minipools:
-          <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> <RollingNumber n={Number(displayActiveMinipools)} bool={true} /> </span>
+          </label>
 
-        </label>
+          <label className="flex flex-col items-center font-bold justify-center gap-1">
+            Staked RPL:
+            <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> {ethers.formatEther(stakeRPL)} </span>
+          </label>
+          <label className="flex flex-col font-bold items-center justify-center gap-1">
+            Active Minipools:
+            <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> {Number(displayActiveMinipools)} </span>
 
-        <label className="flex flex-col font-bold items-center justify-center gap-1">
-          Total Possible Minipools:
+          </label>
+
+          <label className="flex flex-col font-bold items-center justify-center gap-1">
+            Total Possible Minipools:
 
 
-          <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span>
-        </label>
+            <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> {Math.floor(Number(ethers.formatEther(newMinipools)))} </span>
+          </label>
+        </div>) : (
+
+          <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+
+            <h3>Please wait while we retrieve your RPL balances...</h3>
+
+            <BounceLoader />
+
+          </div>
+
+        )}
+
+      <div className="flex flex-col gap-2 items-center justify-center">
+        <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
+        <button onClick={() => { setMaxUnstakedRPL() }} className="bg-black mt-2 text-sm hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md" >MAX</button>
+
       </div>
-      <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
-
-      <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
 
+      <div className="flex items-center justify-center w-full gap-4 mt-1">
+        
+          <label className="flex items-center justify-center gap-1">
+            <input
+              type="radio"
+              name="optIn"
+              checked={stakeTruth === true}
+              onChange={() => setStakeTruth(true)}
+            />
+            Stake
+          </label>
+          <label className="flex items-center justify-center gap-1">
+            <input
+              type="radio"
+              name="optIn"
+              checked={stakeTruth === false}
+              onChange={() => setStakeTruth(false)}
+            />
+            Unstake
+          </label>
+        </div>
 
-
-        <button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>
-        <button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>
-
+      <div className='w-3/5 flex gap-2 items-center my-1 justify-center'>
 
 
       
 
 
+       {stakeTruth? (<button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>) :
+        (<button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>)
+
+      }
+
+
+
+
 
       </div>
 
-   
+
 
 
 
@@ -1031,7 +1170,7 @@ const RPLBlock: NextPage = () => {
       >
         <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-         
+
           {currentStakeStatus3 === 3 ? (
 
 
@@ -1222,7 +1361,7 @@ const RPLBlock: NextPage = () => {
       >
         <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-          
+
           {currentUnstakeStatus3 === 3 ? (
 
 
@@ -1300,7 +1439,7 @@ const RPLBlock: NextPage = () => {
 
 
 
-              
+
 
 
 

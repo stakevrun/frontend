@@ -295,6 +295,84 @@ const AccountMain: NextPage = () => {
 
   const [graphTimeout, setGraphTimeout] = useState(false)
 
+  const [checked5, setChecked5] = useState(false)
+
+
+
+  useEffect(() => {
+
+    const getMinipoolTruth = async () => {
+
+
+      let newBool = false
+
+
+
+      try {
+
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+
+
+        let signer = await browserProvider.getSigner()
+
+        // Only required when `chainId` is not provided in the `Provider` constructor
+
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+
+        const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+        const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+
+        const bool = await rocketNodeManager.getSmoothingPoolRegistrationState(address)
+
+
+
+
+        console.log("Bool:" + bool)
+
+
+        if (typeof bool === "boolean") {
+          setChecked5(bool);
+
+          newBool = bool
+
+
+        }
+
+      } catch (error) {
+
+        console.log(error)
+        setChecked5(false)
+
+
+
+      }
+
+
+      return newBool
+
+
+
+
+
+
+    }
+
+
+
+    getMinipoolTruth();
+
+
+
+
+
+
+  }, [])
+
   useEffect(() => {
 
 
@@ -775,6 +853,8 @@ const AccountMain: NextPage = () => {
     if (!isInitialRender && address !== undefined) {
       // This block will run after the initial render
       setPreloader(true);
+      dispatch(getData([{ address: "NO VALIDATORS" }]))
+
       fetchData();
       dispatch(getGraphPointsData([]));
       dispatch(attestationsData([]));
@@ -959,6 +1039,10 @@ const AccountMain: NextPage = () => {
   }
 
 
+
+
+
+
   const getEnabled = async (pubkey: string) => {
 
 
@@ -1099,7 +1183,7 @@ const AccountMain: NextPage = () => {
         withdrawnNum += 1
       }
 
-      if (object.statusResult === "Prelaunch" && Number(object.timeRemaining) <= 0) {
+      if (object.statusResult === "Prelaunch" && Number(object.timeRemaining) <= 0 && Number(object.minipoolBalance) > 0 ) {
         stakeNum += 1
 
       }
@@ -1131,6 +1215,7 @@ const AccountMain: NextPage = () => {
 
 
   const getMinipoolData = async () => {
+
 
 
 
@@ -1664,13 +1749,15 @@ const AccountMain: NextPage = () => {
       setTotalValidators(newTotalVals.toString());
       setCurrentRowData(minipoolObjects)
       dispatch(getData(seperateMinipoolObjects))
-      setPreloader(false)
+
 
 
 
 
 
     }
+
+
 
 
 
@@ -1727,7 +1814,7 @@ const AccountMain: NextPage = () => {
 
 
 
-         if (log.statusResult === "Prelaunch") {
+          if (log.statusResult === "Prelaunch") {
             newTotalVals += 1;
 
           }
@@ -2272,20 +2359,20 @@ const AccountMain: NextPage = () => {
 
 
 
-         if( Number(log.missed_attestations) > 0) {
+          if (Number(log.missed_attestations) > 0) {
 
-          newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+            newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
 
-         }
+          }
 
-         else {
-          newMissed = 100
-         }
+          else {
+            newMissed = 100
+          }
 
 
-         console.log(newMissed)
+          console.log(newMissed)
 
-          
+
 
           console.log("New Missed:" + newMissed);
 
@@ -3182,14 +3269,14 @@ const AccountMain: NextPage = () => {
 
 
         if (input.reason) {
-          setErrorBoxTest2(input.info.error.message.toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.info.error.message.toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
         }
 
         else if (input.error) {
 
 
-          setErrorBoxTest2(input.error["message"].toString() +" PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.error["message"].toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
 
 
         } else {
@@ -3584,7 +3671,7 @@ const AccountMain: NextPage = () => {
 
 
   return (
-    <section style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full flex-col items-center  pb-10 justify-center ">
+    <section style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="flex w-full flex-col items-center   justify-center ">
 
       {address !== undefined ? (
         <>
@@ -3595,11 +3682,11 @@ const AccountMain: NextPage = () => {
                 <div className="w-full flex flex-col pt-[3vh] items-center gap-7 lg:gap-0 justify-center">
 
 
-                  <div className="w-full h-auto lg:h-[90vh] pt-[8vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[8vh]">
+                  <div className="w-full h-auto lg:h-[90vh] pt-[7vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[6vh]">
 
 
                     <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="w-full flex flex-col justify-center items-center gap-4 ">
-                      <h2 className=" text-2xl lg:text-4xl font-bold  ">Account Overview</h2>
+                      <h2 className=" text-2xl lg:text-4xl  font-bold  ">Account Overview</h2>
 
 
 
@@ -3680,7 +3767,7 @@ const AccountMain: NextPage = () => {
                       </div>
 
 
-                      <div className="xl:flex xl:flex-row lg:flex-col w-[90%] lg:w-[auto] items-center justify-center xl:gap-5 lg:gap-5">
+                      <div className="xl:flex xl:flex-row lg:flex-col w-auto  items-center justify-center xl:gap-5 lg:gap-5">
 
 
 
@@ -3703,7 +3790,7 @@ const AccountMain: NextPage = () => {
                                 Number(totalValidators) > 0 ? (
 
 
-                                  <span className="block text-gray-500">
+                                  <span className="block  text-sm text-gray-500">
 
                                     Fully-running Validators
 
@@ -3716,7 +3803,7 @@ const AccountMain: NextPage = () => {
 
                                 ) : (
 
-                                  <span className="block text-gray-500">
+                                  <span className="block  text-sm text-gray-500">
 
                                     No Active Validators
 
@@ -3745,16 +3832,16 @@ const AccountMain: NextPage = () => {
                               <div className='mb-2 flex flex-col justify-start items-start'>
                                 <span className="block text-lg font-bold">
 
-                                  <span style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
+                                  <span style={reduxPayments - reduxCharges >= 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
                                     {reduxPayments - reduxCharges}
                                   </span> ETH
 
 
                                 </span>
-                                {reduxPayments - reduxCharges > 0 ? (
-                                  <span className="block text-gray-500 ">Vrün Balance</span>
+                                {reduxPayments - reduxCharges >= 0 ? (
+                                  <span className="block text-sm text-gray-500 ">Vrün Balance</span>
                                 ) : (
-                                  <span className="block text-gray-500 ">in Arrears</span>
+                                  <span className="block text-sm text-gray-500 ">in Arrears</span>
 
                                 )
 
@@ -3762,7 +3849,7 @@ const AccountMain: NextPage = () => {
                               </div>
 
 
-                              <Link href="/payments">
+                              <Link className="w-auto flex items-center justify-center" href="/payments">
                                 <button className="bg-green-500 text-xs hover:bg-green-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">Top-up</button>
                               </Link>
 
@@ -3771,7 +3858,7 @@ const AccountMain: NextPage = () => {
                             </div>
 
                           </div>
-                          <div className="flex w-auto items-center p-6  border shadow-xl rounded-lg mb-5">
+                          <div className="flex  items-center p-6  border shadow-xl rounded-lg mb-5">
                             <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
                               <Image
                                 width={70}
@@ -3779,34 +3866,45 @@ const AccountMain: NextPage = () => {
                                 alt="Rocket Pool Logo"
                                 src={"/images/rocketlogo.webp"} />
                             </div>
-                            <div>
 
-                              {
-                                reduxCollateral > 0 ?
-                                  (<span className="block text-lg font-bold">{reduxCollateral} %</span>) :
-                                  (<span className="block  text-lg font-bold">{reduxCollateral}</span>)
-                              }
+                            <div className="w-full max-w-3xl flex  flex-col lg:flex-row items-start lg:items-center justify-start gap-0.5 lg:gap-10 text-left">
+                              <div className='mb-1.5 max-w-full  lg:max-w-[95px] flex flex-col justify-start items-start'>
 
-
-
-
-
-
-
-
-                              <span className="block text-gray-500">
-
-                                Required Node Collateral
-
-
-                              </span>
+                                {
+                                  reduxCollateral > 0 ?
+                                    (<span className="block text-lg mb-1 font-bold">{reduxCollateral} %</span>) :
+                                    (<span className="block  text-lg mb-1 font-bold">{reduxCollateral}</span>)
+                                }
 
 
 
 
 
+
+
+
+                                <span className="mb-2 block text-sm text-gray-500 ">
+
+                                  Required Node Collateral
+
+
+                                </span>
+
+
+
+
+
+
+                              </div>
+
+                              <Link  href="/rpl">
+                                <button className="bg-orange-500 text-xs self-start hover:bg-orange-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">RPL</button>
+                              </Link>
 
                             </div>
+
+
+
                           </div>
 
 
@@ -3839,7 +3937,7 @@ const AccountMain: NextPage = () => {
 
 
 
-                  <div className="w-full h-auto min-h-auto flex flex-col items-center justify-center gap-3 lg:min-h-[80vh] ">
+                  <div className="w-full h-auto min-h-auto flex flex-col items-center justify-start gap-3 lg:min-h-[45vh] ">
 
                     <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
@@ -3873,13 +3971,13 @@ const AccountMain: NextPage = () => {
 
 
 
-                              <td className=" px-2 py-3  ">
+                              <td className=" px-2 py-3 pl-10 ">
 
-                              <div className="flex items-center flex-col w-[100px] lg:w-[170px] text-sm lg:text-lg">
-                                <span className='text-green-500 self-center font-bold text-sm lg:text-lg ' >
+                                <div className="flex items-center flex-col w-[100px] lg:w-[170px] text-sm lg:text-lg">
+                                  <span className='text-green-500 self-center font-bold text-sm lg:text-lg ' >
 
-                                  {data.valBalance}
-                                </span>
+                                    {data.valBalance}
+                                  </span>
                                 </div>
                               </td>
 
@@ -3919,7 +4017,7 @@ const AccountMain: NextPage = () => {
                               </td>
 
                               <td className="px-4 py-3 ">
-                              <div className="flex items-center pl-4 flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
+                                <div className="flex items-center pl-4 flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
 
                                   <h3 className='text-center font-semibold text-sm lg:text-lg'>Validator Status</h3>
                                   <GrSatellite />
@@ -3960,7 +4058,7 @@ const AccountMain: NextPage = () => {
 
 
                               <td className="px-4 pr-10 py-3 w-[auto]">
-                              <div className="flex items-center flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
+                                <div className="flex items-center flex-col w-[100px] lg:w-[200px] text-sm lg:text-lg">
                                   {data.valProposals !== "" &&
 
                                     <h3 className='text-center  font-semibold text-sm lg:text-lg'>Blocks Proposed</h3>
@@ -3973,15 +4071,17 @@ const AccountMain: NextPage = () => {
 
                             </tr>
                           ))}
+
+
                         </tbody>
                       </table>
                     </div>
 
-
+                    {Number(totalValidators) <= 0 && <p className="text-gray-400 font-bold text-lg max-w-[90%] text-center">You currently have no active Validators...</p>}
                   </div>
 
 
-                  <div className='flex w-full h-auto px-6vh mx-6vh lg:px-[0vh] flex-col justify-center items-center gap-4 lg:min-h-[90vh]'>
+                  <div className='flex w-full h-auto py-[6vh] mb-[3vh] lg:mb-[13vh] lg:py-[0vh] flex-col justify-center items-center gap-4 lg:min-h-[40vh]  '>
 
                     <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
@@ -4002,10 +4102,10 @@ const AccountMain: NextPage = () => {
 
 
 
-                    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 xl:grid-rows-2 gap-4">
+                    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 xl:grid-rows-2 gap-4">
 
 
-                      <div className="flex items-center p-6 shadow-xl border rounded-lg">
+                      {Number(totalValidators) > 0 && <div className="flex items-center p-6 shadow-xl border rounded-lg">
 
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
                           <PiSignatureBold className="text-purple-500 text-3xl" />
@@ -4021,7 +4121,7 @@ const AccountMain: NextPage = () => {
                             <button onClick={() => { handleGraffitiModal() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white shadow-xl font-bold py-2 px-4 rounded-md">Edit</button>
                           </div>
                         </div>
-                      </div>
+                      </div>}
 
 
                       <div className="flex items-center p-6  shadow-xl border rounded-lg">
@@ -4070,7 +4170,7 @@ const AccountMain: NextPage = () => {
 
 
 
-                            {reduxData[0].smoothingPoolTruth ? (
+                            {checked5 ? (
 
                               <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Opted-in</p> <TiTick /></div>
 
@@ -4160,7 +4260,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                    
+
                       {currentSmoothingPoolStatus3 === 3 ? (
 
 
@@ -4350,7 +4450,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
 
-                      
+
                       {currentEditGraffitiStatus3 === 3 ? (
 
 
@@ -4511,7 +4611,7 @@ const AccountMain: NextPage = () => {
                     isOpen={showForm}
                     onRequestClose={() => setShowForm(false)}
                     contentLabel="Batch Graffiti Modal"
-                    
+
                     className={`${styles.modal} ${showFormEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                     ariaHideApp={false}
                     style={{
@@ -4545,7 +4645,7 @@ const AccountMain: NextPage = () => {
                   >
                     <div className="flex relative w-full h-full flex-col rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
 
-                     
+
 
 
                       <h2 className="text-[20px] font-bold">Graffiti Update</h2>

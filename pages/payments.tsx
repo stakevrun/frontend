@@ -16,7 +16,7 @@ import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
 import { FaCoins } from "react-icons/fa";
-
+import { getData } from "../globalredux/Features/validator/valDataSlice"
 import Modal from 'react-modal';
 import { FaEthereum } from "react-icons/fa";
 import styles from '../styles/Home.module.css';
@@ -139,7 +139,7 @@ const Payments: NextPage = () => {
                     setIncrementer(1)
 
 
-                    getPayments();
+                    const data = await getPayments();
 
 
                     setIncrementerWithDelay(4, 700)
@@ -591,6 +591,7 @@ const Payments: NextPage = () => {
     useEffect(() => {
         if (!isInitialRender && address !== undefined) {
             // This block will run after the initial render
+            dispatch(getData([{address: "NO VALIDATORS"}]))
             getPayments();
             getCharges();
         } else {
@@ -599,6 +600,16 @@ const Payments: NextPage = () => {
             setIsInitialRender(false);
         }
     }, [currentChain, address]);
+
+
+    
+    useEffect(() => {
+   
+        // This block will run after the initial render
+        getPayments();
+        getCharges();
+  
+}, [reduxData]);
 
 
 
@@ -731,13 +742,13 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : reduxPayments - reduxCharges === 0 ? { color: reduxDarkMode ? "#fff" : "black" }: { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 
 
                                         </span>
-                                        {reduxPayments - reduxCharges > 0 ? (
+                                        {reduxPayments - reduxCharges >= 0 ? (
                                             <span className="block text-md lg:text-lg text-gray-500 ">Vrün Balance</span>
                                         ) : (
                                             <span className="block text-md lg:text-lg text-gray-500 ">in Arrears</span>
@@ -875,7 +886,7 @@ const Payments: NextPage = () => {
                                 </div>) : (
                                     <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
 
-                                        <h3>Please wait while we retrieve your Vrün statement... </h3>
+                                        <h3 className="text-center max-w-[90%]">Please wait while we retrieve your Vrün statement... </h3>
 
                                         <BounceLoader />
 

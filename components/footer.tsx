@@ -20,7 +20,7 @@ const Footer: NextPage = () => {
   return (
 
 
-    <footer  className="p-4 w-full h-auto lg:h-[100px] flex flex-col items-center justify-center lg:flex-row mt-[100px] gap-8 bg-[#333] justify-center z-[999]">
+    <footer  className="p-4 w-full h-auto lg:h-[100px] flex flex-col items-center justify-center lg:flex-row mt-[5vh] gap-8 bg-[#333] justify-center z-[999]">
 
         <div className='w-[100%] lg:w-auto flex flex-col lg:flex-row items-start lg:items-center justify-center gap-8'>
 

@@ -15,14 +15,14 @@ import managerABI from "../json/managerABI.json"
 import distributorABI from "../json/distributorABI.json"
 import type { RootState } from '../globalredux/store';
 import Toggle from "./toggle"
-import GetMinipoolData from '../functions/getMinipoolData';
+
 
 const Navbar: NextPage = () => {
 
 
   const { address } = useAccount({
     onConnect: ({ address }) => {
-      getMinipoolData()
+    
     }
   })
 
@@ -907,7 +907,7 @@ const Navbar: NextPage = () => {
     getMinipoolData();
 
     // Set up the interval to call the function every 30 seconds
-    const intervalId = setInterval(getMinipoolData, 300000);
+    const intervalId = setInterval(getMinipoolData, 200000);
 
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
@@ -988,17 +988,17 @@ const Navbar: NextPage = () => {
       {
 
         address !== undefined ? (<div className="ml-1 mt-4 gap-5 flex w-full items-center justify-center gap-2 block lg:hidden">
-           <Link href="/" className="hover:text-gray-600 text-xs">
+           <Link href="/" className="hover:text-gray-600 text-sm">
             Home
           </Link>
-          <Link href="/account" className="hover:text-gray-600 text-xs">
+          <Link href="/account" className="hover:text-gray-600 text-sm">
             Go to Account
           </Link>
-          <Link href="/payments" className="hover:text-gray-600 text-xs">
+          <Link href="/payments" className="hover:text-gray-600 text-sm">
               Payments
             </Link>
 
-            <Link href="/rpl" className=" hover:text-gray-600 text-xs">
+            <Link href="/rpl" className=" hover:text-gray-600 text-sm">
               RPL
             </Link>
           <Toggle/>
