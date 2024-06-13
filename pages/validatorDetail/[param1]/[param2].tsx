@@ -1455,6 +1455,14 @@ const ValidatorDetail: NextPage = () => {
 
     const [turnOffStakeButton, setTurnOffStakeButton] = useState(true)
 
+    function delayedExecution() {
+        setTimeout(() => {
+            setTriggerNewAccount(true);
+            dispatch(getData([{ address: "NO VALIDATORS" }]));
+        }, 4000); // 10000 milliseconds = 10 seconds
+    }
+
+
 
     const stakeMinipool = async () => {
 
@@ -1528,12 +1536,6 @@ const ValidatorDetail: NextPage = () => {
             let depositDataRoot;
 
 
-            function delayedExecution() {
-                setTimeout(() => {
-                    setTriggerNewAccount(true);
-                    dispatch(getData([{ address: "NO VALIDATORS" }]));
-                }, 4000); // 10000 milliseconds = 10 seconds
-            }
 
             // Call the function to start the delayed execution
 
@@ -1719,28 +1721,12 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    useEffect(() => {
-
-
-        if (distributeErrorBoxText !== "") {
-
-
-            const handleText = () => {
-                setDistributeErrorBoxText("")
-
-            }
-
-
-            const timeoutId = setTimeout(handleText, 6000);
-
-            return () => clearTimeout(timeoutId);
 
 
 
 
-        }
 
-    }, [distributeErrorBoxText])
+    const [turnOffDistributeButton, setTurnOffDistributeButton] = useState(true)
 
 
 
@@ -1787,11 +1773,19 @@ const ValidatorDetail: NextPage = () => {
 
             if (receipt.status === 1) {
 
+                setTurnOffDistributeButton(false)
+
                 setIncrementer(2)
+
+
+
+
 
                 const data = await getMinipoolData();
 
+
                 setIncrementerWithDelay(4, 300)
+                delayedExecution()
 
 
             } else {
@@ -1833,7 +1827,7 @@ const ValidatorDetail: NextPage = () => {
     const [closeDissolvedErrorMessage, setCloseDissolvedErrorMessage] = useState("")
 
 
-
+    const [turnOffCloseButton, setTurnOffCloseButton] = useState(false)
 
 
 
@@ -1875,11 +1869,16 @@ const ValidatorDetail: NextPage = () => {
 
             if (receipt.status === 1) {
 
+                setTurnOffCloseButton(false)
+
                 setIncrementer(2)
 
                 const data = await getMinipoolData();
 
+
+
                 setIncrementerWithDelay(4, 300)
+                delayedExecution()
 
 
             } else {
@@ -2326,6 +2325,312 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    const [presignedShortcutData, setPresignedShortcutData] = useState("")
+
+
+
+
+
+
+    useEffect(() => {
+
+
+        if (!isInitialRender) {
+
+
+            postPresignedExitMessageShortcut()
+
+
+
+        } else {
+
+            setIsInitialRender(false)
+
+
+        }
+
+
+
+    }, [presignedShortcutData])
+
+
+
+    const getPresignedExitMessageShortcut = async (pubkey: string, index: number) => {
+
+
+        try {
+
+
+
+
+
+            /*struct GetPresignedExit {
+            bytes pubkey;
+            uint256 validatorIndex;
+            uint256 epoch;
+          }*/
+
+            let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+            let signer = await browserProvider.getSigner()
+
+            //https://beaconcha.in/api/v1/slot/1?apikey=<your_key>
+
+
+            const genesisTime = 1695902400 * 1000;
+
+
+            let epoch;
+
+
+
+            if (dateTime === "") {
+                const theTime = Date.now() - 1000000000
+
+                epoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
+
+            } else {
+
+                const dateTimeObject = new Date(dateTime);
+
+                // Convert the JavaScript Date object to a Unix timestamp (in milliseconds)
+                const timestampValue = dateTimeObject.getTime();
+
+                epoch = Math.ceil((timestampValue - genesisTime) / 12 / 32 / 1000);
+
+            }
+
+            console.log("EPOCH:" + epoch)
+
+
+
+
+
+
+            const chainString = currentChain === 17000 ? 'holesky.' : ''
+
+
+            const valIndex = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/eth1/${address}?apikey=${beaconAPIKey}`, {
+                method: "GET",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
+
+                    var jsonString = await response.json()
+
+
+
+                    for (const object of jsonString.data) {
+                        if (object.publickey === pubkey) {
+
+                            return object.validatorindex
+
+
+                        }
+                    }
+                    console.log("Result of Logs GET" + Object.entries(jsonString));
+                    console.log(typeof jsonString);
+
+                })
+                .catch(error => {
+
+                    console.log(error);
+                });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            const types = {
+                GetPresignedExit: [
+                    { name: 'pubkey', type: 'bytes' },
+                    { name: 'validatorIndex', type: 'uint256' },
+                    { name: 'epoch', type: 'uint256' }
+                ]
+            }
+
+            console.log(valIndex)
+
+            const EIP712Domain = { name: "vrün", version: "1", chainId: currentChain };
+            const APItype = "GetPresignedExit"
+
+
+
+
+
+
+
+            const value = { pubkey: pubkey, validatorIndex: valIndex, epoch: epoch }
+
+
+            let signature = await signer.signTypedData(EIP712Domain, types, value);
+
+
+
+
+
+
+            const data: string = await fetch(`https://api.vrün.com/${currentChain}/${address}/${index}`, {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    type: APItype,
+                    data: value,
+                    signature: signature
+                })
+            })
+                .then(async response => {
+
+                    var text = await response.text()// Note: response will be opaque, won't contain data
+
+
+
+
+                    return text;
+
+
+
+
+                })
+                .catch(error => {
+                    // Handle error here
+                    console.log(error);
+                    return ""
+                });
+
+
+
+
+
+            if (typeof data !== "undefined") {
+                setPresignedShortcutData(data);
+                setIncrementer(1)
+
+            } else {
+                setIncrementer(5)
+
+
+                setPostPresignedShortcutErrorBoxText("Data from Get Message call undefined. Please try again.")
+
+
+            }
+
+
+        } catch (e: any) {
+
+
+            setIncrementer(5)
+
+            if (e.reason !== undefined) {
+                setPostPresignedShortcutErrorBoxText(e.reason.toString());
+
+
+            } else if (e.error) {
+                setPostPresignedShortcutErrorBoxText(e.error["message"].toString())
+            } else {
+                setPostPresignedShortcutErrorBoxText("An Unknown error occured.")
+
+            }
+
+
+
+        }
+
+    }
+
+
+    const [turnOffPostButtons, setTurnOffPostButtons] = useState(true)
+
+
+
+    const postPresignedExitMessageShortcut = async () => {
+
+
+
+        const currentRPC = currentChain === 17000
+            ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/`
+            : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`;
+
+        const handleError = (message: string) => {
+            setPostPresignedShortcutErrorBoxText(message);
+            setIncrementer(5);
+        };
+
+
+        console.log("POST PRESIGNED AT THE TIME OF POSTING IN SHORTCUT:" + presignedShortcutData)
+
+        try {
+            const response = await fetch(`${currentRPC}eth/v1/beacon/pool/voluntary_exits`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: presignedShortcutData
+            });
+
+            if (response.status === 200) {
+
+                setTurnOffPostButtons(false)
+                setIncrementer(2);
+                const data = await getMinipoolData();
+                setIncrementerWithDelay(4, 700);
+                delayedExecution();
+
+            }
+
+            const resString = await response.text();
+            console.log("POST exit message response: ", Object.entries(response));
+
+            if (resString) {
+                try {
+                    const convertedObject = JSON.parse(resString);
+                    console.log("Post Presigned Converted Object: ", convertedObject);
+                    console.log("Type of convertedObject: ", typeof convertedObject);
+
+                    if (typeof convertedObject === "object" && convertedObject !== null && convertedObject.message) {
+                        handleError(convertedObject.message);
+                        return;
+                    }
+                } catch (e) {
+                    // If JSON parsing fails, handle as a plain string error
+                    handleError(resString);
+                    return;
+                }
+            }
+
+            // Successful transaction case
+
+        } catch (e: any) {
+            if (e.reason) {
+                handleError(e.reason.toString());
+            } else if (e.error) {
+                handleError(e.error["message"].toString());
+            } else {
+                handleError("An unknown error occurred.");
+            }
+        }
+    };
+
+
+
+
+
 
 
     const getPresignedExitMessage = async (pubkey: string, index: number) => {
@@ -2575,8 +2880,12 @@ const ValidatorDetail: NextPage = () => {
 
             if (response.status === 200) {
                 setIncrementer(1);
-                const data = await getMinipoolData();
+
+                setTurnOffPostButtons(false)
+               
                 setIncrementerWithDelay(4, 700);
+
+                delayedExecution()
 
             }
 
@@ -2840,6 +3149,82 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+
+    const [isPresignedPosted, setIsPresignedPosted] = useState(false)
+
+
+
+
+
+
+
+    useEffect(() => {
+
+
+        const getPostedPresignedLog = async () => {
+
+
+            const currentRPC = currentChain === 17000
+                ? `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/`
+                : `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`;
+
+
+            const response = await fetch(`${currentRPC}eth/v1/beacon/pool/voluntary_exits`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+            });
+
+
+
+            if (response.status === 200) {
+
+
+            }
+
+            const resString = await response.json();
+            console.log("POST exit message response: ", Object.entries(response));
+
+
+            console.log("Presigned Logs Response:" + Object.entries(response))
+
+            console.log("ResString:" + Object.keys(resString))
+
+
+            for (const object of resString.data) {
+
+
+
+                if (object.message.validator_index === reduxData.valIndex) {
+
+                    setIsPresignedPosted(true)
+
+                    console.log("FOOOOOUUUUUNNNNDD IIIIIIIT!")
+
+                }
+            }
+
+
+
+
+
+
+
+
+
+        }
+
+
+        getPostedPresignedLog();
+
+
+    }, [])
+
+
+
+
     const graphData = getGraphData(graphState, xAxisData, TotalGraphPlotPoints);
 
 
@@ -2903,7 +3288,7 @@ const ValidatorDetail: NextPage = () => {
         setShowFormEffectDisclaimer(showFormDisclaimer);
 
 
-     
+
 
 
     }, [showFormDisclaimer]);
@@ -2916,6 +3301,9 @@ const ValidatorDetail: NextPage = () => {
         setShowFormDisclaimer(true)
 
     }
+
+
+    const [noEnable, setNoEnable] = useState(false)
 
 
 
@@ -2981,11 +3369,15 @@ const ValidatorDetail: NextPage = () => {
                         console.log("Get Deposit Data response" + jsonString)
                         setIncrementer(1)
 
-                        const data = await getMinipoolData();
+                        setNoEnable(true)
+
+                      
 
                         setIncrementer(2)
 
                         setIncrementerWithDelay(4, 700)
+
+                        delayedExecution()
 
                     })
                     .catch(e => {
@@ -3178,6 +3570,10 @@ const ValidatorDetail: NextPage = () => {
     const [showFormEffectPostPresigned, setShowFormEffectPostPresigned] = useState(false)
 
 
+    const [showFormPostPresignedShortcut, setShowFormPostPresignedShortcut] = useState(false)
+    const [showFormEffectPostPresignedShortcut, setShowFormEffectPostPresignedShortcut] = useState(false)
+
+
     useEffect(() => {
 
 
@@ -3192,12 +3588,41 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+
+    useEffect(() => {
+
+
+        setShowFormEffectPostPresignedShortcut(showFormPostPresignedShortcut);
+
+        if (showFormPostPresignedShortcut === false) {
+            setIncrementer(0)
+        }
+
+
+    }, [showFormPostPresignedShortcut]);
+
+
+
+
     const [postPresignedErrorBoxText, setPostPresignedErrorBoxText] = useState("")
+
+
+    const [postPresignedShortcutErrorBoxText, setPostPresignedShortcutErrorBoxText] = useState("")
 
 
     const [currentPostPresignedStatus1, setCurrentPostPresignedStatus1] = useState(0)
 
     const [currentPostPresignedStatus3, setCurrentPostPresignedStatus3] = useState(0)
+
+
+
+
+
+
+    const [currentPostPresignedShortcutStatus1, setCurrentPostPresignedShortcutStatus1] = useState(0)
+    const [currentPostPresignedShortcutStatus2, setCurrentPostPresignedShortcutStatus2] = useState(0)
+
+    const [currentPostPresignedShortcutStatus3, setCurrentPostPresignedShortcutStatus3] = useState(0)
 
 
     const triggerConfetti = () => {
@@ -3215,6 +3640,16 @@ const ValidatorDetail: NextPage = () => {
         }
 
     }, [currentPostPresignedStatus3])
+
+
+    useEffect(() => {
+
+        if (currentPostPresignedShortcutStatus3 === 3) {
+
+            triggerConfetti();
+        }
+
+    }, [currentPostPresignedShortcutStatus3])
 
 
 
@@ -3240,6 +3675,47 @@ const ValidatorDetail: NextPage = () => {
             setCurrentPostPresignedStatus1(0)
 
             setCurrentPostPresignedStatus3(0)
+
+
+
+        }
+
+    }, [incrementer])
+
+
+
+
+    useEffect(() => {
+
+
+        if (incrementer === 1) {
+
+            setCurrentPostPresignedShortcutStatus1(1)
+            setCurrentPostPresignedShortcutStatus2(1)
+
+
+        } else if (incrementer === 2) {
+
+            setCurrentPostPresignedShortcutStatus2(2)
+
+
+
+        }
+
+
+        else if (incrementer === 4) {
+            setCurrentPostPresignedShortcutStatus3(3)
+        } else if (incrementer === 5) {
+            setCurrentPostPresignedShortcutStatus3(4)
+        }
+
+
+
+        else {
+
+            setCurrentPostPresignedShortcutStatus1(0)
+            setCurrentPostPresignedShortcutStatus2(0)
+            setCurrentPostPresignedShortcutStatus3(0)
 
 
 
@@ -3649,6 +4125,52 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    const [showFormConfirmPostPresignedShortcut, setShowFormConfirmPostPresignedShortcut] = useState(false)
+    const [showFormConfirmPostPresignedShortcutEffect, setShowFormConfirmPostPresignedShortcutEffect] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormConfirmPostPresignedShortcutEffect(showFormConfirmPostPresignedShortcut);
+
+
+    }, [showFormConfirmPostPresignedShortcut]);
+
+
+
+
+
+
+    const handleCloseActiveModal = async () => {
+
+
+        setShowFormConfirmPostPresignedShortcut(false);
+        setIncrementer(0);
+        setShowFormPostPresignedShortcut(true);
+
+
+
+        if (typeof params.param1 === "string" && typeof params.param2 === "string") {
+
+
+            await getPresignedExitMessageShortcut(params.param1, Number(params.param2));
+
+
+
+
+
+
+
+
+        } else {
+            setIncrementer(5)
+            setPostPresignedShortcutErrorBoxText("Invalid params");
+        }
+
+
+
+    }
 
 
 
@@ -3867,13 +4389,18 @@ const ValidatorDetail: NextPage = () => {
                                                     <h3 className='block text-lg  font-bold'>Validator Status:</h3>
 
 
-                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "" && (
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && !isPresignedPosted && reduxData.isEnabled === true && (
 
                                                         <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>)}
 
 
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && isPresignedPosted && (
+
+                                                        <p className="text-yellow-500  text-md">waiting_for_beaconchain</p>)}
+
+
                                                     {
-                                                        reduxData.statusResult === "Staking" && reduxData.beaconStatus === "" && (
+                                                        reduxData.statusResult === "Staking" && reduxData.beaconStatus === "" && reduxData.isEnabled === true && (
 
                                                             <p className="text-yellow-500  text-md">waiting_for_beaconchain</p>
 
@@ -3882,8 +4409,11 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
+
+
+
                                                     {
-                                                        reduxData.statusResult === "Prelaunch" && (
+                                                        reduxData.statusResult === "Prelaunch" && reduxData.isEnabled === true && (
 
                                                             <p className="text-yellow-500  text-md">prelaunch</p>
 
@@ -3892,7 +4422,7 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
-                                                    {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) > 0 &&
+                                                    {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) > 0 && reduxData.isEnabled === true &&
                                                         <>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
 
@@ -3902,8 +4432,34 @@ const ValidatorDetail: NextPage = () => {
                                                         </>
                                                     }
 
+
+
+                                                    {(reduxData.beaconStatus === "exited_slashed" || reduxData.beaconStatus === "active_slashed") && (
+
+
+                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
+
+
+
+                                                    )}
+
+
+
+                                                    {(reduxData.beaconStatus !== "active_exiting" && reduxData.beaconStatus !== "exited_unslashed" && reduxData.beaconStatus !== "withdrawal_possible" && reduxData.beaconStatus !== "withdrawal_done" && reduxData.beaconStatus !== "exited_slashed" && reduxData.beaconStatus !== "active_slashed" && reduxData.statusResult !== "Dissolved") && reduxData.isEnabled === false && !isPresignedPosted && (
+
+                                                        <p className="text-yellow-500  text-md">disabled_by_user</p>
+
+
+                                                    )}
+
+
+
                                                     {(reduxData.beaconStatus === "active_exiting" || reduxData.beaconStatus === "exited_unslashed" || reduxData.beaconStatus === "withdrawal_possible") && (Number(reduxData.withdrawalCountdown) > 0) &&
+
+
+
                                                         <>
+                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.withdrawalCountdown} reset={getMinipoolData} />
 
                                                             <p className='text-xs'>Until the &quot;withdrawal_possible&quot; epoch</p>
@@ -3937,7 +4493,7 @@ const ValidatorDetail: NextPage = () => {
 
                                                         </>
                                                 */}
-                                                    {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) <= 0 && turnOffStakeButton &&
+                                                    {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) <= 0 && turnOffStakeButton && reduxData.isEnabled === true &&
 
                                                         <button onClick={() => { stakeMinipool() }} className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake Minipool</button>
 
@@ -3946,7 +4502,7 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
-                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" &&
+                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" && reduxData.isEnabled === true &&
                                                         <a className=" hover:text-blue-300  font-bold hover:text-blue-300 cursor-pointer text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
                                                     }
                                                 </div>
@@ -3970,13 +4526,14 @@ const ValidatorDetail: NextPage = () => {
                                                         <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Enabled</p> <TiTick /></div>
 
                                                     ) : (
+                                                      
                                                         <p className="text-red-400 text-[18px]">Disabled</p>
-
+                                                       
                                                     )}
                                                 </div>
 
                                                 <div className='w-full flex gap-2 text-xs items-start justify-start'>
-                                                    {reduxData.isEnabled && <button onClick={() => { setShowForm6(true) }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
+                                                    {reduxData.isEnabled && !noEnable && <button onClick={() => { setShowForm6(true) }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
                                                         Edit
                                                     </button>}
                                                 </div>
@@ -4040,7 +4597,7 @@ const ValidatorDetail: NextPage = () => {
                                     </div>
 
 
-                                    {reduxData.statusResult === "Dissolved" &&
+                                    {reduxData.statusResult === "Dissolved" && turnOffCloseButton &&
 
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
 
@@ -4085,24 +4642,24 @@ const ValidatorDetail: NextPage = () => {
                                         </div>}
 
 
-                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
+                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && turnOffPostButtons && !isPresignedPosted &&
                                         <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
 
-                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-600 bg-yellow-100 rounded-full mr-6">
                                                 <GrSatellite className=" text-2xl" />
                                             </div>
 
                                             <div className="flex items-start flex-col gap-2 text-l ">
 
-                                                <p className="text-md lg:text-lg font-bold">Close Active Minipool</p>
+                                                <p className="text-md lg:text-lg font-bold">Post Presigned Exit Message</p>
 
-                                                <button onClick={handlePostExitModal} className="bg-red-500  text-xs  hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Initiate Close</button>
+                                                <button onClick={handlePostExitModal} className="bg-yellow-500  text-xs  hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md">Post Exit Message</button>
                                             </div>
                                         </div>
                                     }
 
 
-                                    {reduxData.beaconStatus === "withdrawal_done" &&
+                                    {reduxData.beaconStatus === "withdrawal_done" && turnOffDistributeButton &&
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-yellow-100 rounded-full mr-6">
                                                 <FaCoins className="text-yellow-500 text-xl" />
@@ -4119,7 +4676,7 @@ const ValidatorDetail: NextPage = () => {
                                     }
 
 
-                                    {reduxData.statusResult !== "Empty" && reduxData.beaconStatus === "active_ongoing" &&
+                                    {reduxData.statusResult !== "Empty" && reduxData.beaconStatus === "active_ongoing" && turnOffPostButtons && !isPresignedPosted &&
                                         <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
 
                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
@@ -4134,6 +4691,26 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                 <button onClick={() => { handleGetPresignedModal() }} className="bg-blue-500   text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Get Exit Message</button>
+                                            </div>
+                                        </div>
+                                    }
+
+
+                                    {reduxData.statusResult !== "Empty" && reduxData.beaconStatus === "active_ongoing" && turnOffPostButtons && !isPresignedPosted &&
+                                        <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
+
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-red-600 bg-red-100 rounded-full mr-6">
+                                                <GrSatellite className=" text-2xl" />
+                                            </div>
+
+
+                                            <div className="flex w-auto items-start flex-col gap-2 text-l ">
+
+
+                                                <p className="text-md lg:text-lg font-bold width-[80%]">Close Active Minipool</p>
+
+
+                                                <button onClick={() => { setShowFormConfirmPostPresignedShortcut(true) }} className="bg-red-500   text-xs  hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Initiate Close</button>
                                             </div>
                                         </div>
                                     }
@@ -4213,7 +4790,7 @@ const ValidatorDetail: NextPage = () => {
                                                 <p>Balance</p>
                                             </td>
                                             <td className="px-5  py-3 text-s w-auto text-center">
-                                                {Number(reduxData.valBalance) > 0 && reduxData.beaconStatus !== "withdrawal_done" && reduxData.valBalance}
+                                                {Number(reduxData.valBalance) > 0 && reduxData.beaconStatus !== "withdrawal_done" && <p className='font-bold '>{reduxData.valBalance}</p>}
                                                 {Number(reduxData.valBalance) === 0 && reduxData.beaconStatus !== "withdrawal_done" && <p className='font-bold '>Pending...</p>}
                                                 {Number(reduxData.valBalance) === 0 && reduxData.beaconStatus === "withdrawal_done" && <p className='font-bold '>Exited from Beaconchain</p>}
                                             </td>
@@ -4530,16 +5107,16 @@ const ValidatorDetail: NextPage = () => {
                             }}
                         >
 
-                            
+
                             <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
-                            <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
-                                <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
-                                    setShowFormDisclaimer(false)
-                                }} />
+                                <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowFormDisclaimer(false)
+                                    }} />
 
-                            </div>
+                                </div>
 
-                            <h3 className="font-bold text-[30px]">WARNING!</h3>
+                                <h3 className="font-bold text-[30px]">WARNING!</h3>
 
                                 <p className="text-lg text-center text-red-500">Proceeding with this action means re-enabling your validator will only be possible by us! Get in touch with us on Discord via the Vrün channel for more information. </p>
 
@@ -5133,7 +5710,7 @@ const ValidatorDetail: NextPage = () => {
                         <Modal
                             isOpen={showForm6}
                             onRequestClose={() => setShowForm6(false)}
-                            contentLabel="Smoothing Pool Opt Modal"
+                            contentLabel="Enable/Disable Initial Modal"
                             className={`${styles.modal} ${showFormEffect6 ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
                             style={{
@@ -5204,9 +5781,29 @@ const ValidatorDetail: NextPage = () => {
 
 
                                 <div className='w-full flex gap-2 items-center justify-center'>
-                                    <button onClick={() => { setDisableDisclaimer() }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+{enChecked === false ? (
+
+
+<button onClick={() => { setDisableDisclaimer() }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                                         Confirm Changes
                                     </button>
+
+
+) : (
+
+
+    <></>
+
+
+
+)
+
+}
+
+
+
+
+                                    
                                 </div>
 
 
@@ -5677,9 +6274,199 @@ const ValidatorDetail: NextPage = () => {
 
 
                         <Modal
+                            isOpen={showFormPostPresignedShortcut}
+                            onRequestClose={() => setShowFormPostPresignedShortcut(false)}
+                            contentLabel="Post Presigned SHORTCUT Transaction Modal"
+                            className={`${styles.modal} ${showFormEffectPostPresignedShortcut ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            shouldCloseOnOverlayClick={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+
+
+                                {currentPostPresignedShortcutStatus3 === 3 ? (
+
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Close Initiated!</h3>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
+                                        <button onClick={() => { setShowFormPostPresignedShortcut(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+                                ) : currentPostPresignedShortcutStatus3 === 4 ? (
+
+                                    <div className='w-full flex items-center flex-col gap-2 justify-center'>
+                                        <h3 className="font-bold text-[30px]">Failed to Initiate Close</h3>
+
+                                        <p className='my-3 text-lg text-red-400 '>{postPresignedShortcutErrorBoxText}</p>
+
+                                        <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-red-400 text-[50px]"><BiSolidErrorAlt /></div>
+                                        <button onClick={() => { setShowFormPostPresignedShortcut(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>
+                                    </div>
+
+
+
+
+
+                                ) :
+
+
+
+
+
+                                    (
+
+
+                                        <>
+
+
+
+
+                                            <div className='w-full flex items-start flex-col gap-2 justify-center'>
+                                                <h3 className="font-bold text-[30px]">Initiate Close of Active Minipool</h3>
+
+                                            </div>
+
+                                            <hr className="w-full my-3" />
+
+                                            <div className='flex flex-col gap-3 items-center justify-center w-full'>
+
+
+                                                <div className='flex items-start justify-between gap-6 w-full'>
+                                                    <div className="flex items-center justify-start gap-4">
+                                                        <p> <FaSignature /></p>
+
+                                                        <p className="text-left">Get Exit Message </p>
+                                                    </div>
+                                                    <p className='self-end'>
+
+                                                        {
+
+                                                            currentPostPresignedShortcutStatus1 === 0 ? (
+                                                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+                                                            ) : (
+
+                                                                <div className="flex items-center justify-center  text-green-400 text-[25px]"> <TiTick /></div>
+
+
+                                                            )
+
+
+
+
+                                                        }
+
+
+                                                    </p>
+                                                </div>
+
+
+
+                                                <div className='flex items-start justify-between gap-6 w-full'>
+                                                    <div className="flex items-center justify-start gap-4">
+                                                        <p> <HiOutlinePaperAirplane /></p>
+
+                                                        <p className="text-left">Post Exit Message </p>
+                                                    </div>
+                                                    <p className='self-end'>
+
+                                                        {
+
+                                                            currentPostPresignedShortcutStatus2 === 0 ? (
+                                                                <p></p>
+
+                                                            ) : currentPostPresignedShortcutStatus2 === 1 ? (
+
+                                                                <div className="flex items-center justify-center"><BounceLoader size={25} /></div>
+
+
+                                                            ) : (
+
+                                                                <div className="flex items-center justify-center text-green-400 text-[25px]"> <TiTick /></div>
+
+
+
+                                                            )
+
+
+
+
+                                                        }
+
+
+                                                    </p>
+                                                </div>
+
+
+
+
+
+
+
+
+
+
+                                            </div>
+
+
+
+
+
+
+
+                                        </>
+
+
+
+
+
+
+                                    )}
+
+
+                            </div>
+
+
+                        </Modal>
+
+
+                        <Modal
                             isOpen={showFormConfirmPostPresigned}
                             onRequestClose={() => setShowFormConfirmPostPresigned(false)}
-                            contentLabel="Alert Validators Modal"
+                            contentLabel="WARNING Presigned Modal"
                             className={`${styles.modal} ${showFormConfirmPostPresignedEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                             ariaHideApp={false}
 
@@ -5729,6 +6516,72 @@ const ValidatorDetail: NextPage = () => {
 
                                 <div className='w-full flex gap-2 items-center justify-center'>
                                     <button onClick={postPresignedExitMessage} className="bg-red-500 mt-2   hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md" >
+                                        POST!
+                                    </button>
+                                </div>
+
+
+
+
+
+                            </div>
+
+
+                        </Modal>
+
+                        <Modal
+                            isOpen={showFormConfirmPostPresignedShortcut}
+                            onRequestClose={() => setShowFormConfirmPostPresignedShortcut(false)}
+                            contentLabel="WARNING Presigned Modal SHORTCUT"
+                            className={`${styles.modal} ${showFormConfirmPostPresignedShortcutEffect ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+                            <div className="flex relative w-full h-full items-center justify-center flex-col  rounded-lg gap-2 bg-gray-100 px-6 py-6 pt-[45px] text-center">
+
+                                <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowFormConfirmPostPresignedShortcut(false)
+                                    }} />
+
+                                </div>
+
+                                <h2 className="text-2xl font-bold text-gray-900 sm:text-2xl">Are you sure you want to begin closing this Validator?</h2>
+                                <p className="text-red-400"><span className="text-red-500 font-bold">WARNING:</span>  Upon the successful posting of an Exit Message to the Beacon chain, the Validator will begin the exit process. Do you wish to proceed?</p>
+
+
+
+
+                                <div className='w-full flex gap-2 items-center justify-center'>
+                                    <button onClick={handleCloseActiveModal} className="bg-red-500 mt-2   hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md" >
                                         POST!
                                     </button>
                                 </div>
@@ -5829,7 +6682,7 @@ const ValidatorDetail: NextPage = () => {
 
                                             <div className='flex items-start justify-between gap-6 w-full'>
                                                 <div className="flex items-center justify-start gap-4">
-                                                    <p> <HiOutlinePaperAirplane /></p>
+                                                    <p> <FaSignature /></p>
 
                                                     <p className="text-left">Signed Typed Data </p>
                                                 </div>

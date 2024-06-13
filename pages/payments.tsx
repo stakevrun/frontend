@@ -92,7 +92,7 @@ const Payments: NextPage = () => {
     function isValidPositiveNumber(str: string) {
         // Convert the string to a number
         const num = Number(str);
-        
+
         // Check if the conversion results in a valid number and if the number is greater than zero
         if (!isNaN(num) && num > 0) {
             return true;
@@ -105,7 +105,7 @@ const Payments: NextPage = () => {
 
 
 
-        const run =  isValidPositiveNumber(feeETHInput)
+        const run = isValidPositiveNumber(feeETHInput)
 
 
         setIncrementer(0)
@@ -260,7 +260,13 @@ const Payments: NextPage = () => {
 
 
                 setPaymentEntryData(paymentData)
-                dispatch(getPaymentsEntryData(paymentData))
+
+             
+
+                    dispatch(getPaymentsEntryData(paymentData))
+
+             
+
 
                 return ethers.formatEther(balance);
 
@@ -308,6 +314,12 @@ const Payments: NextPage = () => {
 
 
 
+    useEffect(() => {
+
+        console.log("Total Charges Data:" + totalData)
+
+    }, [totalData])
+
 
 
 
@@ -318,21 +330,20 @@ const Payments: NextPage = () => {
 
         console.log("Redux Entries:" + reduxChargesEntries + reduxPaymentsEntries)
 
-        if (reduxChargesEntries.length > 0 && reduxPaymentsEntries.length > 0) {
 
 
-            if (reduxChargesEntries[0].date !== "defaultState" && reduxPaymentsEntries[0].date !== "defaultState") {
-
-                const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-                setTotalData(newArray)
+
+        const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-            }
+        setTotalData(newArray)
 
 
-        }
+
+
+
 
 
 
@@ -391,79 +402,84 @@ const Payments: NextPage = () => {
 
 
 
+        if (reduxData[0].address !== "NO VALIDATORS") {
+
+            for (const data of reduxData) {
 
 
-        for (const data of reduxData) {
-
-
-            console.log("Deffo here...")
-
-
-
-            const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
-                method: "GET",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-            })
-                .then(async response => {
-
-                    var jsonObject = await response.json()
+                console.log("Deffo here...")
 
 
 
+                const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
+                    method: "GET",
 
-
-
-                    console.log("An Object of Power:" + Object.entries(jsonObject))
-                    let numDays = 0;
-
-
-
-
-
-
-
-
-
-                    for (const object of jsonObject) {
-
-                        console.log("Charges object:" + Object.entries(object));
-
-                        numDays += object.numDays
-
-
-
-                        const newObject = breakdownDays(object, data.pubkey)
-
-                        newChargesArray = [...newChargesArray, ...newObject]
-
-
-                    }
-
-
-
-                    return numDays;
-
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
                 })
-                .catch(error => {
+                    .then(async response => {
 
-                    console.log("Charges" + error);
-                    return 0;
-                });
+                        var jsonObject = await response.json()
 
 
 
 
 
 
-            totalCharges += charges
+                        console.log("An Object of Power:" + Object.entries(jsonObject))
+                        let numDays = 0;
 
 
+
+
+
+
+
+
+
+                        for (const object of jsonObject) {
+
+                            console.log("Charges object:" + Object.entries(object));
+
+                            numDays += object.numDays
+
+
+
+                            const newObject = breakdownDays(object, data.pubkey)
+
+                            newChargesArray = [...newChargesArray, ...newObject]
+
+
+                        }
+
+
+
+                        return numDays;
+
+                    })
+                    .catch(error => {
+
+                        console.log("Charges" + error);
+                        return 0;
+                    });
+
+
+
+
+
+
+                totalCharges += charges
+
+
+
+
+            }
 
 
         }
+
+
 
 
 
@@ -477,9 +493,20 @@ const Payments: NextPage = () => {
         dispatch(getChargesData(totalETH))
 
         const finalArray = sortInReverseChronologicalOrder(newChargesArray)
+
+        console.log(finalArray)
+
+
+       
+
+            dispatch(getChargesEntryData(finalArray))
+
+
+
+
         setChargesData(finalArray)
 
-        dispatch(getChargesEntryData(finalArray))
+
 
 
 
@@ -591,7 +618,7 @@ const Payments: NextPage = () => {
     useEffect(() => {
         if (!isInitialRender && address !== undefined) {
             // This block will run after the initial render
-            dispatch(getData([{address: "NO VALIDATORS"}]))
+            dispatch(getData([{ address: "NO VALIDATORS" }]))
             getPayments();
             getCharges();
         } else {
@@ -602,14 +629,227 @@ const Payments: NextPage = () => {
     }, [currentChain, address]);
 
 
-    
+
     useEffect(() => {
-   
+
+
+        const getCharges = async () => {
+
+
+
+
+            let newChargesArray: Array<edittedObject> = [];
+    
+    
+    
+            let totalCharges = 0;
+    
+    
+    
+            if (reduxData[0].address !== "NO VALIDATORS") {
+    
+                for (const data of reduxData) {
+    
+    
+                    console.log("Deffo here...")
+    
+    
+    
+                    const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
+                        method: "GET",
+    
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                    })
+                        .then(async response => {
+    
+                            var jsonObject = await response.json()
+    
+    
+    
+    
+    
+    
+                            console.log("An Object of Power:" + Object.entries(jsonObject))
+                            let numDays = 0;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                            for (const object of jsonObject) {
+    
+                                console.log("Charges object:" + Object.entries(object));
+    
+                                numDays += object.numDays
+    
+    
+    
+                                const newObject = breakdownDays(object, data.pubkey)
+    
+                                newChargesArray = [...newChargesArray, ...newObject]
+    
+    
+                            }
+    
+    
+    
+                            return numDays;
+    
+                        })
+                        .catch(error => {
+    
+                            console.log("Charges" + error);
+                            return 0;
+                        });
+    
+    
+    
+    
+    
+    
+                    totalCharges += charges
+    
+    
+    
+    
+                }
+    
+    
+            }
+    
+    
+    
+    
+    
+    
+            let totalETH = totalCharges * 0.0001
+    
+    
+    
+    
+    
+            dispatch(getChargesData(totalETH))
+    
+            const finalArray = sortInReverseChronologicalOrder(newChargesArray)
+    
+            console.log(finalArray)
+    
+    
+           
+    
+                dispatch(getChargesEntryData(finalArray))
+    
+    
+    
+    
+            setChargesData(finalArray)
+    
+    
+    
+    
+    
+        }
+
+        const getPayments = async () => {
+
+
+
+
+
+
+            let paymentData: Array<edittedObject> = [];
+    
+    
+    
+    
+    
+    
+    
+            const payments: string = await fetch(`https://fee.vrün.com/${currentChain}/${address}/payments`, {
+                method: "GET",
+    
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
+    
+                    var jsonObject = await response.json()
+    
+                    console.log("Running Payments:" + Object.entries(jsonObject))
+    
+    
+    
+    
+                    let balance = BigInt(0);
+                    for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
+    
+    
+                        const paymentsObject = Object(payments)
+    
+                        for (const { amount, timestamp, tx } of paymentsObject) {
+    
+                            balance += BigInt(amount);
+    
+    
+                            paymentData = [...paymentData, { fee: amount, date: convertTimestampToDate(timestamp), pubkey: "payment" }]
+    
+    
+    
+                        }
+    
+    
+    
+                    }
+    
+    
+    
+                    setPaymentEntryData(paymentData)
+    
+                 
+    
+                        dispatch(getPaymentsEntryData(paymentData))
+    
+                 
+    
+    
+                    return ethers.formatEther(balance);
+    
+                })
+                .catch(error => {
+    
+                    console.log(error);
+                    return "";
+                });
+    
+    
+    
+    
+    
+            dispatch(getPaymentsData(Number(payments)))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        }
+    
+
         // This block will run after the initial render
         getPayments();
         getCharges();
-  
-}, [reduxData]);
+
+    }, [reduxData]);
 
 
 
@@ -742,7 +982,7 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : reduxPayments - reduxCharges === 0 ? { color: reduxDarkMode ? "#fff" : "black" }: { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : reduxPayments - reduxCharges === 0 ? { color: reduxDarkMode ? "#fff" : "black" } : { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 
@@ -795,7 +1035,7 @@ const Payments: NextPage = () => {
 
 
                             <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 py-[8vh]">
-                                {chargesData.length > 0 && totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
+                                {totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
 
 
                                     <table className="w-full">

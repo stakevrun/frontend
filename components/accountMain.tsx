@@ -1183,7 +1183,7 @@ const AccountMain: NextPage = () => {
         withdrawnNum += 1
       }
 
-      if (object.statusResult === "Prelaunch" && Number(object.timeRemaining) <= 0 && Number(object.minipoolBalance) > 0 ) {
+      if (object.statusResult === "Prelaunch" && Number(object.timeRemaining) <= 0 && Number(object.minipoolBalance) > 0) {
         stakeNum += 1
 
       }
@@ -3897,7 +3897,7 @@ const AccountMain: NextPage = () => {
 
                               </div>
 
-                              <Link  href="/rpl">
+                              <Link href="/rpl">
                                 <button className="bg-orange-500 text-xs self-start hover:bg-orange-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">RPL</button>
                               </Link>
 
@@ -4022,32 +4022,63 @@ const AccountMain: NextPage = () => {
                                   <h3 className='text-center font-semibold text-sm lg:text-lg'>Validator Status</h3>
                                   <GrSatellite />
 
-                                  {data.statusResult === "Staking" && data.beaconStatus !== "" ? (<p className="text-yellow-500  text-center  text-md">{data.beaconStatus}</p>) :
+                                  {data.statusResult === "Staking" && data.beaconStatus !== "" ?
+
+                                    (<p className="text-yellow-500  text-center  text-md">
+
+
+
+
+
+                                      {data.isEnabled === true && data.beaconStatus}
+
+
+
+                                      {(data.beaconStatus === "active_exiting" || data.beaconStatus === "exited_unslashed" || data.beaconStatus === "withdrawal_possible" || data.beaconStatus === "withdrawal_done" || data.beaconStatus === "exited_slashed" || data.beaconStatus === "active_slashed") && data.isEnabled === false && data.beaconStatus}
+
+
+
+
+                                      {data.beaconStatus !== "active_exiting" && data.beaconStatus !== "exited_unslashed" && data.beaconStatus !== "withdrawal_possible" && data.beaconStatus !== "withdrawal_done" && data.beaconStatus !== "exited_slashed" && data.beaconStatus !== "active_slashed" && data.isEnabled === false && "disabled_by_user"}
+
+
+
+
+
+                                    </p>
+
+
+
+
+
+                                    ) :
                                     (
                                       <p className="text-yellow-500 text-center  text-sm lg:text-lg">
 
                                         {
-                                          data.statusResult === "Staking" && data.beaconStatus === "" && "waiting_for_beaconchain"
+                                          data.statusResult === "Staking" && data.beaconStatus === "" && data.isEnabled && "waiting_for_beaconchain"
 
 
 
                                         }
 
 
-                                        {data.statusResult === "Prelaunch" && data.statusResult.toLowerCase()}
+                                        {data.statusResult === "Prelaunch" && data.isEnabled && data.statusResult.toLowerCase()}
 
 
-                                        {data.statusResult === "Initialised" && data.statusResult.toLowerCase()}
+                                        {data.statusResult === "Initialised" && data.isEnabled && data.statusResult.toLowerCase()}
 
 
 
-                                        {data.statusResult === "Withdrawable" && data.statusResult.toLowerCase()}
+                                        {data.statusResult === "Withdrawable" && data.isEnabled && data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Dissolved" && data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Empty" && data.statusResult.toLowerCase()}
+
+                                        {data.statusResult !== "Dissolved" && data.isEnabled === false && "disabled_by_user"}
 
                                       </p>
 
