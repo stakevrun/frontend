@@ -686,9 +686,11 @@ const CreateValidator: NextPage = () => {
           const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
           console.log("Approval transaction:", approvalTx.hash);
           setStakingMessage("Approval confirmed! Processing... ")
-          setIncrementer(1)
+          
 
-          await approvalTx.wait();
+          const receipt = await approvalTx.wait();
+
+          setIncrementer(1)
           return NodeStakingAddress;
         } catch (e: any) {
 
@@ -834,7 +836,7 @@ const CreateValidator: NextPage = () => {
     try {
 
       setIncrementer(0)
-      setShowFormStakeRPL(true);
+      setShowFormUnstakeRPL(true);
 
 
 
@@ -2113,28 +2115,29 @@ const CreateValidator: NextPage = () => {
 
 
 
+
+
+
+
+
+
+
+
+          
   useEffect(() => {
-
-
-    if (addValidatorError !== "") {
-
-
-      const handleText = () => {
-        setAddValidatorError("")
-
-      }
-
-
-      const timeoutId = setTimeout(handleText, 5000);
-
-      return () => clearTimeout(timeoutId);
+    if (!isInitialRender && address !== undefined) {
+    // This block will run after the initial render
+    dispatch(getData([{address: "NO VALIDATORS"}]))
+  
+    } else {
+    // This block will run only on the initial render
+    
+            setIsInitialRender(false);
+        }
+    }, [currentChain, address]);
 
 
 
-
-    }
-
-  }, [addValidatorError])
 
 
 
@@ -2435,9 +2438,7 @@ const CreateValidator: NextPage = () => {
           });
 
 
-
-
-
+       
 
 
 
@@ -2491,8 +2492,9 @@ const CreateValidator: NextPage = () => {
           // Call checkIndex function regardless of the transaction status
           checkIndex();
 
-
+         
           const newData = await getMinipoolData();
+         
 
           setIncrementer(3); // Trigger immediately
 
@@ -2520,16 +2522,20 @@ const CreateValidator: NextPage = () => {
 
 
 
-        if (e.reason === "rejected") {
-          setAddValidatorError(e.info.error.message.toString())
 
+
+        
+        if (e.reason) {
+          setAddValidatorError(e.info.error.data["message"].toString())
+
+        } else if (e.error) {
+          setAddValidatorError(e.error["message"].toString())
 
         }
         else {
-          setAddValidatorError(e.error["message"].toString())
-
-
+          setAddValidatorError("An Unknown error occured, please try again")
         }
+        
 
         setIncrementer(5)
 
@@ -4124,7 +4130,7 @@ const CreateValidator: NextPage = () => {
                 onRequestClose={() => setShowFormUnstakeRPL(false)}
                 shouldCloseOnOverlayClick={false}
                 contentLabel="Create Validator Modal"
-                className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                className={`${styles.modal} ${showFormEffectUnstakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
                 ariaHideApp={false}
                 style={{
                   overlay: {

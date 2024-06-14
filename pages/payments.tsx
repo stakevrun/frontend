@@ -1047,7 +1047,7 @@ const Payments: NextPage = () => {
                                                     <td className="px-4 py-5 w-[200px]">
                                                         <span className='text-center text-black-500 text-md lg:text-xl'>
 
-                                                            <p>{data.date}</p>
+                                                            <p>{data.date !== "defaultState" && data.date}</p>
                                                         </span>
 
                                                     </td>
@@ -1078,7 +1078,7 @@ const Payments: NextPage = () => {
 
 
                                                             (<span >
-                                                                <ContractTag pubkey={data.pubkey} />
+                                                                <ContractTag pubkey={data.pubkey !== "defaultState" && data.pubkey} />
                                                             </span>)
 
                                                         }

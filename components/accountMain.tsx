@@ -858,6 +858,7 @@ const AccountMain: NextPage = () => {
       fetchData();
       dispatch(getGraphPointsData([]));
       dispatch(attestationsData([]));
+    
       getMinipoolTruth();
       getMinipoolData();
       getNodeCollateral(address);
@@ -1501,8 +1502,11 @@ const AccountMain: NextPage = () => {
 
           const statusResult = await minipool.getStatus();
           const statusTimeResult = await minipool.getStatusTime();
-
+          const nodeDepositBalance = await minipool.getNodeDepositBalance();
           const balance = await browserProvider.getBalance(minAddress)
+
+
+
 
 
           console.log("Minipool balance:" + balance)
@@ -1710,7 +1714,7 @@ const AccountMain: NextPage = () => {
           })
 
 
-          seperateMinipoolObjects.push({
+         seperateMinipoolObjects.push({
             address: minAddress,
             statusResult: currentStatus,
             statusTimeResult: numStatusTime.toString(),
@@ -2302,7 +2306,16 @@ const AccountMain: NextPage = () => {
     }
 
     // Calculate the average
-    let average = totalSum / totalCount;
+    let average = 0;
+
+    if (totalSum > 0 && totalCount > 0) {
+
+      average = totalSum / totalCount;
+
+    } else {
+      average = 0;
+    }
+
     return average;
   }
 
@@ -2324,18 +2337,95 @@ const AccountMain: NextPage = () => {
   };
 
 
+  const getAttestationData = async () => {
+    let newMissedAttestationsArray: Array<Array<number>> = [];
+
+
+
+    for (const object of currentRowData) {
+
+    let newMissedAttestations: Array<number> = [];
+
+
+
+    for (const log of object.beaconLogs) {
+
+
+      if (object.statusResult === "Staking") {
+
+
+        let newMissed;
+
+
+
+
+
+        if (Number(log.missed_attestations) > 0) {
+
+          newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+
+        }
+
+        else {
+          newMissed = 100
+        }
+
+
+        console.log(newMissed)
+
+
+
+        console.log("New Missed:" + newMissed);
+
+        newMissedAttestations.push(newMissed)
+
+
+
+      }
+
+
+
+    }
+
+
+
+
+
+    newMissedAttestationsArray.push(newMissedAttestations)
+
+
+   
+
+
+
+    
+
+
+
+
+
+
+
+
+    }
+
+    dispatch(attestationsData(newMissedAttestationsArray))
+
+  }
+
+
 
 
   const convertToGraphPlotPoints = async () => {
 
 
     let newPlotPointsArray: Array<Array<number>> = [];
-    let newMissedAttestationsArray: Array<Array<number>> = [];
+   
 
     for (const object of currentRowData) {
 
       let newPlotPoints: Array<number> = [];
-      let newMissedAttestations: Array<number> = [];
+     
 
 
 
@@ -2353,30 +2443,9 @@ const AccountMain: NextPage = () => {
 
           newPlotPoints.push(editedVariance)
 
-          let newMissed;
+         
 
-
-
-
-
-          if (Number(log.missed_attestations) > 0) {
-
-            newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
-
-          }
-
-          else {
-            newMissed = 100
-          }
-
-
-          console.log(newMissed)
-
-
-
-          console.log("New Missed:" + newMissed);
-
-          newMissedAttestations.push(newMissed)
+         
 
 
 
@@ -2389,7 +2458,7 @@ const AccountMain: NextPage = () => {
 
 
       newPlotPointsArray.push(newPlotPoints)
-      newMissedAttestationsArray.push(newMissedAttestations)
+     
 
 
 
@@ -2413,17 +2482,7 @@ const AccountMain: NextPage = () => {
 
     }
 
-    if (newMissedAttestationsArray.length > 0) {
-
-
-
-      dispatch(attestationsData(newMissedAttestationsArray))
-
-
-
-
-    }
-
+ 
 
   }
 
@@ -2450,6 +2509,7 @@ const AccountMain: NextPage = () => {
 
     if (currentRowData.length >= 1) {
       convertToGraphPlotPoints();
+      getAttestationData();
     }
 
   }, [currentRowData])
@@ -3679,10 +3739,10 @@ const AccountMain: NextPage = () => {
             <>
               {!preloader ? (
 
-                <div className="w-full flex flex-col pt-[3vh] items-center gap-7 lg:gap-0 justify-center">
+                <div className="w-full flex flex-col  items-center gap-7 lg:gap-0 justify-center">
 
 
-                  <div className="w-full h-auto lg:h-[90vh] pt-[7vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[6vh]">
+                  <div className="w-full h-auto lg:h-[90vh] pt-[5vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[6vh]">
 
 
                     <div style={{ backgroundColor: reduxDarkMode ? "#222" : "white", color: reduxDarkMode ? "white" : "#222" }} className="w-full flex flex-col justify-center items-center gap-4 ">
@@ -3974,6 +4034,9 @@ const AccountMain: NextPage = () => {
                               <td className=" px-2 py-3 pl-10 ">
 
                                 <div className="flex items-center flex-col w-[100px] lg:w-[170px] text-sm lg:text-lg">
+
+                                  <h3 className='text-center  text-sm lg:text-md'>Balance on chain:</h3>
+
                                   <span className='text-green-500 self-center font-bold text-sm lg:text-lg ' >
 
                                     {data.valBalance}
@@ -3985,8 +4048,8 @@ const AccountMain: NextPage = () => {
                                 <div className="flex items-center flex-col w-[150px] lg:w-[200px] pr-4 text-sm lg:text-lg">
 
 
-                                  <span className='text-green-500 font-bold' style={Number(data.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                    {Number(data.valDayVariance) > 0 ? (
+                                  <span className='text-green-500 font-bold' style={Number(data.minipoolBalance) >= 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                    {Number(data.minipoolBalance) >= 0 ? (
                                       <div className='flex items-center justify-center'>
                                         <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-600 bg-green-100 rounded-full mr-3">
                                           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
@@ -3994,19 +4057,29 @@ const AccountMain: NextPage = () => {
                                           </svg>
 
                                         </div>
-                                        <p> {data.valDayVariance}</p>
+                                        <div className="flex flex-col justify-center items-center">
+                                          <h3 className='text-center text-black font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
+                                          <p> { data.statusResult === "Staking"?  data.minipoolBalance : "0"}</p>
+                                        </div>
 
                                       </div>
 
 
                                     ) : (
                                       <div className='flex items-center justify-center'>
+
                                         {data.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-red-600 bg-red-100 rounded-full mr-3">
                                           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                                           </svg>
                                         </div>}
-                                        <p >{data.valDayVariance !== "" && data.valDayVariance}</p>
+
+                                        <div className="flex flex-col justify-center items-center">
+                                          <h3 className='text-center text-black font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
+                                          <p > {data.statusResult === "Staking"?  data.minipoolBalance : "0"}</p>
+
+                                        </div>
+
                                       </div>
                                     )}
 
@@ -4053,7 +4126,7 @@ const AccountMain: NextPage = () => {
 
                                     ) :
                                     (
-                                      <p className="text-yellow-500 text-center  text-sm lg:text-lg">
+                                      <p className="text-yellow-500 text-center  text-md">
 
                                         {
                                           data.statusResult === "Staking" && data.beaconStatus === "" && data.isEnabled && "waiting_for_beaconchain"
@@ -4063,7 +4136,7 @@ const AccountMain: NextPage = () => {
                                         }
 
 
-                                        {data.statusResult === "Prelaunch" && data.isEnabled && data.statusResult.toLowerCase()}
+                                        {data.statusResult === "Prelaunch" &&  data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Initialised" && data.isEnabled && data.statusResult.toLowerCase()}
@@ -4078,7 +4151,7 @@ const AccountMain: NextPage = () => {
 
                                         {data.statusResult === "Empty" && data.statusResult.toLowerCase()}
 
-                                        {data.statusResult !== "Dissolved" && data.isEnabled === false && "disabled_by_user"}
+                                        {data.statusResult !== "Dissolved" && data.statusResult !== "Prelaunch" && data.isEnabled === false && "disabled_by_user"}
 
                                       </p>
 
@@ -4145,7 +4218,7 @@ const AccountMain: NextPage = () => {
                         <div className='flex h-full flex-col items-start gap-0.5 justify-center w-full'>
 
 
-                          <p className="block  text-md lg:text-lg  font-bold">Batch Change Graffiti</p>
+                          <p className="block  text-md   font-bold">Batch Change Graffiti</p>
 
                           <div className='w-full flex flex-col gap-1 items-start justify-center'>
 
@@ -4163,20 +4236,20 @@ const AccountMain: NextPage = () => {
                         </div>
 
 
-                        {runningValidators !== "0" ? (
+                        {percentageAttestations > 0 ? (
 
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
-                            <span className="block text-md lg:text-lg  font-bold" >Successful Attestations</span>
+                            <span className="block text-md   font-bold" >Successful Attestations</span>
 
-                            <span className="block text-gray-500 mt-1 text-[18px]">{percentageAttestations.toString().slice(0, 5)}%</span>
+                            <span className="block text-gray-500 mt-1 text-sm">{percentageAttestations.toString().slice(0, 5)}%</span>
 
                           </div>
 
                         ) : (
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
-                            <span className="block text-md lg:text-lg font-bold">Attestations</span>
-                            <span className="block text-gray-500 mt-1 text-[18px]" >0</span>
+                            <span className="block text-md  font-bold">Attestations</span>
+                            <span className="block text-gray-500 mt-1 max-w-[60%] text-sm" >No live Validators for attestations</span>
 
                           </div>
 
@@ -4197,7 +4270,7 @@ const AccountMain: NextPage = () => {
 
                           <div className="flex h-full flex-col items-start gap-0.5 justify-center w-full">
 
-                            <span className="block text-md lg:text-lg font-bold">Smoothing Pool</span>
+                            <span className="block text-md  font-bold">Smoothing Pool</span>
 
 
 
@@ -4206,7 +4279,7 @@ const AccountMain: NextPage = () => {
                               <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Opted-in</p> <TiTick /></div>
 
                             ) : (
-                              <p className="text-red-400 text-md lg:text-lg text-[18px]">Opted-out</p>
+                              <p className="text-red-400 text-md  text-sm">Opted-out</p>
 
                             )}
 

@@ -4,9 +4,9 @@ import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import Link
   from 'next/link';
-import { useAccount } from 'wagmi';
+
 import Navbar from '../components/navbar';
-import { useEffect } from 'react';
+import { useEffect, useState} from 'react';
 import Image from 'next/image';
 import { MdBarChart } from "react-icons/md";
 import Footer from '../components/footer';
@@ -18,7 +18,10 @@ import { BsSignStopFill } from "react-icons/bs";
 import { FaMoneyBillWave } from "react-icons/fa6";
 import { GrSatellite } from "react-icons/gr";
 import type { RootState } from '../globalredux/store';
+import { useAccount, useChainId } from 'wagmi';
+
 import { useSelector, useDispatch } from 'react-redux';
+import { getData } from "../globalredux/Features/validator/valDataSlice"
 
 
 
@@ -38,6 +41,25 @@ const Home: NextPage = () => {
   }, [address])
 
   const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
+
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const dispatch = useDispatch()
+
+  const currentChain = useChainId();
+
+
+  
+  useEffect(() => {
+    if (!isInitialRender && address !== undefined) {
+    // This block will run after the initial render
+    dispatch(getData([{address: "NO VALIDATORS"}]))
+  
+    } else {
+    // This block will run only on the initial render
+    
+            setIsInitialRender(false);
+        }
+    }, [currentChain, address]);
 
 
 

@@ -2882,7 +2882,7 @@ const ValidatorDetail: NextPage = () => {
                 setIncrementer(1);
 
                 setTurnOffPostButtons(false)
-               
+
                 setIncrementerWithDelay(4, 700);
 
                 delayedExecution()
@@ -3371,7 +3371,7 @@ const ValidatorDetail: NextPage = () => {
 
                         setNoEnable(true)
 
-                      
+
 
                         setIncrementer(2)
 
@@ -4246,9 +4246,9 @@ const ValidatorDetail: NextPage = () => {
 
                     </div> */}
 
-                        <div className="flex flex-col w-full items-center justify-center pt-[8vh] lg:pt-[0vh] px-[3vh] lg:px-[0vh] h-auto gap-[8vh] lg:h-[90vh]">
+                        <div className="flex flex-col w-full items-center justify-center pt-[5vh] lg:pt-[0vh] px-[3vh] lg:px-[0vh] h-auto gap-[6vh] lg:h-[90vh]">
 
-                            <div className="w-full flex flex-col justify-center items-center gap-6 pt-4 ">
+                            <div className="w-full flex flex-col justify-center items-center   ">
                                 <h2 className="text-2xl lg:text-4xl font-bold">Validator Detail</h2>
 
                             </div>
@@ -4335,8 +4335,8 @@ const ValidatorDetail: NextPage = () => {
 
                                             <div>
 
-                                                <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.valDayVariance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
-                                                    {Number(reduxData.valDayVariance) > 0 ? (
+                                                <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.minipoolBalance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
+                                                    {Number(reduxData.minipoolBalance) > 0 ? (
                                                         <div className='flex items-center justify-center'>
                                                             <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12  bg-green-100 rounded-full mr-3">
                                                                 <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
@@ -4346,9 +4346,9 @@ const ValidatorDetail: NextPage = () => {
                                                             </div>
 
                                                             <div className="px-3">
-                                                                <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold ">Daily ETH Tracker:</h3>
+                                                                <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold ">Skimmed balance:</h3>
 
-                                                                <p className="text-green-600"> {reduxData.valDayVariance}</p>
+                                                                <p className="text-green-400"> {reduxData.statusResult === "Staking" ? reduxData.minipoolBalance : "0"}</p>
 
                                                             </div>
 
@@ -4357,16 +4357,16 @@ const ValidatorDetail: NextPage = () => {
 
                                                     ) : (
                                                         <div className='flex items-center justify-center'>
-                                                            {reduxData.valDayVariance !== "" && <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12  bg-red-100 rounded-full mr-6">
+                                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12  bg-red-100 rounded-full mr-6">
                                                                 <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                                                                 </svg>
-                                                            </div>}
+                                                            </div>
 
                                                             <div>
-                                                                <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold">Daily ETH Tracker:</h3>
+                                                                <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold">Skimmed balance:</h3>
 
-                                                                <p className='text-red-600'>{reduxData.valDayVariance !== "" && reduxData.valDayVariance}</p>
+                                                                <p className='text-green-400'>{reduxData.statusResult === "Staking" ? reduxData.minipoolBalance : "0"}</p>
 
                                                             </div>
 
@@ -4413,7 +4413,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                     {
-                                                        reduxData.statusResult === "Prelaunch" && reduxData.isEnabled === true && (
+                                                        reduxData.statusResult === "Prelaunch" &&  (
 
                                                             <p className="text-yellow-500  text-md">prelaunch</p>
 
@@ -4445,7 +4445,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                                                    {(reduxData.beaconStatus !== "active_exiting" && reduxData.beaconStatus !== "exited_unslashed" && reduxData.beaconStatus !== "withdrawal_possible" && reduxData.beaconStatus !== "withdrawal_done" && reduxData.beaconStatus !== "exited_slashed" && reduxData.beaconStatus !== "active_slashed" && reduxData.statusResult !== "Dissolved") && reduxData.isEnabled === false && !isPresignedPosted && (
+                                                    {(reduxData.beaconStatus !== "active_exiting" && reduxData.beaconStatus !== "exited_unslashed" && reduxData.beaconStatus !== "withdrawal_possible" && reduxData.beaconStatus !== "withdrawal_done" && reduxData.beaconStatus !== "exited_slashed" && reduxData.beaconStatus !== "active_slashed" && reduxData.statusResult !== "Dissolved" && reduxData.statusResult !== "Prelaunch") && reduxData.isEnabled === false && !isPresignedPosted && (
 
                                                         <p className="text-yellow-500  text-md">disabled_by_user</p>
 
@@ -4459,7 +4459,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                         <>
-                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
+                                                            <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.withdrawalCountdown} reset={getMinipoolData} />
 
                                                             <p className='text-xs'>Until the &quot;withdrawal_possible&quot; epoch</p>
@@ -4502,7 +4502,7 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
-                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" && reduxData.isEnabled === true &&
+                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" && 
                                                         <a className=" hover:text-blue-300  font-bold hover:text-blue-300 cursor-pointer text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
                                                     }
                                                 </div>
@@ -4511,10 +4511,27 @@ const ValidatorDetail: NextPage = () => {
 
 
                                         <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
-                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
-                                                <VscActivateBreakpoints className="text-blue-500 text-2xl" />
 
-                                            </div>
+
+                                            {reduxData.isEnabled ? (
+
+                                                <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-blue-600 bg-blue-100 rounded-full mr-6">
+                                                    <VscActivateBreakpoints className="text-blue-500 text-2xl" />
+
+                                                </div>
+
+                                            ) : (
+
+                                                <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-red-600 bg-red-100 rounded-full mr-6">
+                                                    <VscActivateBreakpoints className="text-red-500 text-2xl" />
+
+                                                </div>
+
+                                            )
+
+                                            }
+
+
                                             <div className='flex  gap-4 items-center justify-start w-full'>
 
                                                 <div className='flex gap-1 flex-col items-start justify-center w-full'>
@@ -4526,9 +4543,9 @@ const ValidatorDetail: NextPage = () => {
                                                         <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Enabled</p> <TiTick /></div>
 
                                                     ) : (
-                                                      
+
                                                         <p className="text-red-400 text-[18px]">Disabled</p>
-                                                       
+
                                                     )}
                                                 </div>
 
@@ -4562,7 +4579,7 @@ const ValidatorDetail: NextPage = () => {
                         </div>
 
 
-                        <div className='flex w-full h-auto flex-col py-[2vh] justify-center items-center gap-6 lg:min-h-[35vh]'>
+                        <div className='flex w-full h-auto flex-col py-[2vh] mb-10 justify-center items-center gap-6 lg:min-h-[35vh]'>
 
                             <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
                                 <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
@@ -4738,7 +4755,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-                        <div className="w-full h-auto flex flex-col items-center justify-center  gap-[8vh] p-[2vh] ">
+                        <div className="w-full h-auto flex flex-col items-center justify-center  gap-[7vh] p-[2vh] ">
                             <div className="w-full overflow-hidden">
                                 <div className="w-full flex flex-col items-center justify-center ">
 
@@ -5781,29 +5798,29 @@ const ValidatorDetail: NextPage = () => {
 
 
                                 <div className='w-full flex gap-2 items-center justify-center'>
-{enChecked === false ? (
+                                    {enChecked === false ? (
 
 
-<button onClick={() => { setDisableDisclaimer() }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                                        Confirm Changes
-                                    </button>
+                                        <button onClick={() => { setDisableDisclaimer() }} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                                            Confirm Changes
+                                        </button>
 
 
-) : (
+                                    ) : (
 
 
-    <></>
-
-
-
-)
-
-}
+                                        <></>
 
 
 
+                                    )
 
-                                    
+                                    }
+
+
+
+
+
                                 </div>
 
 

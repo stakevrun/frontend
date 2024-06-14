@@ -200,6 +200,8 @@ const Navbar: NextPage = () => {
 
 
 
+
+
   
   function formatTime(milliseconds: number) {
     // Convert milliseconds to seconds
@@ -437,471 +439,475 @@ const Navbar: NextPage = () => {
 
 
 
-  const getMinipoolData = async () => {
 
-    if(address) {
-    
 
-    let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-    let signer = await browserProvider.getSigner();
-    const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    //Get latest index
-
-    const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
-      method: "GET",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-    })
-      .then(async response => {
-
-        var jsonString = await response.json()
-
-
-        console.log("Result of get next index" + jsonString)
-
-
-        return jsonString;
-
-      })
-      .catch(error => {
-
-        console.log(error);
-      });
-
-    console.log("Next index:" + newNextIndex)
-
-
-    let seperateMinipoolObjects: Array<rowObject2> = [];
-
-
-
-    
-
-
-
-    if (newNextIndex === 0) {
-
-
-
-
-
-
-      seperateMinipoolObjects.push({
-        address: "NO VALIDATORS checked",
-        statusResult: "Empty",
-        statusTimeResult: "",
-        timeRemaining: "",
-        graffiti: "",
-        beaconStatus: "",
-        activationEpoch: "",
-        smoothingPoolTruth: false,
-        withdrawalEpoch: "",
-        withdrawalCountdown: "",
-        feeRecipient: "",
-        valBalance: "",
-        valProposals: "",
-        valDayVariance: "",
-        minipoolBalance: "",
-        pubkey: "",
-        isEnabled: false,
-        valIndex: "",
-        nodeAddress: ""
-
-      })
-
-
-
-      dispatch(getData(seperateMinipoolObjects))
-
-
-
-
-
-
-
-
-    } else {
-
-
-      //Get all pubkeys
-
-      let attachedPubkeyArray: Array<Array<string>> = [];
-
-
-      for (let i = 0; i <= newNextIndex - 1; i++) {
-
-
-
-        await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
-          method: "GET",
-
-          headers: {
-            "Content-Type": "application/json"
-          },
-        })
-          .then(async response => {
-
-            let pubkey = await response.json()
-
-
-            let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
-
-
-
-
-
-
-
-
-
-
-            if (minipoolAddress === nullAddress) {
-              attachedPubkeyArray.push(["Null minipool", pubkey])
-            }
-
-            else {
-              attachedPubkeyArray.push([minipoolAddress, pubkey]);
-            }
-
-
-            console.log("Get minipool result:" + minipoolAddress);
-
-
-
-
-
-
-
-
-
-
-
-          })
-          .catch(error => {
-
-
-          });
-
-
-
-      }
-
-
-
-
-
-
-
-      let newRunningVals = 0;
-      let newTotalVals = 0;
-
-
-      for (const [minAddress, pubkey] of attachedPubkeyArray) {
-
-
-       
-
-
-
-
-
-        if (minAddress === "Null minipool" ) {
-
-
-
-          seperateMinipoolObjects.push({
-            address:  address !== undefined? address.toString() : "",
-            statusResult: "Empty",
-            statusTimeResult: "",
-            timeRemaining: "",
-            graffiti: "",
-            beaconStatus: "",
-            activationEpoch: "",
-            smoothingPoolTruth: false,
-            withdrawalEpoch: "",
-            withdrawalCountdown: "",
-            feeRecipient: "",
-            minipoolBalance: "",
-            valBalance: "",
-            valProposals: "",
-            valDayVariance: "",
-            pubkey: pubkey,
-            isEnabled: false,
-            valIndex: "",
-            nodeAddress: ""
-
-          })
-
-
-
-
-
-
-       
-
-
-        } else {
-
-
-          const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
-
-
-          const statusResult = await minipool.getStatus();
-          const statusTimeResult = await minipool.getStatusTime();
-          const numStatusTime = Number(statusTimeResult) * 1000;
-
-          console.log("Status Result:" + statusResult)
-
-          console.log("Status Time Result:" + statusTimeResult)
-
-          console.log(Date.now());
-          console.log(numStatusTime);
-
-
-
-          const MinipoolStatus = [
-            "Initialised",
-            "Prelaunch",
-            "Staking",
-            "Withdrawable",
-            "Dissolved"
-          ];
-
-
-
-          let currentStatus = "";
-
-       
-
-         
-
-
-
-          if (MinipoolStatus[statusResult] === "Staking") {
-
-            newRunningVals += 1;
-            newTotalVals += 1;
-
-          } else {
-
-            newTotalVals += 1;
-
-          }
-
-
-
-          const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
-
-          const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
-
-          const scrubPeriod: any = await DAOContract.getScrubPeriod();
-
-          const numScrub = Number(scrubPeriod) * 1000;
-          console.log(numScrub);
-
-          const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
-
-
-          const string = formatTime(timeRemaining);
-
-          console.log("Time Remaining:" + string);
-
-
-
-
-          const printGraff = await getGraffiti(pubkey);
-
-          type statusType = {
-
-            index: string,
-            balance: string,
-            status: string,
-            validator: {
-              pubkey: string,
-              withdrawal_credentials: string,
-              effective_balance: string,
-              slashed: boolean,
-              activation_eligibility_epoch: string,
-              activation_epoch: string,
-              exit_epoch: string,
-              withdrawable_epoch: string
-
-            }
-          }
-
-          let beaconStatusObject: statusType = {
-            index: "",
-            balance: "",
-            status: "",
-            validator: {
-              pubkey: "",
-              withdrawal_credentials: "",
-              effective_balance: "",
-              slashed: false,
-              activation_eligibility_epoch: "",
-              activation_epoch: "",
-              exit_epoch: "",
-              withdrawable_epoch: ""
-            }
-          }
-
-          let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
-
-          beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
-          const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
-          const activationEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
-          const withdrawalEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.withdrawable_epoch : "";
-          const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
-
-          const smoothingBool = await getMinipoolTruth()
-
-          const theTime = Date.now()
-
-          const genesisTime = 1695902400 * 1000;
-
-          const currentEpoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
-
-          const withdrawalCountdown = (Number(withdrawalEpoch) - Number(currentEpoch)) * 12 * 32 * 1000;
-
-          const isEnabled = await getEnabled(pubkey)
-
-
-
-          console.log("Status:" + beaconStatusObject.status)
-
-
-          const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
-
-
-          const balance =  await browserProvider.getBalance(minAddress)
-          
-
-
-
-
-
-
-
-
-
-
-          let beaconObject = []
-
-          let newValProposals = 0;
-          let newValBalance = 0
-          let newValVariance = 0
-
-
-          if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
-
-            beaconObject = await getValBeaconStats(pubkey);
-
-            if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
-              newValBalance = beaconObject[0].end_balance
-
-
-          } else {
-
-              newValBalance = 0
-
-          }
-
-
-            for (const beaconLog of beaconObject) {
-
-              let blocks = beaconLog.proposed_blocks
-
-              newValProposals += blocks
-            }
-
-            if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" ||  beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
-
-              newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
-
-            }
-
-          }
-
-         
-
-          if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
-
-            currentStatus = "Empty"
-
-
-
-          } else {
-
-            currentStatus = MinipoolStatus[statusResult];
-
-          }
-
-    
-
-
-
-
-          seperateMinipoolObjects.push({
-            address: minAddress,
-            statusResult: currentStatus,
-            statusTimeResult: numStatusTime.toString(),
-            timeRemaining: timeRemaining.toString(),
-            graffiti: typeof printGraff === "string" ? printGraff : "",
-            beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
-            activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
-            smoothingPoolTruth: smoothingBool,
-            withdrawalEpoch: withdrawalEpoch,
-            withdrawalCountdown: withdrawalCountdown.toString(),
-            feeRecipient: newFeeRecipient,
-
-            minipoolBalance: ethers.formatEther(balance),
-            valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
-            valProposals: newValProposals.toString(),
-            valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
-            isEnabled: isEnabled,
-            valIndex: valIndex,
-            pubkey: pubkey,
-            nodeAddress: address !== undefined ? address.toString() : ""
-          })
-
-
-
-
-
-        }
-
-
-
-      }
-
-
-   
-      dispatch(getData(seperateMinipoolObjects))
-      
-
-
-
-
-
-    }
-
-
-  } else {
-    console.log("Cannot run Minipool function without a connected account")
-  }
-
-
-
-  }
 
 
   useEffect(() => {
+
+
+    const getMinipoolData = async () => {
+
+      if(address) {
+      
+  
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner();
+      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+      const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+      const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
+  
+  
+      //Get latest index
+  
+      const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+        method: "GET",
+  
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+  
+          var jsonString = await response.json()
+  
+  
+          console.log("Result of get next index" + jsonString)
+  
+  
+          return jsonString;
+  
+        })
+        .catch(error => {
+  
+          console.log(error);
+        });
+  
+      console.log("Next index:" + newNextIndex)
+  
+  
+      let seperateMinipoolObjects: Array<rowObject2> = [];
+  
+  
+  
+      
+  
+  
+  
+      if (newNextIndex === 0) {
+  
+  
+  
+  
+  
+  
+        seperateMinipoolObjects.push({
+          address: "NO VALIDATORS checked",
+          statusResult: "Empty",
+          statusTimeResult: "",
+          timeRemaining: "",
+          graffiti: "",
+          beaconStatus: "",
+          activationEpoch: "",
+          smoothingPoolTruth: false,
+          withdrawalEpoch: "",
+          withdrawalCountdown: "",
+          feeRecipient: "",
+          valBalance: "",
+          valProposals: "",
+          valDayVariance: "",
+          minipoolBalance: "",
+          pubkey: "",
+          isEnabled: false,
+          valIndex: "",
+          nodeAddress: ""
+  
+        })
+  
+  
+  
+        dispatch(getData(seperateMinipoolObjects))
+  
+  
+  
+  
+  
+  
+  
+  
+      } else {
+  
+  
+        //Get all pubkeys
+  
+        let attachedPubkeyArray: Array<Array<string>> = [];
+  
+  
+        for (let i = 0; i <= newNextIndex - 1; i++) {
+  
+  
+  
+          await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+            method: "GET",
+  
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+  
+              let pubkey = await response.json()
+  
+  
+              let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(pubkey)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+              if (minipoolAddress === nullAddress) {
+                attachedPubkeyArray.push(["Null minipool", pubkey])
+              }
+  
+              else {
+                attachedPubkeyArray.push([minipoolAddress, pubkey]);
+              }
+  
+  
+              console.log("Get minipool result:" + minipoolAddress);
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+            })
+            .catch(error => {
+  
+  
+            });
+  
+  
+  
+        }
+  
+  
+  
+  
+  
+  
+  
+        let newRunningVals = 0;
+        let newTotalVals = 0;
+  
+  
+        for (const [minAddress, pubkey] of attachedPubkeyArray) {
+  
+  
+         
+  
+  
+  
+  
+  
+          if (minAddress === "Null minipool" ) {
+  
+  
+  
+            seperateMinipoolObjects.push({
+              address:  address !== undefined? address.toString() : "",
+              statusResult: "Empty",
+              statusTimeResult: "",
+              timeRemaining: "",
+              graffiti: "",
+              beaconStatus: "",
+              activationEpoch: "",
+              smoothingPoolTruth: false,
+              withdrawalEpoch: "",
+              withdrawalCountdown: "",
+              feeRecipient: "",
+              minipoolBalance: "",
+              valBalance: "",
+              valProposals: "",
+              valDayVariance: "",
+              pubkey: pubkey,
+              isEnabled: false,
+              valIndex: "",
+              nodeAddress: ""
+  
+            })
+  
+  
+  
+  
+  
+  
+         
+  
+  
+          } else {
+  
+  
+            const minipool = new ethers.Contract(minAddress, ['function stake(bytes  _validatorSignature, bytes32 _depositDataRoot)', ' function canStake() view returns (bool)', ' function  getStatus() view returns (uint8)', 'function getStatusTime() view returns (uint256)'], signer)
+  
+  
+            const statusResult = await minipool.getStatus();
+            const statusTimeResult = await minipool.getStatusTime();
+            const numStatusTime = Number(statusTimeResult) * 1000;
+  
+            console.log("Status Result:" + statusResult)
+  
+            console.log("Status Time Result:" + statusTimeResult)
+  
+            console.log(Date.now());
+            console.log(numStatusTime);
+  
+  
+  
+            const MinipoolStatus = [
+              "Initialised",
+              "Prelaunch",
+              "Staking",
+              "Withdrawable",
+              "Dissolved"
+            ];
+  
+  
+  
+            let currentStatus = "";
+  
+         
+  
+           
+  
+  
+  
+            if (MinipoolStatus[statusResult] === "Staking") {
+  
+              newRunningVals += 1;
+              newTotalVals += 1;
+  
+            } else {
+  
+              newTotalVals += 1;
+  
+            }
+  
+  
+  
+            const DAOAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketDAONodeTrustedSettingsMinipool"))
+  
+            const DAOContract = new ethers.Contract(DAOAddress, daoABI, signer);
+  
+            const scrubPeriod: any = await DAOContract.getScrubPeriod();
+  
+            const numScrub = Number(scrubPeriod) * 1000;
+            console.log(numScrub);
+  
+            const timeRemaining: number = numScrub - (Date.now() - numStatusTime)
+  
+  
+            const string = formatTime(timeRemaining);
+  
+            console.log("Time Remaining:" + string);
+  
+  
+  
+  
+            const printGraff = await getGraffiti(pubkey);
+  
+            type statusType = {
+  
+              index: string,
+              balance: string,
+              status: string,
+              validator: {
+                pubkey: string,
+                withdrawal_credentials: string,
+                effective_balance: string,
+                slashed: boolean,
+                activation_eligibility_epoch: string,
+                activation_epoch: string,
+                exit_epoch: string,
+                withdrawable_epoch: string
+  
+              }
+            }
+  
+            let beaconStatusObject: statusType = {
+              index: "",
+              balance: "",
+              status: "",
+              validator: {
+                pubkey: "",
+                withdrawal_credentials: "",
+                effective_balance: "",
+                slashed: false,
+                activation_eligibility_epoch: "",
+                activation_epoch: "",
+                exit_epoch: "",
+                withdrawable_epoch: ""
+              }
+            }
+  
+            let newBeaconStatusObject = await getBeaconchainStatusObject(pubkey)
+  
+            beaconStatusObject = newBeaconStatusObject !== undefined ? newBeaconStatusObject : beaconStatusObject;
+            const beaconStatus = typeof beaconStatusObject === "object" ? beaconStatusObject.status : "";
+            const activationEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.activation_epoch : "";
+            const withdrawalEpoch = beaconStatusObject !== undefined ? beaconStatusObject.validator.withdrawable_epoch : "";
+            const valIndex = beaconStatusObject !== undefined ? beaconStatusObject.index : "";
+  
+            const smoothingBool = await getMinipoolTruth()
+  
+            const theTime = Date.now()
+  
+            const genesisTime = 1695902400 * 1000;
+  
+            const currentEpoch = Math.ceil((theTime - genesisTime) / 12 / 32 / 1000)
+  
+            const withdrawalCountdown = (Number(withdrawalEpoch) - Number(currentEpoch)) * 12 * 32 * 1000;
+  
+            const isEnabled = await getEnabled(pubkey)
+  
+  
+  
+            console.log("Status:" + beaconStatusObject.status)
+  
+  
+            const newFeeRecipient = await getFeeRecipient(pubkey, smoothingBool)
+  
+  
+            const balance =  await browserProvider.getBalance(minAddress)
+            
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+            let beaconObject = []
+  
+            let newValProposals = 0;
+            let newValBalance = 0
+            let newValVariance = 0
+  
+  
+            if (MinipoolStatus[statusResult] === "Staking" && beaconStatus !== "") {
+  
+              beaconObject = await getValBeaconStats(pubkey);
+  
+              if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
+                newValBalance = beaconObject[0].end_balance
+  
+  
+            } else {
+  
+                newValBalance = 0
+  
+            }
+  
+  
+              for (const beaconLog of beaconObject) {
+  
+                let blocks = beaconLog.proposed_blocks
+  
+                newValProposals += blocks
+              }
+  
+              if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" ||  beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+  
+                newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
+  
+              }
+  
+            }
+  
+           
+  
+            if (Number(ethers.formatEther(balance)) === 0 && beaconStatus === "withdrawal_done") {
+  
+              currentStatus = "Empty"
+  
+  
+  
+            } else {
+  
+              currentStatus = MinipoolStatus[statusResult];
+  
+            }
+  
+      
+  
+  
+  
+  
+            seperateMinipoolObjects.push({
+              address: minAddress,
+              statusResult: currentStatus,
+              statusTimeResult: numStatusTime.toString(),
+              timeRemaining: timeRemaining.toString(),
+              graffiti: typeof printGraff === "string" ? printGraff : "",
+              beaconStatus: typeof beaconStatus === "string" ? beaconStatus : "",
+              activationEpoch: activationEpoch !== undefined ? activationEpoch : "",
+              smoothingPoolTruth: smoothingBool,
+              withdrawalEpoch: withdrawalEpoch,
+              withdrawalCountdown: withdrawalCountdown.toString(),
+              feeRecipient: newFeeRecipient,
+  
+              minipoolBalance: ethers.formatEther(balance),
+              valBalance: ethers.formatUnits(newValBalance, "gwei").toString(),
+              valProposals: newValProposals.toString(),
+              valDayVariance: ethers.formatUnits(newValVariance, "gwei").toString(),
+              isEnabled: isEnabled,
+              valIndex: valIndex,
+              pubkey: pubkey,
+              nodeAddress: address !== undefined ? address.toString() : ""
+            })
+  
+  
+  
+  
+  
+          }
+  
+  
+  
+        }
+  
+  
+     
+        dispatch(getData(seperateMinipoolObjects))
+        
+  
+  
+  
+  
+  
+      }
+  
+  
+    } else {
+      console.log("Cannot run Minipool function without a connected account")
+    }
+  
+  
+  
+    }
 
     // Call the function initially
     getMinipoolData();
@@ -912,6 +918,10 @@ const Navbar: NextPage = () => {
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
   }, []); 
+
+
+
+  
 
 
 

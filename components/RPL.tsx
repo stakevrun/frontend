@@ -391,6 +391,10 @@ const RPLBlock: NextPage = () => {
 
         const activeMinipools = await MinipoolManager.getNodeStakingMinipoolCount(address);
 
+  
+
+   
+
 
         setDisplayActiveMinipools(activeMinipools);
 
@@ -504,9 +508,10 @@ const RPLBlock: NextPage = () => {
           const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
           console.log("Approval transaction:", approvalTx.hash);
           setStakingMessage("Approval confirmed! Processing... ")
-          setIncrementer(1)
+         
 
-          await approvalTx.wait();
+          const receipt = await approvalTx.wait();
+          setIncrementer(1)
           return NodeStakingAddress;
         } catch (e: any) {
 
@@ -662,7 +667,7 @@ const RPLBlock: NextPage = () => {
     try {
 
       setIncrementer(0)
-      setShowFormStakeRPL(true);
+      setShowFormUnstakeRPL(true);
       setStakeButtonBool(false)
 
 
@@ -1328,7 +1333,7 @@ const RPLBlock: NextPage = () => {
         onRequestClose={() => setShowFormUnstakeRPL(false)}
         contentLabel="Unstake RPL Transaction Modal"
         shouldCloseOnOverlayClick={false}
-        className={`${styles.modal} ${showFormEffectStakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+        className={`${styles.modal} ${showFormEffectUnstakeRPL ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
         ariaHideApp={false}
         style={{
           overlay: {
@@ -1366,7 +1371,7 @@ const RPLBlock: NextPage = () => {
 
 
             <div className='w-full flex items-center flex-col gap-2 justify-center'>
-              <h3 className="font-bold text-[30px]">RPL Staked</h3>
+              <h3 className="font-bold text-[30px]">RPL Unstaked!</h3>
 
               <div className="flex items-center justify-center  border-2 border-black-300 rounded-full text-green-400 text-[50px]"> <TiTick /></div>
               <button onClick={() => { setShowFormUnstakeRPL(false) }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Close</button>

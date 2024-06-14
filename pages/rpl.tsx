@@ -12,6 +12,9 @@ import managerABI from "../json/managerABI.json"
 import { ethers } from 'ethers';
 import type { RootState } from '../globalredux/store';
 import { useSelector, useDispatch } from 'react-redux';
+import { getData } from "../globalredux/Features/validator/valDataSlice"
+
+
 
 
 const RPL: NextPage = () => {
@@ -123,6 +126,23 @@ const RPL: NextPage = () => {
             setIsInitialRender(false);
         }
     }, [currentChain, address]);
+
+
+    const dispatch = useDispatch()
+
+
+    useEffect(() => {
+        if (!isInitialRender && address !== undefined) {
+        // This block will run after the initial render
+        dispatch(getData([{address: "NO VALIDATORS"}]))
+      
+        } else {
+        // This block will run only on the initial render
+        
+                setIsInitialRender(false);
+            }
+        }, [currentChain, address]);
+    
 
 
     const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
