@@ -658,9 +658,149 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    
 
 
 
+
+
+
+
+
+
+useEffect(() => {
+
+
+    const  getLiveAttestations = async () => {
+
+
+
+        const chainString = currentChain === 17000 ? 'holesky.' : ''
+    //https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
+
+
+    
+
+
+    const attestations = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations`, {
+        method: "GET",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+    })
+        .then(async response => {
+
+            var jsonString = await response.json()
+
+
+
+            return jsonString.data
+
+
+        })
+        .catch(error => {
+
+            console.log(error);
+        });
+
+
+    console.log("LIVE ATTESTATIONS:" + attestations);
+
+
+
+   }
+
+
+
+
+
+
+
+
+
+
+  const  getLiveRewards = async () => {
+
+
+
+    const chainString = currentChain === 17000 ? 'holesky.' : ''
+//https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
+
+
+
+
+
+const rewards = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/incomedetailhistory`, {
+    method: "GET",
+
+    headers: {
+        "Content-Type": "application/json"
+    },
+})
+    .then(async response => {
+
+        var jsonString = await response.json()
+
+
+
+        return jsonString.data
+
+
+    })
+    .catch(error => {
+
+        console.log(error);
+    });
+
+
+console.log("LIVE REWARDS:" + rewards);
+
+
+
+    console.log(rewards[0])
+
+    let newRewardsArray = [];
+
+
+   for (const object of rewards) {
+
+
+
+
+    let totalIncome =  ( object.income.attestation_source_reward !== undefined? object.income.attestation_source_reward : 0) +  ( object.income.attestation_target_reward !== undefined? object.income.attestation_target_reward : 0 ) +  (object.income.attestation_head_reward !== undefined?  object.income.attestation_head_reward : 0);
+
+console.log(object.income.attestation_source_reward)
+console.log(object.income.attestation_target_reward)
+console.log(object.income.attestation_head_reward)
+
+    
+
+    newRewardsArray.push({income: totalIncome, epoch: object.epoch})
+
+
+
+
+
+   }
+
+
+   console.log("New Rewards Array:" + newRewardsArray)
+
+
+   //setTableRewards(newRewardsArray)
+
+
+
+
+}
+
+
+
+    getLiveAttestations();
+    getLiveRewards();
+
+}, [])
 
 
 

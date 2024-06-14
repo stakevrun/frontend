@@ -1509,6 +1509,8 @@ const AccountMain: NextPage = () => {
 
 
 
+
+
           console.log("Minipool balance:" + balance)
 
 
@@ -2220,8 +2222,6 @@ const AccountMain: NextPage = () => {
 
 
 
-
-
   function truncateString(str: string) {
     if (str.length <= 15) {
       return str;
@@ -2229,6 +2229,13 @@ const AccountMain: NextPage = () => {
       return str.slice(0, 15) + "...";
     }
   }
+
+
+
+
+
+  
+
 
 
 
