@@ -719,6 +719,8 @@ const ValidatorDetail: NextPage = () => {
             let successes = 0;
             let failures = 0;
 
+            if (attestations !== undefined && attestations !== null) {
+
             for (const attestObject of attestations) {
 
                 if (attestObject.status === 0) {
@@ -745,6 +747,8 @@ const ValidatorDetail: NextPage = () => {
 
             setAttestationPercentage(percentage)
 
+
+        }
 
 
 
