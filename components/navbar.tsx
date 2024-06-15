@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import Link from 'next/link';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import type { NextPage } from 'next';
@@ -15,6 +15,7 @@ import managerABI from "../json/managerABI.json"
 import distributorABI from "../json/distributorABI.json"
 import type { RootState } from '../globalredux/store';
 import Toggle from "./toggle"
+import { useRouter } from 'next/router';
 
 
 const Navbar: NextPage = () => {
@@ -31,6 +32,9 @@ const Navbar: NextPage = () => {
   const storageAddress = currentChain === 17000 ? "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" : "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46"
   const nullAddress = "0x0000000000000000000000000000000000000000";
   const dispatch = useDispatch()
+  
+  const router = useRouter();
+
   const beaconAPIKey = process.env.BEACON
   const holeskyRPCKey = process.env.HOLESKY_RPC
   const mainnetRPCKey = process.env.MAINNET_RPC
@@ -61,6 +65,25 @@ const Navbar: NextPage = () => {
     valIndex: string
     nodeAddress: string
   };
+
+
+  const [isInitialRender, setIsInitialRender] = useState(true);
+
+
+
+  useEffect(() => {
+    if (!isInitialRender && address !== undefined) {
+        // This block will run after the initial render
+        dispatch(getData([{ address: "NO VALIDATORS" }]))
+        router.push(`/account`);
+     
+    } else {
+        // This block will run only on the initial render
+
+        setIsInitialRender(false);
+    }
+}, [currentChain, address]);
+
 
   
   const getGraffiti = async (pubkey: string) => {
@@ -909,14 +932,19 @@ const Navbar: NextPage = () => {
   
     }
 
+
+ 
+
+    
+
+      // Set up the interval to call the function every 30 seconds
+      const intervalId = setInterval(getMinipoolData, 200000);
+  
+      // Clean up the interval when the component unmounts
+      return () => clearInterval(intervalId);
+
     // Call the function initially
-    getMinipoolData();
-
-    // Set up the interval to call the function every 30 seconds
-    const intervalId = setInterval(getMinipoolData, 200000);
-
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
+ 
   }, []); 
 
 

@@ -93,43 +93,43 @@ const Faqs: NextPage = () => {
                 <div className="flex flex-col justify-start items-start gap-4 w-[95%] lg:min-h-[92vh] p-4">
                     <h1 className="text-2xl md:text-4xl self-center my-3 font-bold">Vrün FAQ</h1>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What is Ethereum Staking?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What is Ethereum Staking?</h2>
                         <p>Ethereum staking involves locking up your ETH to support network operations such as transaction validation and network security. In return, you earn rewards.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">How do Staking Rewards Work?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">How do Staking Rewards Work?</h2>
                         <p>Staking rewards are earned through attestations (validating transactions) and proposals (proposing new blocks). Both activities help secure the network and keep it decentralized.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What are the Risks of Staking?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What are the Risks of Staking?</h2>
                         <p>The primary risk of staking is slashing, where a portion of your staked ETH can be taken away if your validator acts maliciously or makes significant errors.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What is Rocket Pool?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What is Rocket Pool?</h2>
                         <p>Rocket Pool is a permissionless Ethereum staking protocol catering to both ETH Stakers and Node Operators. It allows users to stake ETH with as little as 0.01 ETH and receive rETH, a liquid staking derivative token. Node operators can run validators with reduced collateral requirements, benefiting from additional commission and RPL rewards.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What are the Risks of Using Rocket Pool?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What are the Risks of Using Rocket Pool?</h2>
                         <p>In addition to general staking risks, using Rocket Pool introduces protocol risk, which includes potential vulnerabilities or bugs within the Rocket Pool protocol that could affect stakers.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What is Vrün?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What is Vrün?</h2>
                         <p>Vrün is a service for Rocket Pool Node Operators, enabling them to run Rocket Pool nodes without having to set up or manage their own hardware. We provide a secure, non-custodial, and user-friendly staking experience for Node Operators.</p>
                     </div>
 
-                    <div>
-                        <h2 className="text-xl font-semibold">What are the Risks of Staking with Vrün?</h2>
+                    <div className='mb-4'>
+                        <h2 className="text-2xl font-bold mb-2">What are the Risks of Staking with Vrün?</h2>
                         <p>Vrün is entrusted with running, securing, and managing your validator keys. While we ensure high uptime and implement multiple checks to prevent slashing, there is a potential risk of slashed and exited validators due to actions taken by Vrün. To safeguard against the risk of our service becoming unavailable, we also provide encrypted pre-signed exit messages. This ensures you can always exit your validators if necessary, maintaining access and control over your staking operations.</p>
                     </div>
 
                     <div>
-                        <h2 className="text-xl font-semibold">Why Choose Vrün?</h2>
+                        <h2 className="text-2xl font-bold mb-2">Why Choose Vrün?</h2>
                         <ul className="list-disc pl-6">
                             <li><span className="font-bold">Secure:</span> We prioritize the safety of your keys and validators.</li>
                             <li><span className="font-bold">Non-Custodial:</span> You maintain full control over your assets.</li>

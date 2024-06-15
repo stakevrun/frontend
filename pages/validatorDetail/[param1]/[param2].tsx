@@ -656,151 +656,197 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    type rewardDataEntry = {
+        income: bigint
+        epoch: bigint
+    }
 
 
-    
 
 
 
+    const [tableRewards, setTableRewards] = useState<Array<rewardDataEntry>>([])
+    const [attestationPercentage, setAttestationPercentage] = useState(0)
 
 
 
 
 
 
-useEffect(() => {
 
 
-    const  getLiveAttestations = async () => {
+    useEffect(() => {
 
 
+        const getLiveAttestations = async () => {
 
-        const chainString = currentChain === 17000 ? 'holesky.' : ''
-    //https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
 
 
-    
+            const chainString = currentChain === 17000 ? 'holesky.' : ''
+            //https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
 
 
-    const attestations = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations`, {
-        method: "GET",
 
-        headers: {
-            "Content-Type": "application/json"
-        },
-    })
-        .then(async response => {
 
-            var jsonString = await response.json()
 
+            const attestations = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${params.param1}/attestations`, {
+                method: "GET",
 
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
 
-            return jsonString.data
+                    var jsonString = await response.json()
 
 
-        })
-        .catch(error => {
 
-            console.log(error);
-        });
+                    return jsonString.data
 
 
-    console.log("LIVE ATTESTATIONS:" + attestations);
+                })
+                .catch(error => {
 
+                    setAttestationPercentage(0);
 
+                    return;
+                });
 
-   }
 
 
 
+            let successes = 0;
+            let failures = 0;
 
+            for (const attestObject of attestations) {
 
+                if (attestObject.status === 0) {
 
+                    failures += 1
 
 
 
+                }
 
-  const  getLiveRewards = async () => {
 
+                if (attestObject.status === 1) {
 
+                    successes += 1
 
-    const chainString = currentChain === 17000 ? 'holesky.' : ''
-//https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
+                }
 
 
+            }
 
 
+            const percentage = 100 - ((failures / successes) * 100)
 
-const rewards = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/incomedetailhistory`, {
-    method: "GET",
 
-    headers: {
-        "Content-Type": "application/json"
-    },
-})
-    .then(async response => {
+            setAttestationPercentage(percentage)
 
-        var jsonString = await response.json()
 
 
 
-        return jsonString.data
 
+        }
 
-    })
-    .catch(error => {
 
-        console.log(error);
-    });
 
 
-console.log("LIVE REWARDS:" + rewards);
 
 
 
-    console.log(rewards[0])
 
-    let newRewardsArray = [];
 
 
-   for (const object of rewards) {
 
 
 
+        const getLiveRewards = async () => {
 
-    let totalIncome =  ( object.income.attestation_source_reward !== undefined? object.income.attestation_source_reward : 0) +  ( object.income.attestation_target_reward !== undefined? object.income.attestation_target_reward : 0 ) +  (object.income.attestation_head_reward !== undefined?  object.income.attestation_head_reward : 0);
 
-console.log(object.income.attestation_source_reward)
-console.log(object.income.attestation_target_reward)
-console.log(object.income.attestation_head_reward)
 
-    
+            const chainString = currentChain === 17000 ? 'holesky.' : ''
+            //https://holesky.beaconcha.in/api/v1/validator/0x95430e09327ffefdeba2b4ad4559422457f58dc642aba1c5ccc411ffc0a107b6d81bfc3063bf3cea9401b722b9d39f09/attestations
 
-    newRewardsArray.push({income: totalIncome, epoch: object.epoch})
 
 
 
 
+            const rewards = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${params.param1}/incomedetailhistory`, {
+                method: "GET",
 
-   }
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
 
+                    var jsonString = await response.json()
 
-   console.log("New Rewards Array:" + newRewardsArray)
 
 
-   //setTableRewards(newRewardsArray)
+                    return jsonString.data
 
 
+                })
+                .catch(error => {
+                    setTableRewards([]);
 
+                    return;
+                });
 
-}
 
+            console.log("LIVE REWARDS:" + rewards);
 
 
-    getLiveAttestations();
-    getLiveRewards();
 
-}, [])
+            let newRewardsArray = [];
+
+            if (rewards !== undefined && rewards !== null) {
+                for (const object of rewards) {
+
+
+
+
+                    let totalIncome = (object.income.attestation_source_reward !== undefined ? object.income.attestation_source_reward : 0) + (object.income.attestation_target_reward !== undefined ? object.income.attestation_target_reward : 0) + (object.income.attestation_head_reward !== undefined ? object.income.attestation_head_reward : 0);
+
+                    console.log(object.income.attestation_source_reward)
+                    console.log(object.income.attestation_target_reward)
+                    console.log(object.income.attestation_head_reward)
+
+
+
+                    newRewardsArray.push({ income: totalIncome, epoch: object.epoch })
+
+
+
+
+
+                }
+
+
+                console.log("New Rewards Array:" + newRewardsArray)
+
+
+                setTableRewards(newRewardsArray)
+
+            }
+
+
+
+
+
+
+        }
+
+
+
+        getLiveAttestations();
+        getLiveRewards();
+
+    }, [])
 
 
 
@@ -4191,6 +4237,21 @@ console.log(object.income.attestation_head_reward)
 
 
 
+    const [showFormRewards, setShowFormRewards] = useState(false)
+    const [showFormEffectRewards, setShowFormEffectRewards] = useState(false)
+
+
+    useEffect(() => {
+
+
+        setShowFormEffectRewards(showFormRewards);
+
+
+
+    }, [showFormRewards]);
+
+
+
     const [showFormDissolve, setShowFormDissolve] = useState(false)
     const [showFormEffectDissolve, setShowFormEffectDissolve] = useState(false)
 
@@ -4553,7 +4614,7 @@ console.log(object.income.attestation_head_reward)
 
 
                                                     {
-                                                        reduxData.statusResult === "Prelaunch" &&  (
+                                                        reduxData.statusResult === "Prelaunch" && (
 
                                                             <p className="text-yellow-500  text-md">prelaunch</p>
 
@@ -4611,7 +4672,7 @@ console.log(object.income.attestation_head_reward)
                                                     {(reduxData.beaconStatus === "withdrawal_possible") && (Number(reduxData.withdrawalCountdown) <= 0) &&
                                                         <>
 
-
+                                                            <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
                                                             <p className='text-xs max-w-[200px]'>Funds will be available to withdraw when status is &quot;withdrawal_done&quot; </p>
 
 
@@ -4642,7 +4703,7 @@ console.log(object.income.attestation_head_reward)
                                                     }
 
 
-                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" && 
+                                                    {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" &&
                                                         <a className=" hover:text-blue-300  font-bold hover:text-blue-300 cursor-pointer text-md" href={`https://${currentChain === 17000 ? "holesky." : ""}beaconcha.in/validator/${reduxData.valIndex}`} target="_blank">View</a>
                                                     }
                                                 </div>
@@ -4743,7 +4804,7 @@ console.log(object.income.attestation_head_reward)
                                         </div>
                                         <div>
                                             <div className="flex items-start flex-col gap-0.5 ">
-                                                <span className="text-md lg:text-lg font-bold">Change Graffiti</span>
+                                                <span className="text-md font-bold">Change Graffiti</span>
                                                 <p className="text-s mb-1.5 text-gray-600">    {reduxData.graffiti}</p>
                                                 <button className="bg-blue-500 self-start  text-xs hover:bg-blue-700 text-white font-bold  py-2 px-4 rounded-md" onClick={() => { handleGraffitiModal(reduxData.graffiti) }}>
                                                     Change
@@ -4768,7 +4829,7 @@ console.log(object.income.attestation_head_reward)
 
                                             <div className="flex items-start flex-col gap-2 text-l ">
 
-                                                <p className="text-md lg:text-lg font-bold">Close Failed Minipool</p>
+                                                <p className="text-md font-bold">Close Failed Minipool</p>
 
 
                                                 <button onClick={() => { closeMinipool() }} className="bg-red-500   text-xs  hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Close Minipool</button>
@@ -4792,7 +4853,7 @@ console.log(object.income.attestation_head_reward)
 
                                             <div className="flex items-start flex-col gap-2 text-l ">
 
-                                                <p className="text-md lg:text-lg font-bold">Stake Prelaunched Minipool</p>
+                                                <p className="text-md  font-bold">Stake Prelaunched Minipool</p>
 
                                                 <button onClick={() => { stakeMinipool() }} className="bg-blue-500   text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake Minipool</button>
                                             </div>
@@ -4808,12 +4869,54 @@ console.log(object.income.attestation_head_reward)
 
                                             <div className="flex items-start flex-col gap-2 text-l ">
 
-                                                <p className="text-md lg:text-lg font-bold">Post Presigned Exit Message</p>
+                                                <p className="text-md  font-bold">Post Presigned Exit Message</p>
 
                                                 <button onClick={handlePostExitModal} className="bg-yellow-500  text-xs  hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md">Post Exit Message</button>
                                             </div>
                                         </div>
                                     }
+
+                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
+
+                                        <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
+
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-yellow-400 bg-green-100 rounded-full mr-6">
+                                                <FaCoins className=" text-2xl" />
+                                            </div>
+
+                                            <div className="flex items-start flex-col gap-2 text-l ">
+
+                                                <p className="text-md  font-bold">Rewards History</p>
+
+                                                <button onClick={() => { setShowFormRewards(!showFormRewards) }} className="bg-yellow-500  text-xs  hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md">View</button>
+                                            </div>
+                                        </div>
+
+
+                                    }
+
+                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
+
+                                        <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
+
+                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-400 bg-blue-100 rounded-full mr-6">
+                                                <FaEthereum className=" text-2xl" />
+                                            </div>
+
+                                            <div className="flex items-start flex-col gap-1 text-l ">
+
+
+
+                                                <span className="text-md font-bold">Attestation Performance</span>
+                                                <p className="text-s mb-1.5 text-gray-600">    {attestationPercentage}%</p>
+
+
+                                            </div>
+                                        </div>
+
+                                    }
+
+
 
 
                                     {reduxData.beaconStatus === "withdrawal_done" && turnOffDistributeButton &&
@@ -4824,7 +4927,7 @@ console.log(object.income.attestation_head_reward)
 
                                             <div className="flex items-start flex-col gap-2 text-l ">
 
-                                                <p className="text-md lg:text-lg font-bold">Distribute Minipool Balance</p>
+                                                <p className="text-md  font-bold">Distribute Minipool Balance</p>
 
                                                 <button onClick={() => { distributeBalanceOfMinipool() }} className="bg-blue-500  text-xs  hover:bg-blue-700 text-white font-bold  py-2 px-4 rounded-md">Distribute Balance</button>
                                             </div>
@@ -4844,7 +4947,7 @@ console.log(object.income.attestation_head_reward)
                                             <div className="flex w-auto items-start flex-col gap-2 text-l ">
 
 
-                                                <p className="text-md lg:text-lg font-bold width-[80%]">Get Presigned Exit Message</p>
+                                                <p className="text-md font-bold width-[80%]">Get Presigned Exit Message</p>
 
 
                                                 <button onClick={() => { handleGetPresignedModal() }} className="bg-blue-500   text-xs  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Get Exit Message</button>
@@ -4864,7 +4967,7 @@ console.log(object.income.attestation_head_reward)
                                             <div className="flex w-auto items-start flex-col gap-2 text-l ">
 
 
-                                                <p className="text-md lg:text-lg font-bold width-[80%]">Close Active Minipool</p>
+                                                <p className="text-md font-bold width-[80%]">Close Active Minipool</p>
 
 
                                                 <button onClick={() => { setShowFormConfirmPostPresignedShortcut(true) }} className="bg-red-500   text-xs  hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md">Initiate Close</button>
@@ -4888,6 +4991,10 @@ console.log(object.income.attestation_head_reward)
 
 
                         </div>
+
+
+
+
 
 
 
@@ -5036,6 +5143,149 @@ console.log(object.income.attestation_head_reward)
 
 
                         </div>
+
+
+
+                        <Modal
+                            isOpen={showFormRewards}
+                            onRequestClose={() => setShowFormRewards(false)}
+                            contentLabel="Rewards Income Modal"
+
+                            className={`${styles.modal} ${showFormEffectRewards ? `${styles.modalOpen}` : `${styles.modalClosed}`}`} // Toggle classes based on showForm state
+                            ariaHideApp={false}
+                            style={{
+                                overlay: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    zIndex: "999999999999999999999999999999999999",
+                                    transition: "0.2s transform ease-in-out",
+                                },
+                                content: {
+                                    width: 'auto',
+                                    height: 'auto',
+                                    maxHeight: '600px',
+                                    minWidth: "280px",
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+
+                                    overflowY: 'scroll',
+
+                                    color: 'black',
+                                    backgroundColor: "#fff",
+                                    border: "0",
+                                    borderRadius: "20px",
+                                    boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.25)",
+                                    overflow: "auto",
+                                    WebkitOverflowScrolling: "touch", // For iOS Safari
+                                    scrollbarWidth: "thin", // For modern browsers that support scrollbar customization
+                                    scrollbarColor: "rgba(255, 255, 255, 0.5) #2d2c2c", // For modern browsers that support scrollbar customization
+                                },
+                            }}
+                        >
+
+
+                            <div className="flex relative w-full h-full items-center justify-center flex-col rounded-lg gap-2 bg-gray-100 px-8 py-8 pt-[45px] text-center">
+                                <div id={styles.icon} className="bg-gray-300 absolute cursor-pointer right-5 top-5 text-[15px]  hover:text-[15.5px]  text-black w-auto h-auto rounded-full p-1 ">
+                                    <AiOutlineClose className='self-end cursor-pointer' onClick={() => {
+                                        setShowFormRewards(false)
+                                    }} />
+
+                                </div>
+
+                                <h3 className="font-bold text-[30px] mb-2">Rewards History</h3>
+
+
+                                {tableRewards.length > 0 && (
+
+                                    <div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto  shadow-xl border">
+
+
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr>
+                                                    <th className=" px-4 bg-gray-700  text-white py-5 w-[200px] ">
+
+
+
+                                                        <span className='text-center  text-sm lg:text-xl'>
+                                                            EPOCH
+                                                        </span>
+
+
+
+                                                    </th>
+                                                    <th className=" px-4 bg-gray-700 text-white py-5 w-[200px] ">
+
+
+
+                                                        <span className='text-center  text-sm lg:text-xl'>
+                                                            INCOME:
+                                                        </span>
+
+
+
+                                                    </th>
+
+
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+
+                                                {tableRewards.map((data, index) => (
+                                                    <tr key={index} >
+
+
+
+                                                        <td className=" px-4  py-5 w-[200px] ">
+
+
+
+                                                            <span className='text-center  text-sm lg:text-xl'>
+                                                                {Number(data.epoch)}
+                                                            </span>
+
+
+
+                                                        </td>
+
+                                                        <td className="px-4 py-5  w-[200px]">
+
+
+
+                                                            <span className='text-center  text-sm lg:text-xl'>
+                                                                <p className='text-green-500'>+{ethers.formatUnits(data.income, "gwei")}</p>
+
+                                                            </span>
+
+
+
+
+
+
+                                                        </td>
+
+
+
+
+
+
+
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>)
+
+                                }
+
+                            </div>
+
+
+                        </Modal>
 
 
 

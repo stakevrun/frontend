@@ -25,6 +25,7 @@ import { BiSolidErrorAlt } from "react-icons/bi";
 import { AiOutlineClose } from 'react-icons/ai'
 import ContractTag from "../components/contractTag"
 import BounceLoader from "react-spinners/BounceLoader";
+import { useRouter } from 'next/router';
 
 
 const Payments: NextPage = () => {
@@ -615,12 +616,18 @@ const Payments: NextPage = () => {
     };
 
 
+    
+  const router = useRouter();
+
+ 
+
+
     useEffect(() => {
         if (!isInitialRender && address !== undefined) {
             // This block will run after the initial render
             dispatch(getData([{ address: "NO VALIDATORS" }]))
-            getPayments();
-            getCharges();
+            router.push(`/account`);
+         
         } else {
             // This block will run only on the initial render
 
@@ -1035,7 +1042,9 @@ const Payments: NextPage = () => {
 
 
                             <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 py-[8vh]">
-                                {totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
+                                {totalData.length > 0 ? (
+                                
+                                <div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
 
 
                                     <table className="w-full">

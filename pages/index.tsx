@@ -19,7 +19,7 @@ import { FaMoneyBillWave } from "react-icons/fa6";
 import { GrSatellite } from "react-icons/gr";
 import type { RootState } from '../globalredux/store';
 import { useAccount, useChainId } from 'wagmi';
-
+import { MdOnlinePrediction } from "react-icons/md";
 import { useSelector, useDispatch } from 'react-redux';
 import { getData } from "../globalredux/Features/validator/valDataSlice"
 
@@ -166,7 +166,7 @@ const Home: NextPage = () => {
 
                   <div>
                     <h2 className="text-black font-bold">New to Validators & Staking? &rarr;</h2>
-                    <p>Learn how to interact with Ethereum and the beacon chain</p>
+                    <p>Learn how Vrün interacts with Ethereum and the beacon chain.</p>
                     <Link href="/faqs">
 
 
@@ -263,7 +263,8 @@ const Home: NextPage = () => {
                   <h2 className="text-lg font-bold">Secure and reliable</h2>
 
                   <p className="mt-1 text-md text-gray-500 ">
-                    Efficient and secure service, discreet management of secrets and 99% attestations guaranteed.
+                  Our redundant global network of beacon and execution layer nodes ensures high uptime, 
+                  guaranteeing your staking operations remain consistently operational and efficient.
 
                   </p>
                 </div>
@@ -275,10 +276,10 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Live UI/UX Interface</h2>
+                  <h2 className="text-lg font-bold">Secure Key and Validator Management</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    Watch your Validators progress with the live interface. All actions, countdowns and updates are picked-up as they happen, allowing you to feel secure.
+                  Our non-custodial service prioritizes security, keeping your keys and validators safe with cutting-edge encryption and management protocols.
                   </p>
                 </div>
               </div>
@@ -289,13 +290,16 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Rewards</h2>
+                  <h2 className="text-lg font-bold">Non-Custodial Service</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    For a small fee of ETH each day, reap the lucrative rewards of the Rocket Pool Staking
+                  Experience full control and ownership of your assets with our non-custodial staking solution. Your keys, your control, always.
+
                   </p>
                 </div>
               </div>
+
+
 
               <div className="flex items-start gap-4">
                 <span className="shrink-0 rounded-lg bg-gray-800 p-4">
@@ -305,10 +309,42 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Community Building</h2>
+                  <h2 className="text-lg font-bold">No Accounts Necessary</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    By staking with Vrun (and Rocket Pool), you are allowing small-time investors to reap rewards with the rETH token.
+                  Seamlessly sign in with your wallet. No need for traditional accounts, making the process swift and secure.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <FaEthereum className="text-2xl text-purple-500" />
+                </span>
+
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Affordable Staking Solutions</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                  Benefit from cost-effective staking without compromising on quality or security. Enjoy staking with competitive pricing.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <MdOnlinePrediction className="text-2xl text-blue-500" />
+                </span>
+
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Easy Setup, No Hardware Required</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                  Begin staking effortlessly. Our service eliminates the need for specialized hardware, providing a hassle-free setup experience.
                   </p>
                 </div>
               </div>
@@ -321,29 +357,37 @@ const Home: NextPage = () => {
 
 
                 <div>
-                  <h2 className="text-lg font-bold">Stop at anytime</h2>
+                  <h2 className="text-lg font-bold">Full Control Over Your Validator Keys</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    You may stop the charges to your account at any time with our Enable/Disable function. Able to be toggled  for each Validator in the <Link className="font-bold hover:text-blue-300 cursor-pointer" href={"/account"}> account page.</Link>
+                  Maintain complete control over your validator keys. Stop or migrate your staking operations anytime, ensuring flexibility and autonomy.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-                  <FaEthereum className="text-2xl text-blue-500" />
+                <Image
+                      width={25}
+                      height={25}
+                      alt="Rocket Pool Logo"
+                      src={"/images/rocketPlogo.png"} />
                 </span>
+
+             
 
 
 
                 <div>
-                  <h2 className="text-lg font-bold">Made with Expertise</h2>
+                  <h2 className="text-lg font-bold">Built by the Rocket Pool Community</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    The core functionality of our service was produced by seasoned developers with many years experience with the EVM.
+                  Our service is crafted by members of the Rocket Pool community, ensuring deep integration and robust support within the ecosystem.
                   </p>
                 </div>
               </div>
+
+             
             </div>
           </div>
 

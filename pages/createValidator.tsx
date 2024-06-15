@@ -236,7 +236,7 @@ const CreateValidator: NextPage = () => {
     console.log(currentChain)
 
     if (!isInitialRender) {
-     
+
       const getMinipoolTruth = async () => {
 
 
@@ -298,7 +298,12 @@ const CreateValidator: NextPage = () => {
 
       }
 
-      dispatch(getData([{address: "NO VALIDATORS"}]))
+
+      setCheckTruth(false)
+      dispatch(getData([{ address: "NO VALIDATORS" }]))
+
+      getMinipoolData()
+
 
       if (isRegistered && address !== undefined) {
         handleCheckRPL(address);
@@ -542,7 +547,7 @@ const CreateValidator: NextPage = () => {
           console.log(" Possible New: " + possibleNewMinpools);
 
 
-
+          console.log(Number(formatEther(possibleNewMinpools)));
 
 
 
@@ -686,7 +691,7 @@ const CreateValidator: NextPage = () => {
           const approvalTx = await tokenContract.approve(NodeStakingAddress, val);
           console.log("Approval transaction:", approvalTx.hash);
           setStakingMessage("Approval confirmed! Processing... ")
-          
+
 
           const receipt = await approvalTx.wait();
 
@@ -2123,18 +2128,18 @@ const CreateValidator: NextPage = () => {
 
 
 
-          
+
   useEffect(() => {
     if (!isInitialRender && address !== undefined) {
-    // This block will run after the initial render
-    dispatch(getData([{address: "NO VALIDATORS"}]))
-  
+      // This block will run after the initial render
+      dispatch(getData([{ address: "NO VALIDATORS" }]))
+
     } else {
-    // This block will run only on the initial render
-    
-            setIsInitialRender(false);
-        }
-    }, [currentChain, address]);
+      // This block will run only on the initial render
+
+      setIsInitialRender(false);
+    }
+  }, [currentChain, address]);
 
 
 
@@ -2438,7 +2443,7 @@ const CreateValidator: NextPage = () => {
           });
 
 
-       
+
 
 
 
@@ -2492,9 +2497,9 @@ const CreateValidator: NextPage = () => {
           // Call checkIndex function regardless of the transaction status
           checkIndex();
 
-         
+
           const newData = await getMinipoolData();
-         
+
 
           setIncrementer(3); // Trigger immediately
 
@@ -2524,7 +2529,7 @@ const CreateValidator: NextPage = () => {
 
 
 
-        
+
         if (e.reason) {
           setAddValidatorError(e.info.error.data["message"].toString())
 
@@ -2535,7 +2540,7 @@ const CreateValidator: NextPage = () => {
         else {
           setAddValidatorError("An Unknown error occured, please try again")
         }
-        
+
 
         setIncrementer(5)
 
@@ -3245,6 +3250,89 @@ const CreateValidator: NextPage = () => {
 
 
   const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
+  const reduxData = useSelector((state: RootState) => state.valData.data);
+
+
+  const [prelaunched, setPrelaunched] = useState(0)
+
+
+  useEffect(() => {
+    console.log("prelaunch number:" + prelaunched)
+
+  }, [prelaunched])
+
+
+
+
+
+
+  useEffect(() => {
+
+    const detectPrelaunchMinipools = async () => {
+
+      let newPrelaunched = 0;
+      for (const object of reduxData) {
+        if (object.statusResult === "Prelaunch" || object.statusResult === "Initialised" || object.statusResult === "Dissolved") {
+
+          newPrelaunched += 1
+
+        }
+
+
+      }
+
+
+      setPrelaunched(newPrelaunched)
+    }
+
+    detectPrelaunchMinipools();
+
+  }, [reduxData])
+
+
+  const [checkTruth, setCheckTruth] = useState(false)
+
+
+
+
+
+  useEffect(() => {
+
+
+    if (reduxData[0].address === "NO VALIDATORS") {
+
+      setCheckTruth(false)
+      getMinipoolData()
+    } else {
+      setCheckTruth(true)
+    }
+
+  }, [reduxData])
+
+
+
+  useEffect(() => {
+
+    const detectPrelaunchMinipools = async () => {
+
+      let newPrelaunched = 0;
+      for (const object of reduxData) {
+        if (object.statusResult === "Prelaunch" || object.statusResult === "Initialised" || object.statusResult === "Dissolved") {
+
+          newPrelaunched += 1
+
+        }
+
+
+      }
+
+
+      setPrelaunched(newPrelaunched)
+    }
+
+    detectPrelaunchMinipools();
+
+  }, [])
 
 
 
@@ -3285,10 +3373,11 @@ const CreateValidator: NextPage = () => {
 
 
 
+{checkTruth ? (<>
 
 
 
-              {Number(formatEther(newMinipools)) < 1 &&
+              {(Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) -  Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools))) &&
                 <div className="flex flex-col  gap-2 w-[500px] rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
                   <h2 className="text-4xl w-[90%] font-bold  ">Stake/Unstake RPL </h2>
 
@@ -3305,7 +3394,7 @@ const CreateValidator: NextPage = () => {
                       staked RPL.
                       You have
                       <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> {Number(displayActiveMinipools)}  </span>
-                      active Minipool(s) and are able to create <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span> new LEB8s (Minipools)
+                      active Minipool(s) with a maximum total of <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span> LEB8s (Minipools)
 
 
                     </p>) : (
@@ -3371,55 +3460,65 @@ const CreateValidator: NextPage = () => {
 
 
 
-              <div style={Number(formatEther(newMinipools)) < 1 ? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
-                <h2 className="text-3xl font-bold ">Create a New Validator</h2>
+
+                <div style={Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) -  Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || !checkTruth || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools))? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
+                  <h2 className="text-3xl font-bold ">Create a New Validator</h2>
 
 
-                <input value={grafittiInput} placeholder='Grafitti' className="mt-4 mb-2 border border-black-200 " type="text" onChange={handleGrafittiInput} />
+                  <input value={grafittiInput} placeholder='Grafitti' className="mt-4 mb-2 border border-black-200 " type="text" onChange={handleGrafittiInput} />
 
 
-                <div className="w-[80%] mt-2">
-                  <label className="text-gray-500 mb-3 sm:text-l"> Please select ETH Deposit Value:</label>
-                  <div className="flex items-center justify-center gap-2">
-                    <label >
-                      <input
-                        type="radio"
-                        name="contType"
-                        value="8 ETH"
-                        checked={selectedCont === '8 ETH'}
-                        onChange={handleContChange}
-                      />
-                      <span className="ml-2">8 ETH</span>
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="contType"
-                        value="16 ETH"
-                        checked={selectedCont === '16 ETH'}
-                        onChange={handleContChange}
-                      />
-                      <span className="ml-2">16 ETH</span>
-                    </label>
+                  <div className="w-[80%] mt-2">
+                    <label className="text-gray-500 mb-3 sm:text-l"> Please select ETH Deposit Value:</label>
+                    <div className="flex items-center justify-center gap-2">
+                      <label >
+                        <input
+                          type="radio"
+                          name="contType"
+                          value="8 ETH"
+                          checked={selectedCont === '8 ETH'}
+                          onChange={handleContChange}
+                        />
+                        <span className="ml-2">8 ETH</span>
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="contType"
+                          value="16 ETH"
+                          checked={selectedCont === '16 ETH'}
+                          onChange={handleContChange}
+                        />
+                        <span className="ml-2">16 ETH</span>
+                      </label>
+
+
+                    </div>
+
+
 
 
                   </div>
 
 
 
+                  <div className='w-3/5 flex gap-2 items-center justify-center'>
+                    <button onClick={handleAddValidator} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      Add
+                    </button>
+                  </div>
 
-                </div>
 
+                </div> </>) : (
 
+              <div className="w-full h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+                <h3 className='text-center w-[90%]'>Preparing Create Validator environment...</h3>
 
-                <div className='w-3/5 flex gap-2 items-center justify-center'>
-                  <button onClick={handleAddValidator} className="bg-blue-500 mt-2  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
-                    Add
-                  </button>
-                </div>
-
+                <BounceLoader />
 
               </div>
+
+)}
 
 
 
