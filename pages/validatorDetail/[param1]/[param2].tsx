@@ -4491,7 +4491,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                     </div>
-                                                    <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app</a></p>
+                                                    <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app. Rewards functionality coming soon to Vrün!</a></p>
 
                                                 </div>
                                             ) : (
