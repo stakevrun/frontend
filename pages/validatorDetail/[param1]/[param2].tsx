@@ -4539,7 +4539,7 @@ const ValidatorDetail: NextPage = () => {
                                                 <span className='text-green-500 text-lg  font-bold' style={Number(reduxData.minipoolBalance) > 0 ? { color: "rgb(34 197 94)" } : { color: "red" }}>
                                                     {Number(reduxData.minipoolBalance) > 0 ? (
                                                         <div className='flex items-center justify-center'>
-                                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12  bg-green-100 rounded-full mr-3">
+                                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-500 bg-green-100 rounded-full mr-3">
                                                                 <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                                                 </svg>
@@ -4558,9 +4558,9 @@ const ValidatorDetail: NextPage = () => {
 
                                                     ) : (
                                                         <div className='flex items-center justify-center'>
-                                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12  bg-red-100 rounded-full mr-6">
+                                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-green-500 bg-green-100 rounded-full mr-6">
                                                                 <svg aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-6 w-6">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                                                 </svg>
                                                             </div>
 
@@ -4590,14 +4590,18 @@ const ValidatorDetail: NextPage = () => {
                                                     <h3 className='block text-lg  font-bold'>Validator Status:</h3>
 
 
-                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && !isPresignedPosted && reduxData.isEnabled === true && (
+                                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus !== "" && (reduxData.beaconStatus !== "active_exiting" && reduxData.beaconStatus !== "exited_unslashed" && reduxData.beaconStatus !== "withdrawal_possible" && reduxData.beaconStatus !== "withdrawal_done" && reduxData.beaconStatus !== "exited_slashed" && reduxData.beaconStatus !== "active_slashed") && !isPresignedPosted && reduxData.isEnabled === true && (
 
-                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>)}
+                                                        <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>)
+
+                                                    }
 
 
                                                     {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && isPresignedPosted && (
 
                                                         <p className="text-yellow-500  text-md">waiting_for_beaconchain</p>)}
+
+
 
 
                                                     {
@@ -4678,6 +4682,23 @@ const ValidatorDetail: NextPage = () => {
 
                                                         </>
                                                     }
+
+                                                    {(reduxData.beaconStatus === "withdrawal_done") && (
+
+                                                        <>
+
+                                                            <p className="text-yellow-500  text-md">{reduxData.beaconStatus}</p>
+
+
+
+                                                        </>
+
+                                                    )
+
+                                                    }
+
+
+
 
 
 
