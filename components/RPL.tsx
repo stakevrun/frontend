@@ -321,6 +321,17 @@ const RPLBlock: NextPage = () => {
   }
 
 
+  function roundToTwoDecimalPlaces(numStr: string) {
+    // Convert the string to a number
+    let num = parseFloat(numStr);
+    
+    // Round the number to two decimal places
+    let roundedNum = Math.round(num * 100) / 100;
+    
+    return roundedNum;
+}
+
+
   const handleCheckStakeRPL = async (add: string) => {
 
     if (typeof (window as any).ethereum !== "undefined") {
@@ -1053,13 +1064,13 @@ const RPLBlock: NextPage = () => {
 
         (<div className="flex flex-col w-auto px-3  items-center justify-center gap-1 shadow-lg text-md my-3 py-3 px-3 rounded-lg border">
           <label className="flex flex-col font-bold items-center justify-center gap-1">Unstaked RPL:
-            <span className='text-yellow-500 font-bold'> {ethers.formatEther(RPL)} </span>
+            <span className='text-yellow-500 font-bold'> {roundToTwoDecimalPlaces(ethers.formatEther(RPL))} </span>
 
           </label>
 
           <label className="flex flex-col items-center font-bold justify-center gap-1">
             Staked RPL:
-            <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> {ethers.formatEther(stakeRPL)} </span>
+            <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> {roundToTwoDecimalPlaces(ethers.formatEther(stakeRPL))} </span>
           </label>
           <label className="flex flex-col font-bold items-center justify-center gap-1">
             Active Minipools:

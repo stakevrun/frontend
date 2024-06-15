@@ -4,7 +4,7 @@ import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import Link
   from 'next/link';
-
+  import { FaGithub } from "react-icons/fa";
 import Navbar from '../components/navbar';
 import { useEffect, useState} from 'react';
 import Image from 'next/image';
@@ -22,6 +22,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { MdOnlinePrediction } from "react-icons/md";
 import { useSelector, useDispatch } from 'react-redux';
 import { getData } from "../globalredux/Features/validator/valDataSlice"
+import { FaDiscord } from "react-icons/fa";
 
 
 
@@ -93,7 +94,7 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start  py-[10vh] xl:pt-[10vh]'>
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start py-[5vh] lg:py-[10vh] xl:pt-[10vh]'>
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
@@ -114,6 +115,8 @@ const Home: NextPage = () => {
                 </button>
 
               </Link>
+
+              <a href="https://discord.gg/eUhuZfnyVr" target="_blank" className="text-2xl self-center xl:self-start gap-2 font-bold  flex items-center items-center"><FaDiscord /> <span className='text-xs hover:text-gray-400'>join our Discord server!</span></a>
 
             </div>
 
@@ -150,7 +153,7 @@ const Home: NextPage = () => {
 
                     <Link href="/account" className='self-start mt-3'>
 
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                         Stake RPL
                       </button>
                     </Link>
@@ -171,7 +174,7 @@ const Home: NextPage = () => {
 
 
 
-                      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      <button className="bg-blue-500 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                         Get started!
                       </button>
 
@@ -199,7 +202,7 @@ const Home: NextPage = () => {
                     <p>Learn about the under the hood functions which help to power Vrün!</p>
 
                     <a href="https://docs.rocketpool.net/overview/contracts-integrations" target='_blank' className='self-start mt-3'>
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
                         Go to Docs
 
@@ -211,16 +214,16 @@ const Home: NextPage = () => {
                 <div className={styles.card} >
                   <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
 
-                    <GrSatellite className="text-yellow-500 text-2xl" />
+                    <FaGithub className="text-yellow-500 text-2xl" />
 
                   </div>
                   <div>
-                    <h2 className="font-bold text-black text-lg mb-1">Swagger UI documentation &rarr;</h2>
-                    <p className='mb-3'>Find in-depth information about Swagger UI and the various routes used.</p>
-                    <a href="https://beaconcha.in/api/v1/docs/index.html" target='_blank' className='self-start mt-3'>
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                    <h2 className="font-bold text-black text-lg mb-1">Vrün GitHub documentation &rarr;</h2>
+                    <p className='mb-3'>Find in-depth information and routes for our API.</p>
+                    <a href="https://github.com/stakevrun/db" target='_blank' className='self-start mt-3'>
+                      <button className="bg-blue-500 self-start text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
-                        Go to Swagger
+                        Go to Github
 
                       </button>
                     </a>

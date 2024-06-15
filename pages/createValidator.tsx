@@ -3265,6 +3265,20 @@ const CreateValidator: NextPage = () => {
 
 
 
+  function roundToTwoDecimalPlaces(numStr: string) {
+    // Convert the string to a number
+    let num = parseFloat(numStr);
+
+    // Round the number to two decimal places
+    let roundedNum = Math.round(num * 100) / 100;
+
+    return roundedNum;
+  }
+
+
+
+
+
 
   useEffect(() => {
 
@@ -3379,95 +3393,95 @@ const CreateValidator: NextPage = () => {
 
 
 
-{checkTruth ? (<>
+              {checkTruth ? (<>
 
 
 
-              {(Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) -  Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools))) &&
-                <div className="flex flex-col  gap-2 w-[500px] rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
-                  <h2 className="text-4xl w-[90%] font-bold  ">Stake/Unstake RPL </h2>
-
-
-
-
-                  {RPLCheckRun && stakeRPLCheckRun ?
-
-                    (<p className="my-4 w-[80%] text-gray-500 sm:text-l">
-                      You have
-                      <span className='text-yellow-500 font-bold'>  {ethers.formatEther(RPL)} </span>
-                      unstaked RPL in your Wallet and
-                      <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> {ethers.formatEther(stakeRPL)}  </span>
-                      staked RPL.
-                      You have
-                      <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> {Number(displayActiveMinipools)}  </span>
-                      active Minipool(s) with a maximum total of <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span> LEB8s (Minipools)
-
-
-                    </p>) : (
-
-                      <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
-
-                        <BounceLoader />
-
-                      </div>
-
-                    )}
+                {(Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) - Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools))) &&
+                  <div className="flex flex-col  gap-2 w-[500px] rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
+                    <h2 className="text-4xl w-[90%] font-bold  ">Stake/Unstake RPL </h2>
 
 
 
 
-                  <div className="flex flex-col gap-2 items-center justify-center">
-                    <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
-                    <button onClick={() => { setMaxUnstakedRPL() }} className="bg-black mt-2 text-sm hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md" >MAX</button>
+                    {RPLCheckRun && stakeRPLCheckRun ?
 
-                  </div>
-                  <div className="flex items-center justify-center w-full gap-4 mt-3">
+                      (<p className="my-4 w-[80%] text-gray-500 sm:text-l">
+                        You have
+                        <span className='text-yellow-500 font-bold'>  {roundToTwoDecimalPlaces(ethers.formatEther(RPL))} </span>
+                        unstaked RPL in your Wallet and
+                        <span style={Number(ethers.formatEther(stakeRPL)) >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }} className='font-bold'> {roundToTwoDecimalPlaces(ethers.formatEther(stakeRPL))}  </span>
+                        staked RPL.
+                        You have
+                        <span className='text-green-500 font-bold' style={displayActiveMinipools >= 1 ? { color: "rgb(34 197 94)" } : { color: "red" }}> {Number(displayActiveMinipools)}  </span>
+                        active Minipool(s) with a maximum total of <span className={`text-green-500 font-bold`} style={Math.floor(Number(ethers.formatEther(newMinipools))) < 1 ? { color: "red" } : { color: "rgb(34 197 94)" }}> <RollingNumber n={Math.floor(Number(ethers.formatEther(newMinipools)))} bool={true} /></span> LEB8s (Minipools)
 
-                    <label className="flex items-center justify-center gap-1">
-                      <input
-                        type="radio"
-                        name="optIn"
-                        checked={stakeTruth === true}
-                        onChange={() => setStakeTruth(true)}
-                      />
-                      Stake
-                    </label>
-                    <label className="flex items-center justify-center gap-1">
-                      <input
-                        type="radio"
-                        name="optIn"
-                        checked={stakeTruth === false}
-                        onChange={() => setStakeTruth(false)}
-                      />
-                      Unstake
-                    </label>
-                  </div>
 
-                  <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
+                      </p>) : (
+
+                        <div className="w-auto h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+
+                          <BounceLoader />
+
+                        </div>
+
+                      )}
 
 
 
 
+                    <div className="flex flex-col gap-2 items-center justify-center">
+                      <input value={RPLinput} placeholder='RPL Value' className="self-center  w-[80%] bg-gray-100 text-lg py-4 px-3 rounded-xl shadow-lg border border-black-200 text-gray-500" style={stakeButtonBool ? { display: "block" } : { display: "none" }} type="text" onChange={handleRPLInputChange} />
+                      <button onClick={() => { setMaxUnstakedRPL() }} className="bg-black mt-2 text-sm hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md" >MAX</button>
 
-                    {stakeTruth ? (<button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>) :
-                      (<button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>)
+                    </div>
+                    <div className="flex items-center justify-center w-full gap-4 mt-3">
 
-                    }
+                      <label className="flex items-center justify-center gap-1">
+                        <input
+                          type="radio"
+                          name="optIn"
+                          checked={stakeTruth === true}
+                          onChange={() => setStakeTruth(true)}
+                        />
+                        Stake
+                      </label>
+                      <label className="flex items-center justify-center gap-1">
+                        <input
+                          type="radio"
+                          name="optIn"
+                          checked={stakeTruth === false}
+                          onChange={() => setStakeTruth(false)}
+                        />
+                        Unstake
+                      </label>
+                    </div>
+
+                    <div className='w-3/5 flex gap-2 items-center my-2 justify-center'>
 
 
 
 
 
-                  </div>
+                      {stakeTruth ? (<button onClick={handleStakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Stake RPL</button>) :
+                        (<button onClick={handleUnstakeButtonClick} style={stakeButtonBool ? { display: "block" } : { display: "none" }} className="bg-blue-500 mt-2 text-sm  hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Unstake RPL</button>)
+
+                      }
 
 
-                </div>}
+
+
+
+                    </div>
+
+
+                  </div>}
 
 
 
 
 
-                <div style={Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) -  Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || !checkTruth || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools))? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
+                <div style={Number(formatEther(newMinipools)) < 1 || (Number(formatEther(newMinipools)) - Math.floor(Number(displayActiveMinipools)) - prelaunched) < 1 || !checkTruth || Math.floor(Number(formatEther(newMinipools))) <= Math.floor(Number(displayActiveMinipools)) ? { opacity: "0.5", pointerEvents: "none" } : { opacity: "1", pointerEvents: "auto" }} className="flex flex-col w-[500px] gap-2 rounded-xl border border-black-100 px-4 py-[5vh] text-center shadow-xl items-center justify-center flex items-center p-8 shadow rounded-lg border">
                   <h2 className="text-3xl font-bold ">Create a New Validator</h2>
 
 
@@ -3517,14 +3531,14 @@ const CreateValidator: NextPage = () => {
 
                 </div> </>) : (
 
-              <div className="w-full h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
-                <h3 className='text-center w-[90%]'>Preparing Create Validator environment...</h3>
+                <div className="w-full h-[auto] gap-2  flex flex-col items-center justify-center p-8 px-[6vh]">
+                  <h3 className='text-center w-[90%]'>Preparing Create Validator environment...</h3>
 
-                <BounceLoader />
+                  <BounceLoader />
 
-              </div>
+                </div>
 
-)}
+              )}
 
 
 

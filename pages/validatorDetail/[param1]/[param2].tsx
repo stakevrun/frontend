@@ -9,6 +9,7 @@ import { ethers } from 'ethers';
 import * as openpgp from 'openpgp';
 import storageABI from "../../../json/storageABI.json"
 import miniManagerABI from "../../../json/miniManagerABI.json"
+import { FaDiscord } from "react-icons/fa";
 import daoABI from "../../../json/daoABI.json"
 import feeABI from "../../../json/feeABI.json"
 import CountdownComponent from '../../../components/countdown.jsx';
@@ -545,6 +546,8 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+
+
     type beaconLog = {
         attester_slashings: bigint,
         day: number,
@@ -721,34 +724,34 @@ const ValidatorDetail: NextPage = () => {
 
             if (attestations !== undefined && attestations !== null) {
 
-            for (const attestObject of attestations) {
+                for (const attestObject of attestations) {
 
-                if (attestObject.status === 0) {
+                    if (attestObject.status === 0) {
 
-                    failures += 1
+                        failures += 1
 
+
+
+                    }
+
+
+                    if (attestObject.status === 1) {
+
+                        successes += 1
+
+                    }
 
 
                 }
 
 
-                if (attestObject.status === 1) {
+                const percentage = 100 - ((failures / successes) * 100)
 
-                    successes += 1
 
-                }
+                setAttestationPercentage(percentage)
 
 
             }
-
-
-            const percentage = 100 - ((failures / successes) * 100)
-
-
-            setAttestationPercentage(percentage)
-
-
-        }
 
 
 
@@ -3431,35 +3434,12 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    useEffect(() => {
-
-
-        console.log(reduxData)
-
-        if (reduxData && reduxData.address !== "" && reduxData.address !== "NO VALIDATORS") {
-            convertToGraphPlotPoints();
-
-            setEnChecked(reduxData.isEnabled)
-            setValidatorsInNeedOfAction(getValidatorsInNeedOfAction())
-        }
-
-
-
-
-    }, [reduxData])
+    
 
 
     const [enChecked, setEnChecked] = useState(false)
 
 
-
-    const handleEnCheckedInput = (e: any) => {
-        const { name, type, value, checked } = e.target;
-        const newValue = type === "checkbox" ? checked : value;
-        setEnChecked(checked)
-
-
-    }
 
     useEffect(() => {
         console.log(enChecked)
@@ -3478,6 +3458,9 @@ const ValidatorDetail: NextPage = () => {
         setShowFormEffectDisclaimer(showFormDisclaimer);
 
 
+    
+
+
 
 
 
@@ -3486,7 +3469,7 @@ const ValidatorDetail: NextPage = () => {
 
     const setDisableDisclaimer = () => {
 
-        setShowForm6(false)
+        setEnChecked(false)
 
         setShowFormDisclaimer(true)
 
@@ -4379,6 +4362,14 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    
+    useEffect(() => {
+
+        console.log("EnChecked:" + enChecked)
+
+    },[enChecked])
+
+
 
 
 
@@ -4762,23 +4753,25 @@ const ValidatorDetail: NextPage = () => {
 
                                                 <div className='flex gap-1 flex-col items-start justify-center w-full'>
 
-                                                    <span className="block text-lg font-bold">Enabled?</span>
 
                                                     {reduxData.isEnabled ? (
 
-                                                        <div className="flex items-center justify-center  text-green-400 text-[18px]">   <p>Enabled</p> <TiTick /></div>
+                                                        reduxData.isEnabled && !noEnable && <button onClick={() => { setDisableDisclaimer() }} className="bg-red-500 mt-2 w-auto text-xs hover:bg-red-700 text-white font-bold py-2 px-2 rounded-md" >
+                                                            Disable Validator
+                                                        </button>
 
                                                     ) : (
 
-                                                        <p className="text-red-400 text-[18px]">Disabled</p>
+                                                        <button style={{pointerEvents: "none"}} className="bg-red-700 mt-2 text-xs text-white font-bold py-2 px-2 rounded-md">Disabled</button>
 
                                                     )}
                                                 </div>
 
                                                 <div className='w-full flex gap-2 text-xs items-start justify-start'>
-                                                    {reduxData.isEnabled && !noEnable && <button onClick={() => { setShowForm6(true) }} className="bg-blue-500 mt-2 text-xs hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-md" >
-                                                        Edit
-                                                    </button>}
+                                                    { }
+
+
+
                                                 </div>
 
 
@@ -5548,9 +5541,11 @@ const ValidatorDetail: NextPage = () => {
 
                                 </div>
 
+                                
+
                                 <h3 className="font-bold text-[30px]">WARNING!</h3>
 
-                                <p className="text-lg text-center text-red-500">Proceeding with this action means re-enabling your validator will only be possible by us! Get in touch with us on Discord via the Vrün channel for more information. </p>
+                                <p className="text-lg text-center text-red-500">Proceeding with this action means re-enabling your validator will only be possible by us! Get in touch with us on <a href="https://discord.gg/eUhuZfnyVr" target="_blank" className='font-bold hover:text-red-600'> Discord</a> via the Vrün channel for more information. </p>
 
                                 <div >
                                     <button className="bg-blue-500 mt-2  text-xs  hover:bg-blue-700 text-white font-bold mx-2 py-2 px-4 rounded-md" onClick={toggleEnableDisable}>GO!</button>
@@ -6191,15 +6186,7 @@ const ValidatorDetail: NextPage = () => {
 
                                 <div className="flex items-center justify-center w-full gap-4">
 
-                                    <label className="flex items-center justify-center gap-1">
-                                        <input
-                                            type="radio"
-                                            name="optIn"
-                                            checked={enChecked === true}
-                                            onChange={() => setEnChecked(true)}
-                                        />
-                                        Yes
-                                    </label>
+                                   
                                     <label className="flex items-center justify-center gap-1">
                                         <input
                                             type="radio"

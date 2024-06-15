@@ -858,7 +858,7 @@ const AccountMain: NextPage = () => {
       fetchData();
       dispatch(getGraphPointsData([]));
       dispatch(attestationsData([]));
-    
+
       getMinipoolTruth();
       getMinipoolData();
       getNodeCollateral(address);
@@ -870,6 +870,7 @@ const AccountMain: NextPage = () => {
       setIsInitialRender(false);
     }
   }, [currentChain, address]);
+
 
 
 
@@ -1716,7 +1717,7 @@ const AccountMain: NextPage = () => {
           })
 
 
-         seperateMinipoolObjects.push({
+          seperateMinipoolObjects.push({
             address: minAddress,
             statusResult: currentStatus,
             statusTimeResult: numStatusTime.toString(),
@@ -2234,7 +2235,7 @@ const AccountMain: NextPage = () => {
 
 
 
-  
+
 
 
 
@@ -2351,40 +2352,44 @@ const AccountMain: NextPage = () => {
 
     for (const object of currentRowData) {
 
-    let newMissedAttestations: Array<number> = [];
+      let newMissedAttestations: Array<number> = [];
 
 
 
-    for (const log of object.beaconLogs) {
+      for (const log of object.beaconLogs) {
 
 
-      if (object.statusResult === "Staking") {
+        if (object.statusResult === "Staking") {
 
 
-        let newMissed;
+          let newMissed;
 
 
 
 
 
-        if (Number(log.missed_attestations) > 0) {
+          if (Number(log.missed_attestations) > 0) {
 
-          newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+            newMissed = 100 - (Math.floor((log.missed_attestations / attestationsPerDay) * 100))
+
+          }
+
+          else {
+            newMissed = 100
+          }
+
+
+          console.log(newMissed)
+
+
+
+          console.log("New Missed:" + newMissed);
+
+          newMissedAttestations.push(newMissed)
+
+
 
         }
-
-        else {
-          newMissed = 100
-        }
-
-
-        console.log(newMissed)
-
-
-
-        console.log("New Missed:" + newMissed);
-
-        newMissedAttestations.push(newMissed)
 
 
 
@@ -2392,20 +2397,16 @@ const AccountMain: NextPage = () => {
 
 
 
-    }
+
+
+      newMissedAttestationsArray.push(newMissedAttestations)
 
 
 
 
 
-    newMissedAttestationsArray.push(newMissedAttestations)
 
 
-   
-
-
-
-    
 
 
 
@@ -2427,12 +2428,12 @@ const AccountMain: NextPage = () => {
 
 
     let newPlotPointsArray: Array<Array<number>> = [];
-   
+
 
     for (const object of currentRowData) {
 
       let newPlotPoints: Array<number> = [];
-     
+
 
 
 
@@ -2450,9 +2451,9 @@ const AccountMain: NextPage = () => {
 
           newPlotPoints.push(editedVariance)
 
-         
 
-         
+
+
 
 
 
@@ -2465,7 +2466,7 @@ const AccountMain: NextPage = () => {
 
 
       newPlotPointsArray.push(newPlotPoints)
-     
+
 
 
 
@@ -2489,7 +2490,7 @@ const AccountMain: NextPage = () => {
 
     }
 
- 
+
 
   }
 
@@ -3336,14 +3337,14 @@ const AccountMain: NextPage = () => {
 
 
         if (input.reason) {
-          setErrorBoxTest2(input.info.error.message.toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.info.error.message.toString())
 
         }
 
         else if (input.error) {
 
 
-          setErrorBoxTest2(input.error["message"].toString() + " PLEASE NOTE: there is a 'cooldown' period after every Smoothing Pool change and you may not be able to toggle it for a few days... ")
+          setErrorBoxTest2(input.error["message"].toString())
 
 
         } else {
@@ -3729,6 +3730,149 @@ const AccountMain: NextPage = () => {
   }, [reduxData])
 
 
+  const [stakeRPL, setStakeRPL] = useState(BigInt(0))
+
+
+  function roundToTwoDecimalPlaces(numStr: string) {
+    // Convert the string to a number
+    let num = parseFloat(numStr);
+
+    // Round the number to two decimal places
+    let roundedNum = Math.round(num * 100) / 100;
+
+    return roundedNum;
+  }
+
+
+
+
+  useEffect(() => {
+
+
+    const handleCheckStakeRPL = async (add: string) => {
+
+      if (typeof (window as any).ethereum !== "undefined") {
+
+
+
+        try {
+
+
+
+
+
+
+          let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+          let signer = await browserProvider.getSigner()
+
+
+
+          const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+
+
+
+
+
+          const NodeStakingAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeStaking"))
+
+          const rocketNodeStaking = new ethers.Contract(
+            NodeStakingAddress, // Replace with your staking contract address
+            stakingABI, // Replace with your staking contract ABI
+            signer
+          );
+
+
+
+
+
+
+          const amount = await rocketNodeStaking.getNodeRPLStake(add)
+
+
+          console.log(typeof amount)
+
+
+          setStakeRPL(amount);
+
+
+
+
+          console.log("Stake RPL amount:" + amount);
+
+          const rocketNetworkPrices = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNetworkPrices"));
+          const rocketNetworkContract = new ethers.Contract(rocketNetworkPrices, networkABI, signer)
+
+          const rplPrice = await rocketNetworkContract.getRPLPrice()
+          const rplRequiredPerLEB8 = ethers.parseEther('2.4') / rplPrice
+
+
+          console.log("rplRequiredPerLEB8: " + rplRequiredPerLEB8)
+
+
+
+          const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
+
+          const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer);
+
+
+
+          const activeMinipools = await MinipoolManager.getNodeStakingMinipoolCount(address);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          return amount;
+
+        } catch (error) {
+
+          console.log(error)
+
+          return false;
+
+        }
+
+
+
+      }
+      else {
+
+        console.log("Window not working")
+
+
+        return false;
+
+      }
+
+    }
+
+
+    if (address !== undefined) {
+      handleCheckStakeRPL(address);
+
+    }
+
+
+
+  }, [address])
+
+
+
+
 
 
 
@@ -3896,7 +4040,7 @@ const AccountMain: NextPage = () => {
 
 
 
-                              <div className='mb-2 flex flex-col justify-start items-start'>
+                              <div className='mb-2 flex flex-col  lg:w-[100px] justify-start items-start'>
                                 <span className="block text-lg font-bold">
 
                                   <span style={reduxPayments - reduxCharges >= 0 ? { color: reduxDarkMode ? "#fff" : "#222" } : { color: "red" }}>
@@ -3935,12 +4079,15 @@ const AccountMain: NextPage = () => {
                             </div>
 
                             <div className="w-full max-w-3xl flex  flex-col lg:flex-row items-start lg:items-center justify-start gap-0.5 lg:gap-10 text-left">
-                              <div className='mb-1.5 max-w-full  lg:max-w-[95px] flex flex-col justify-start items-start'>
+                              <div className='mb-1.5 w-auto max-w-full  lg:w-[100px] flex flex-col justify-start items-start'>
+
+
+                                <span className="block text-lg mb-1.1  font-bold">{roundToTwoDecimalPlaces(ethers.formatEther(stakeRPL))} RPL</span>
 
                                 {
-                                  reduxCollateral > 0 ?
-                                    (<span className="block text-lg mb-1 font-bold">{reduxCollateral} %</span>) :
-                                    (<span className="block  text-lg mb-1 font-bold">{reduxCollateral}</span>)
+                                  reduxCollateral < 10 ?
+                                    (<span className="block text-lg   text-red-400 font-bold">{reduxCollateral} %</span>) :
+                                    (<span className="block  text-lg  text-green-400 font-bold">{reduxCollateral} %</span>)
                                 }
 
 
@@ -3952,7 +4099,7 @@ const AccountMain: NextPage = () => {
 
                                 <span className="mb-2 block text-sm text-gray-500 ">
 
-                                  Required Node Collateral
+                                  RPL Collateral
 
 
                                 </span>
@@ -3964,8 +4111,8 @@ const AccountMain: NextPage = () => {
 
                               </div>
 
-                              <Link href="/rpl">
-                                <button className="bg-orange-500 text-xs self-start hover:bg-orange-700 shadow-lg text-white font-bold py-2 px-4 rounded-md">RPL</button>
+                              <Link href="/rpl" className="w-auto flex items-center justify-center">
+                                <button className="bg-orange-500 text-xs  hover:bg-orange-700 shadow-lg text-white font-bold py-2 px-4 rounded-md"> Stake RPL</button>
                               </Link>
 
                             </div>
@@ -4004,7 +4151,7 @@ const AccountMain: NextPage = () => {
 
 
 
-                  <div className="w-full h-auto min-h-auto flex flex-col items-center justify-start gap-3 lg:min-h-[45vh] ">
+                  <div className="w-full h-auto min-h-auto flex flex-col items-center justify-start gap-3 lg:pb-[10vh] lg:min-h-[45vh] ">
 
                     <div className="w-full my-5 mx-5 mb-1 overflow-hidden">
                       <div className="w-full overflow-x-auto flex flex-col items-center justify-center px-6">
@@ -4065,8 +4212,8 @@ const AccountMain: NextPage = () => {
 
                                         </div>
                                         <div className="flex flex-col justify-center items-center">
-                                          <h3 className='text-center text-black font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
-                                          <p> { data.statusResult === "Staking"?  data.minipoolBalance : "0"}</p>
+                                          <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className='text-center  font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
+                                          <p> {data.statusResult === "Staking" ? data.minipoolBalance : "0"}</p>
                                         </div>
 
                                       </div>
@@ -4082,8 +4229,8 @@ const AccountMain: NextPage = () => {
                                         </div>}
 
                                         <div className="flex flex-col justify-center items-center">
-                                          <h3 className='text-center text-black font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
-                                          <p > {data.statusResult === "Staking"?  data.minipoolBalance : "0"}</p>
+                                          <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className='text-center font-normal text-sm lg:text-md'>Skimmed Balance:</h3>
+                                          <p > {data.statusResult === "Staking" ? data.minipoolBalance : "0"}</p>
 
                                         </div>
 
@@ -4143,7 +4290,7 @@ const AccountMain: NextPage = () => {
                                         }
 
 
-                                        {data.statusResult === "Prelaunch" &&  data.statusResult.toLowerCase()}
+                                        {data.statusResult === "Prelaunch" && data.statusResult.toLowerCase()}
 
 
                                         {data.statusResult === "Initialised" && data.isEnabled && data.statusResult.toLowerCase()}
@@ -4235,7 +4382,7 @@ const AccountMain: NextPage = () => {
                       </div>}
 
 
-                    
+
 
                       <div className="flex w-auto items-center p-6 shadow-xl border  rounded-lg">
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
