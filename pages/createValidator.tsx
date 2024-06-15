@@ -3270,6 +3270,8 @@ const CreateValidator: NextPage = () => {
 
     const detectPrelaunchMinipools = async () => {
 
+      setCheckTruth(false)
+
       let newPrelaunched = 0;
       for (const object of reduxData) {
         if (object.statusResult === "Prelaunch" || object.statusResult === "Initialised" || object.statusResult === "Dissolved") {
@@ -3283,6 +3285,8 @@ const CreateValidator: NextPage = () => {
 
 
       setPrelaunched(newPrelaunched)
+
+      setCheckTruth(true)
     }
 
     detectPrelaunchMinipools();
@@ -3314,6 +3318,7 @@ const CreateValidator: NextPage = () => {
   useEffect(() => {
 
     const detectPrelaunchMinipools = async () => {
+      setCheckTruth(false)
 
       let newPrelaunched = 0;
       for (const object of reduxData) {
@@ -3328,6 +3333,7 @@ const CreateValidator: NextPage = () => {
 
 
       setPrelaunched(newPrelaunched)
+      setCheckTruth(true)
     }
 
     detectPrelaunchMinipools();
