@@ -959,7 +959,7 @@ const Navbar: NextPage = () => {
   return (
 
 
-    <header style={{backgroundColor: reduxDarkMode? "#333": "white",  color: reduxDarkMode?  "white" : "#222"}} className="p-2 w-full h-auto bg-white flex flex-col items-center justify-center sticky top-0 z-50 shadow-md lg:h-[8vh]">
+    <header style={{backgroundColor: reduxDarkMode? "#333": "white",  color: reduxDarkMode?  "white" : "#222"}} className="p-2 w-full h-auto bg-white flex flex-col items-center justify-center sticky top-0 z-50 shadow-md lg:h-[9vh]">
 
       <div className="mx-auto w-[90%] flex items-center justify-center gap-5">
         <div className="flex h-14 items-center  justify-between w-full rounded-lg md:px-3">

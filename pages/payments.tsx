@@ -399,20 +399,103 @@ const Payments: NextPage = () => {
 
 
 
+        const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+            method: "GET",
+    
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+    
+              var jsonString = await response.json()
+    
+    
+              console.log("Result of get next index" + jsonString)
+    
+    
+              return jsonString;
+    
+            })
+            .catch(error => {
+    
+              console.log(error);
+            });
+    
+          console.log("Next index:" + newNextIndex)
+
+
+        let attachedPubkeyArray: Array<Array<string>> = [];
+
+
+        for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+          await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+            method: "GET",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+
+              let pubkey = await response.json()
+
+
+            
+
+
+
+
+
+
+
+
+
+
+                attachedPubkeyArray.push([pubkey])
+            
+           
+
+
+
+
+
+
+
+
+
+
+
+
+
+            })
+            .catch(error => {
+
+
+            });
+
+
+
+        }
+
+
+
         let totalCharges = 0;
 
 
 
-        if (reduxData[0].address !== "NO VALIDATORS") {
 
-            for (const data of reduxData) {
+            for (const [pubkey] of  attachedPubkeyArray) {
 
 
                 console.log("Deffo here...")
 
 
 
-                const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
+                const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${pubkey}/charges`, {
                     method: "GET",
 
                     headers: {
@@ -447,7 +530,7 @@ const Payments: NextPage = () => {
 
 
 
-                            const newObject = breakdownDays(object, data.pubkey)
+                            const newObject = breakdownDays(object, pubkey)
 
                             newChargesArray = [...newChargesArray, ...newObject]
 
@@ -478,7 +561,7 @@ const Payments: NextPage = () => {
             }
 
 
-        }
+  
 
 
 
