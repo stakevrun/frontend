@@ -834,7 +834,7 @@ const Navbar: NextPage = () => {
   
               beaconObject = await getValBeaconStats(pubkey);
   
-              if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject[0].start_balance !== 0) {
+              if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
                 newValBalance = beaconObject[0].end_balance
   
   
