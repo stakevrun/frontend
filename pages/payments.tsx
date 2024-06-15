@@ -16,7 +16,7 @@ import { useAccount, useChainId } from 'wagmi';
 import NoRegistration from '../components/noRegistration';
 import NoConnection from '../components/noConnection';
 import { FaCoins } from "react-icons/fa";
-
+import { getData } from "../globalredux/Features/validator/valDataSlice"
 import Modal from 'react-modal';
 import { FaEthereum } from "react-icons/fa";
 import styles from '../styles/Home.module.css';
@@ -25,6 +25,7 @@ import { BiSolidErrorAlt } from "react-icons/bi";
 import { AiOutlineClose } from 'react-icons/ai'
 import ContractTag from "../components/contractTag"
 import BounceLoader from "react-spinners/BounceLoader";
+import { useRouter } from 'next/router';
 
 
 const Payments: NextPage = () => {
@@ -92,7 +93,7 @@ const Payments: NextPage = () => {
     function isValidPositiveNumber(str: string) {
         // Convert the string to a number
         const num = Number(str);
-        
+
         // Check if the conversion results in a valid number and if the number is greater than zero
         if (!isNaN(num) && num > 0) {
             return true;
@@ -105,7 +106,7 @@ const Payments: NextPage = () => {
 
 
 
-        const run =  isValidPositiveNumber(feeETHInput)
+        const run = isValidPositiveNumber(feeETHInput)
 
 
         setIncrementer(0)
@@ -139,7 +140,7 @@ const Payments: NextPage = () => {
                     setIncrementer(1)
 
 
-                    getPayments();
+                    const data = await getPayments();
 
 
                     setIncrementerWithDelay(4, 700)
@@ -260,7 +261,13 @@ const Payments: NextPage = () => {
 
 
                 setPaymentEntryData(paymentData)
-                dispatch(getPaymentsEntryData(paymentData))
+
+             
+
+                    dispatch(getPaymentsEntryData(paymentData))
+
+             
+
 
                 return ethers.formatEther(balance);
 
@@ -308,6 +315,12 @@ const Payments: NextPage = () => {
 
 
 
+    useEffect(() => {
+
+        console.log("Total Charges Data:" + totalData)
+
+    }, [totalData])
+
 
 
 
@@ -318,21 +331,20 @@ const Payments: NextPage = () => {
 
         console.log("Redux Entries:" + reduxChargesEntries + reduxPaymentsEntries)
 
-        if (reduxChargesEntries.length > 0 && reduxPaymentsEntries.length > 0) {
 
 
-            if (reduxChargesEntries[0].date !== "defaultState" && reduxPaymentsEntries[0].date !== "defaultState") {
-
-                const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-                setTotalData(newArray)
+
+        const newArray = sortInReverseChronologicalOrder([...reduxChargesEntries, ...reduxPaymentsEntries])
 
 
-            }
+        setTotalData(newArray)
 
 
-        }
+
+
+
 
 
 
@@ -387,83 +399,171 @@ const Payments: NextPage = () => {
 
 
 
+        const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+            method: "GET",
+    
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+    
+              var jsonString = await response.json()
+    
+    
+              console.log("Result of get next index" + jsonString)
+    
+    
+              return jsonString;
+    
+            })
+            .catch(error => {
+    
+              console.log(error);
+            });
+    
+          console.log("Next index:" + newNextIndex)
+
+
+        let attachedPubkeyArray: Array<Array<string>> = [];
+
+
+        for (let i = 0; i <= newNextIndex - 1; i++) {
+
+
+
+          await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
+            method: "GET",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+          })
+            .then(async response => {
+
+              let pubkey = await response.json()
+
+
+            
+
+
+
+
+
+
+
+
+
+
+                attachedPubkeyArray.push([pubkey])
+            
+           
+
+
+
+
+
+
+
+
+
+
+
+
+
+            })
+            .catch(error => {
+
+
+            });
+
+
+
+        }
+
+
+
         let totalCharges = 0;
 
 
 
 
-
-        for (const data of reduxData) {
-
-
-            console.log("Deffo here...")
+            for (const [pubkey] of  attachedPubkeyArray) {
 
 
-
-            const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
-                method: "GET",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-            })
-                .then(async response => {
-
-                    var jsonObject = await response.json()
+                console.log("Deffo here...")
 
 
 
+                const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${pubkey}/charges`, {
+                    method: "GET",
 
-
-
-                    console.log("An Object of Power:" + Object.entries(jsonObject))
-                    let numDays = 0;
-
-
-
-
-
-
-
-
-
-                    for (const object of jsonObject) {
-
-                        console.log("Charges object:" + Object.entries(object));
-
-                        numDays += object.numDays
-
-
-
-                        const newObject = breakdownDays(object, data.pubkey)
-
-                        newChargesArray = [...newChargesArray, ...newObject]
-
-
-                    }
-
-
-
-                    return numDays;
-
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
                 })
-                .catch(error => {
+                    .then(async response => {
 
-                    console.log("Charges" + error);
-                    return 0;
-                });
+                        var jsonObject = await response.json()
 
 
 
 
 
 
-            totalCharges += charges
+                        console.log("An Object of Power:" + Object.entries(jsonObject))
+                        let numDays = 0;
 
 
 
 
-        }
+
+
+
+
+
+                        for (const object of jsonObject) {
+
+                            console.log("Charges object:" + Object.entries(object));
+
+                            numDays += object.numDays
+
+
+
+                            const newObject = breakdownDays(object, pubkey)
+
+                            newChargesArray = [...newChargesArray, ...newObject]
+
+
+                        }
+
+
+
+                        return numDays;
+
+                    })
+                    .catch(error => {
+
+                        console.log("Charges" + error);
+                        return 0;
+                    });
+
+
+
+
+
+
+                totalCharges += charges
+
+
+
+
+            }
+
+
+  
+
+
 
 
 
@@ -477,9 +577,20 @@ const Payments: NextPage = () => {
         dispatch(getChargesData(totalETH))
 
         const finalArray = sortInReverseChronologicalOrder(newChargesArray)
+
+        console.log(finalArray)
+
+
+       
+
+            dispatch(getChargesEntryData(finalArray))
+
+
+
+
         setChargesData(finalArray)
 
-        dispatch(getChargesEntryData(finalArray))
+
 
 
 
@@ -588,17 +699,247 @@ const Payments: NextPage = () => {
     };
 
 
+    
+  const router = useRouter();
+
+ 
+
+
     useEffect(() => {
         if (!isInitialRender && address !== undefined) {
             // This block will run after the initial render
-            getPayments();
-            getCharges();
+            dispatch(getData([{ address: "NO VALIDATORS" }]))
+            router.push(`/account`);
+         
         } else {
             // This block will run only on the initial render
 
             setIsInitialRender(false);
         }
     }, [currentChain, address]);
+
+
+
+    useEffect(() => {
+
+
+        const getCharges = async () => {
+
+
+
+
+            let newChargesArray: Array<edittedObject> = [];
+    
+    
+    
+            let totalCharges = 0;
+    
+    
+    
+            if (reduxData[0].address !== "NO VALIDATORS") {
+    
+                for (const data of reduxData) {
+    
+    
+                    console.log("Deffo here...")
+    
+    
+    
+                    const charges: number = await fetch(`https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`, {
+                        method: "GET",
+    
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                    })
+                        .then(async response => {
+    
+                            var jsonObject = await response.json()
+    
+    
+    
+    
+    
+    
+                            console.log("An Object of Power:" + Object.entries(jsonObject))
+                            let numDays = 0;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+                            for (const object of jsonObject) {
+    
+                                console.log("Charges object:" + Object.entries(object));
+    
+                                numDays += object.numDays
+    
+    
+    
+                                const newObject = breakdownDays(object, data.pubkey)
+    
+                                newChargesArray = [...newChargesArray, ...newObject]
+    
+    
+                            }
+    
+    
+    
+                            return numDays;
+    
+                        })
+                        .catch(error => {
+    
+                            console.log("Charges" + error);
+                            return 0;
+                        });
+    
+    
+    
+    
+    
+    
+                    totalCharges += charges
+    
+    
+    
+    
+                }
+    
+    
+            }
+    
+    
+    
+    
+    
+    
+            let totalETH = totalCharges * 0.0001
+    
+    
+    
+    
+    
+            dispatch(getChargesData(totalETH))
+    
+            const finalArray = sortInReverseChronologicalOrder(newChargesArray)
+    
+            console.log(finalArray)
+    
+    
+           
+    
+                dispatch(getChargesEntryData(finalArray))
+    
+    
+    
+    
+            setChargesData(finalArray)
+    
+    
+    
+    
+    
+        }
+
+        const getPayments = async () => {
+
+
+
+
+
+
+            let paymentData: Array<edittedObject> = [];
+    
+    
+    
+    
+    
+    
+    
+            const payments: string = await fetch(`https://fee.vrün.com/${currentChain}/${address}/payments`, {
+                method: "GET",
+    
+                headers: {
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(async response => {
+    
+                    var jsonObject = await response.json()
+    
+                    console.log("Running Payments:" + Object.entries(jsonObject))
+    
+    
+    
+    
+                    let balance = BigInt(0);
+                    for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
+    
+    
+                        const paymentsObject = Object(payments)
+    
+                        for (const { amount, timestamp, tx } of paymentsObject) {
+    
+                            balance += BigInt(amount);
+    
+    
+                            paymentData = [...paymentData, { fee: amount, date: convertTimestampToDate(timestamp), pubkey: "payment" }]
+    
+    
+    
+                        }
+    
+    
+    
+                    }
+    
+    
+    
+                    setPaymentEntryData(paymentData)
+    
+                 
+    
+                        dispatch(getPaymentsEntryData(paymentData))
+    
+                 
+    
+    
+                    return ethers.formatEther(balance);
+    
+                })
+                .catch(error => {
+    
+                    console.log(error);
+                    return "";
+                });
+    
+    
+    
+    
+    
+            dispatch(getPaymentsData(Number(payments)))
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        }
+    
+
+        // This block will run after the initial render
+        getPayments();
+        getCharges();
+
+    }, [reduxData]);
 
 
 
@@ -731,13 +1072,13 @@ const Payments: NextPage = () => {
                                     <div className="flex flex-col items-center justify-center">
                                         <span className="block text-lg font-bold">
 
-                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : { color: "red" }}>
+                                            <span className='text-2xl' style={reduxPayments - reduxCharges > 0 ? { color: reduxDarkMode ? "#fff" : "green" } : reduxPayments - reduxCharges === 0 ? { color: reduxDarkMode ? "#fff" : "black" } : { color: "red" }}>
                                                 {reduxPayments - reduxCharges}
                                             </span> ETH
 
 
                                         </span>
-                                        {reduxPayments - reduxCharges > 0 ? (
+                                        {reduxPayments - reduxCharges >= 0 ? (
                                             <span className="block text-md lg:text-lg text-gray-500 ">Vrün Balance</span>
                                         ) : (
                                             <span className="block text-md lg:text-lg text-gray-500 ">in Arrears</span>
@@ -784,7 +1125,9 @@ const Payments: NextPage = () => {
 
 
                             <div className="w-full min-h-[92vh] h-auto flex flex-col items-center justify-center gap-8 py-[8vh]">
-                                {chargesData.length > 0 && totalData.length > 0 ? (<div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
+                                {totalData.length > 0 ? (
+                                
+                                <div id="accountTable" className="w-[90%] sm:w-[80%] lg:w-auto overflow-x-scroll shadow-xl border rounded-lg">
 
 
                                     <table className="w-full">
@@ -796,7 +1139,7 @@ const Payments: NextPage = () => {
                                                     <td className="px-4 py-5 w-[200px]">
                                                         <span className='text-center text-black-500 text-md lg:text-xl'>
 
-                                                            <p>{data.date}</p>
+                                                            <p>{data.date !== "defaultState" && data.date}</p>
                                                         </span>
 
                                                     </td>
@@ -827,7 +1170,7 @@ const Payments: NextPage = () => {
 
 
                                                             (<span >
-                                                                <ContractTag pubkey={data.pubkey} />
+                                                                <ContractTag pubkey={data.pubkey !== "defaultState" && data.pubkey} />
                                                             </span>)
 
                                                         }
@@ -875,7 +1218,7 @@ const Payments: NextPage = () => {
                                 </div>) : (
                                     <div className='h-[100vh] w-full flex items-center gap-2 justify-center flex-col'>
 
-                                        <h3>Please wait while we retrieve your Vrün statement... </h3>
+                                        <h3 className="text-center max-w-[90%]">Please wait while we retrieve your Vrün statement... </h3>
 
                                         <BounceLoader />
 

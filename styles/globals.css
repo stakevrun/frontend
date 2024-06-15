@@ -32,16 +32,13 @@ a {
 }
 
 ::-webkit-scrollbar {
-  display: none;
-  position: relative;
+  width: 15px;
 }
 ::-webkit-scrollbar-track {
-  display: none;
-  position: relative;
+  background-color: #f1f1f1;
 }
 ::-webkit-scrollbar-thumb {
-  display: none;
-  position: relative;
+  background-color: rgb(179, 179, 179);
 }
 
 .sidebarWrapper {

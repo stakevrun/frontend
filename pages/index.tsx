@@ -4,9 +4,9 @@ import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import Link
   from 'next/link';
-import { useAccount } from 'wagmi';
+  import { FaGithub } from "react-icons/fa";
 import Navbar from '../components/navbar';
-import { useEffect } from 'react';
+import { useEffect, useState} from 'react';
 import Image from 'next/image';
 import { MdBarChart } from "react-icons/md";
 import Footer from '../components/footer';
@@ -18,7 +18,11 @@ import { BsSignStopFill } from "react-icons/bs";
 import { FaMoneyBillWave } from "react-icons/fa6";
 import { GrSatellite } from "react-icons/gr";
 import type { RootState } from '../globalredux/store';
+import { useAccount, useChainId } from 'wagmi';
+import { MdOnlinePrediction } from "react-icons/md";
 import { useSelector, useDispatch } from 'react-redux';
+import { getData } from "../globalredux/Features/validator/valDataSlice"
+import { FaDiscord } from "react-icons/fa";
 
 
 
@@ -38,6 +42,25 @@ const Home: NextPage = () => {
   }, [address])
 
   const reduxDarkMode = useSelector((state: RootState) => state.darkMode.darkModeOn)
+
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const dispatch = useDispatch()
+
+  const currentChain = useChainId();
+
+
+  
+  useEffect(() => {
+    if (!isInitialRender && address !== undefined) {
+    // This block will run after the initial render
+    dispatch(getData([{address: "NO VALIDATORS"}]))
+  
+    } else {
+    // This block will run only on the initial render
+    
+            setIsInitialRender(false);
+        }
+    }, [currentChain, address]);
 
 
 
@@ -59,7 +82,7 @@ const Home: NextPage = () => {
         <link href="/favicon.ico" rel="icon" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@700&family=Figtree:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,700;0,800;1,400;1,500&family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Catamaran:wght@700&family=Figtree:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,700;0,800;1,400;1,500&family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet" />
       </Head>
 
 
@@ -71,7 +94,7 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
 
 
-        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start  py-[10vh] xl:pt-[10vh]'>
+        <div className='h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start py-[5vh] lg:py-[10vh] xl:pt-[10vh]'>
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
 
 
@@ -92,6 +115,8 @@ const Home: NextPage = () => {
                 </button>
 
               </Link>
+
+              <a href="https://discord.gg/eUhuZfnyVr" target="_blank" className="text-2xl self-center xl:self-start gap-2 font-bold  flex items-center items-center"><FaDiscord /> <span className='text-xs hover:text-gray-400'>join our Discord server!</span></a>
 
             </div>
 
@@ -128,7 +153,7 @@ const Home: NextPage = () => {
 
                     <Link href="/account" className='self-start mt-3'>
 
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
                         Stake RPL
                       </button>
                     </Link>
@@ -144,14 +169,19 @@ const Home: NextPage = () => {
 
                   <div>
                     <h2 className="text-black font-bold">New to Validators & Staking? &rarr;</h2>
-                    <p>Learn how to interact with Ethereum and the beacon chain</p>
-                    <a href="https://ethereum.org/en/developers/docs/" target='_blank' className='self-start mt-3'>
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                    <p>Learn how Vrün interacts with Ethereum and the beacon chain.</p>
+                    <Link href="/faqs">
 
-                        Get Started!
 
+
+                      <button className="bg-blue-500 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                        Get started!
                       </button>
-                    </a>
+
+
+
+
+                    </Link>
 
                   </div>
                 </div>
@@ -172,7 +202,7 @@ const Home: NextPage = () => {
                     <p>Learn about the under the hood functions which help to power Vrün!</p>
 
                     <a href="https://docs.rocketpool.net/overview/contracts-integrations" target='_blank' className='self-start mt-3'>
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                      <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
                         Go to Docs
 
@@ -184,16 +214,16 @@ const Home: NextPage = () => {
                 <div className={styles.card} >
                   <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
 
-                    <GrSatellite className="text-yellow-500 text-2xl" />
+                    <FaGithub className="text-yellow-500 text-2xl" />
 
                   </div>
                   <div>
-                    <h2 className="font-bold text-black text-lg mb-1">Swagger UI documentation &rarr;</h2>
-                    <p className='mb-3'>Find in-depth information about Swagger UI and the various routes used.</p>
-                    <a href="https://beaconcha.in/api/v1/docs/index.html" target='_blank' className='self-start mt-3'>
-                      <button className="bg-blue-500 self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
+                    <h2 className="font-bold text-black text-lg mb-1">Vrün GitHub documentation &rarr;</h2>
+                    <p className='mb-3'>Find in-depth information and routes for our API.</p>
+                    <a href="https://github.com/stakevrun/db" target='_blank' className='self-start mt-3'>
+                      <button className="bg-blue-500 self-start text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md" >
 
-                        Go to Swagger
+                        Go to Github
 
                       </button>
                     </a>
@@ -236,7 +266,8 @@ const Home: NextPage = () => {
                   <h2 className="text-lg font-bold">Secure and reliable</h2>
 
                   <p className="mt-1 text-md text-gray-500 ">
-                    Efficient and secure service, discreet management of secrets and 99% attestations guaranteed.
+                  Our redundant global network of beacon and execution layer nodes ensures high uptime, 
+                  guaranteeing your staking operations remain consistently operational and efficient.
 
                   </p>
                 </div>
@@ -248,10 +279,10 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Live UI/UX Interface</h2>
+                  <h2 className="text-lg font-bold">Secure Key and Validator Management</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    Watch your Validators progress with the live interface. All actions, countdowns and updates are picked-up as they happen, allowing you to feel secure.
+                  Our non-custodial service prioritizes security, keeping your keys and validators safe with cutting-edge encryption and management protocols.
                   </p>
                 </div>
               </div>
@@ -262,13 +293,16 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Rewards</h2>
+                  <h2 className="text-lg font-bold">Non-Custodial Service</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    For a small fee of ETH each day, reap the lucrative rewards of the Rocket Pool Staking
+                  Experience full control and ownership of your assets with our non-custodial staking solution. Your keys, your control, always.
+
                   </p>
                 </div>
               </div>
+
+
 
               <div className="flex items-start gap-4">
                 <span className="shrink-0 rounded-lg bg-gray-800 p-4">
@@ -278,10 +312,42 @@ const Home: NextPage = () => {
                 </span>
 
                 <div>
-                  <h2 className="text-lg font-bold">Community Building</h2>
+                  <h2 className="text-lg font-bold">No Accounts Necessary</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    By staking with Vrun (and Rocket Pool), you are allowing small-time investors to reap rewards with the rETH token.
+                  Seamlessly sign in with your wallet. No need for traditional accounts, making the process swift and secure.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <FaEthereum className="text-2xl text-purple-500" />
+                </span>
+
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Affordable Staking Solutions</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                  Benefit from cost-effective staking without compromising on quality or security. Enjoy staking with competitive pricing.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <span className="shrink-0 rounded-lg bg-gray-800 p-4">
+                  <MdOnlinePrediction className="text-2xl text-blue-500" />
+                </span>
+
+
+
+                <div>
+                  <h2 className="text-lg font-bold">Easy Setup, No Hardware Required</h2>
+
+                  <p className="mt-1 text-md text-gray-500">
+                  Begin staking effortlessly. Our service eliminates the need for specialized hardware, providing a hassle-free setup experience.
                   </p>
                 </div>
               </div>
@@ -294,29 +360,37 @@ const Home: NextPage = () => {
 
 
                 <div>
-                  <h2 className="text-lg font-bold">Stop at anytime</h2>
+                  <h2 className="text-lg font-bold">Full Control Over Your Validator Keys</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    You may stop the charges to your account at any time with our Enable/Disable function. Able to be toggled  for each Validator in the <Link className="font-bold hover:text-blue-300 cursor-pointer" href={"/account"}> account page.</Link>
+                  Maintain complete control over your validator keys. Stop or migrate your staking operations anytime, ensuring flexibility and autonomy.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
                 <span className="shrink-0 rounded-lg bg-gray-800 p-4">
-                  <FaEthereum className="text-2xl text-blue-500" />
+                <Image
+                      width={25}
+                      height={25}
+                      alt="Rocket Pool Logo"
+                      src={"/images/rocketPlogo.png"} />
                 </span>
+
+             
 
 
 
                 <div>
-                  <h2 className="text-lg font-bold">Made with Expertise</h2>
+                  <h2 className="text-lg font-bold">Built by the Rocket Pool Community</h2>
 
                   <p className="mt-1 text-md text-gray-500">
-                    The core functionality of our service was produced by seasoned developers with many years experience with the EVM.
+                  Our service is crafted by members of the Rocket Pool community, ensuring deep integration and robust support within the ecosystem.
                   </p>
                 </div>
               </div>
+
+             
             </div>
           </div>
 
