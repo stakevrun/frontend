@@ -3434,7 +3434,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    
+
 
 
     const [enChecked, setEnChecked] = useState(false)
@@ -3458,7 +3458,7 @@ const ValidatorDetail: NextPage = () => {
         setShowFormEffectDisclaimer(showFormDisclaimer);
 
 
-    
+
 
 
 
@@ -4362,12 +4362,12 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-    
+
     useEffect(() => {
 
         console.log("EnChecked:" + enChecked)
 
-    },[enChecked])
+    }, [enChecked])
 
 
 
@@ -4491,7 +4491,7 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                     </div>
-                                                    <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app. Rewards functionality coming soon to Vrün!</a></p>
+                                                    <p className=" w-[100%] self-center text-wrap text-xs lg:text-sm py-2 text-gray-500">Claim Your Validator rewards on <a className="font-bold hover:text-blue-300 cursor-pointer" target="_blank" href="https://rocketsweep.app/">rocketsweep.app. </a></p>
 
                                                 </div>
                                             ) : (
@@ -4545,6 +4545,12 @@ const ValidatorDetail: NextPage = () => {
                                                                 <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold ">Skimmed balance:</h3>
 
                                                                 <p className="text-green-400"> {reduxData.statusResult === "Staking" ? reduxData.minipoolBalance : "0"}</p>
+                                                                <span className="mb-2 block text-sm font-normal text-gray-500 ">
+
+                                                                    Rewards button coming soon!
+
+
+                                                                </span>
 
                                                             </div>
 
@@ -4563,6 +4569,12 @@ const ValidatorDetail: NextPage = () => {
                                                                 <h3 style={{ color: reduxDarkMode ? "white" : "#222" }} className="block text-md font-bold">Skimmed balance:</h3>
 
                                                                 <p className='text-green-400'>{reduxData.statusResult === "Staking" ? reduxData.minipoolBalance : "0"}</p>
+                                                                <span className="mb-2 block font-normal text-sm text-gray-500 ">
+
+                                                                    Rewards button coming soon!
+
+
+                                                                </span>
 
                                                             </div>
 
@@ -4749,9 +4761,9 @@ const ValidatorDetail: NextPage = () => {
                                             }
 
 
-                                            <div className='flex  gap-4 items-center justify-start w-full'>
+                                            <div className='flex gap-4 items-center justify-center w-full'>
 
-                                                <div className='flex gap-1 flex-col items-start justify-center w-full'>
+                                                <div className='flex gap-1 flex-col items-center justify-center w-full'>
 
 
                                                     {reduxData.isEnabled ? (
@@ -4762,7 +4774,7 @@ const ValidatorDetail: NextPage = () => {
 
                                                     ) : (
 
-                                                        <button style={{pointerEvents: "none"}} className="bg-red-700 mt-2 text-xs text-white font-bold py-2 px-2 rounded-md">Disabled</button>
+                                                        <button style={{ pointerEvents: "none" }} className="bg-red-700 mt-2 text-xs text-white font-bold py-2 px-2 rounded-md">Disabled</button>
 
                                                     )}
                                                 </div>
@@ -5541,7 +5553,7 @@ const ValidatorDetail: NextPage = () => {
 
                                 </div>
 
-                                
+
 
                                 <h3 className="font-bold text-[30px]">WARNING!</h3>
 
@@ -6186,7 +6198,7 @@ const ValidatorDetail: NextPage = () => {
 
                                 <div className="flex items-center justify-center w-full gap-4">
 
-                                   
+
                                     <label className="flex items-center justify-center gap-1">
                                         <input
                                             type="radio"
