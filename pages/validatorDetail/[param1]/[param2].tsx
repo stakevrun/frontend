@@ -675,6 +675,17 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+    function roundToTwoDecimalPlaces(numStr: number) {
+        // Convert the string to a number
+        
+        
+        // Round the number to two decimal places
+        let roundedNum = Math.round(numStr * 100) / 100;
+        
+        return roundedNum;
+    }
+
+
 
 
 
@@ -692,7 +703,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            const attestations = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${params.param1}/attestations`, {
+            const attestations = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${param1}/attestations`, {
                 method: "GET",
 
                 headers: {
@@ -730,6 +741,10 @@ const ValidatorDetail: NextPage = () => {
 
                         failures += 1
 
+                        console.log("One")
+
+                 
+
 
 
                     }
@@ -738,11 +753,19 @@ const ValidatorDetail: NextPage = () => {
                     if (attestObject.status === 1) {
 
                         successes += 1
+                     
 
                     }
 
 
                 }
+
+
+
+
+                console.log("SUCCESSES:" + successes)
+                console.log("FAILURES:" + failures)
+                console.log("failures divided by successes x 100:" + ((failures / successes) * 100))
 
 
                 const percentage = 100 - ((failures / successes) * 100)
@@ -781,7 +804,7 @@ const ValidatorDetail: NextPage = () => {
 
 
 
-            const rewards = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${params.param1}/incomedetailhistory`, {
+            const rewards = await fetch(`https://${chainString}beaconcha.in/api/v1/validator/${param1}/incomedetailhistory`, {
                 method: "GET",
 
                 headers: {
@@ -846,6 +869,8 @@ const ValidatorDetail: NextPage = () => {
 
 
 
+
+
         }
 
 
@@ -853,7 +878,7 @@ const ValidatorDetail: NextPage = () => {
         getLiveAttestations();
         getLiveRewards();
 
-    }, [])
+    }, [param1])
 
 
 
@@ -4906,7 +4931,7 @@ const ValidatorDetail: NextPage = () => {
                                         </div>
                                     }
 
-                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
+                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" && tableRewards.length > 0 &&
 
                                         <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
 
@@ -4922,27 +4947,6 @@ const ValidatorDetail: NextPage = () => {
                                             </div>
                                         </div>
 
-
-                                    }
-
-                                    {reduxData.statusResult === "Staking" && reduxData.beaconStatus === "active_ongoing" &&
-
-                                        <div className="flex w-auto items-center p-6  shadow-xl border rounded-lg">
-
-                                            <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-400 bg-blue-100 rounded-full mr-6">
-                                                <FaEthereum className=" text-2xl" />
-                                            </div>
-
-                                            <div className="flex items-start flex-col gap-1 text-l ">
-
-
-
-                                                <span className="text-md font-bold">Attestation Performance</span>
-                                                <p className="text-s mb-1.5 text-gray-600">    {attestationPercentage}%</p>
-
-
-                                            </div>
-                                        </div>
 
                                     }
 
