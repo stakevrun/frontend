@@ -99,9 +99,9 @@ const CreateValidator: NextPage = () => {
 
       if (address !== undefined) {
         try {
+         
           const data = await getMinipoolTruth();
-
-
+          const index = await checkIndex();
 
 
 
@@ -298,11 +298,61 @@ const CreateValidator: NextPage = () => {
 
       }
 
+      const checkIndex = async () => {
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        let signer = await browserProvider.getSigner()
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+    
+    
+    
+    
+    
+        //Get latest index
+    
+        const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+          method: "GET",
+    
+          headers: {
+            "Content-Type": "application/json"
+          },
+        })
+          .then(async response => {
+    
+            var jsonString = await response.json()
+    
+    
+            console.log("Result of get next index" + jsonString)
+    
+    
+            return jsonString;
+    
+          })
+          .catch(error => {
+    
+            console.log(error);
+          });
+    
+    
+     
+    
+    
+    
+        setCurrentIndex(newNextIndex)
+    
+    
+    
+      }
+
 
       setCheckTruth(false)
       dispatch(getData([{ address: "NO VALIDATORS" }]))
 
       getMinipoolData()
+      getMinipoolTruth()
+      checkIndex();
+     
 
 
       if (isRegistered && address !== undefined) {
@@ -1122,17 +1172,25 @@ const CreateValidator: NextPage = () => {
   }
 
 
-
-
   useEffect(() => {
 
-    if (checked3 === false) {
-      checkIndex();
+    if (!isInitialRender && address !== undefined && currentIndex <= 0 && checked3 === false) {
+      // This block will run after the initial render
+      setShowForm(true)
 
+    } else {
+      // This block will run only on the initial render
+
+      setIsInitialRender(false);
     }
+    
 
 
-  }, [checked3])
+  }, [currentIndex])
+
+
+
+
 
 
   const getGraffiti = async (pubkey: string) => {
@@ -1955,81 +2013,7 @@ const CreateValidator: NextPage = () => {
       });
 
 
-    if (newNextIndex <= 0 && checked3 === false) {
-      setShowForm(true)
-    }
-
-
-
-
-
-    //Get all pubkeys
-
-    let pubkeyArray: Array<string> = [];
-
-
-    for (let i = 0; i < newNextIndex; i++) {
-
-
-
-      await fetch(`https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`, {
-        method: "GET",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-      })
-        .then(async response => {
-
-          var jsonString = await response.json()
-
-
-          console.log("Result of pubkey GET" + jsonString)
-
-          pubkeyArray.push(jsonString);
-
-
-
-
-
-        })
-        .catch(error => {
-
-
-        });
-
-
-
-    }
-
-
-
-    const MinipoolManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketMinipoolManager"));
-
-    const MinipoolManager = new ethers.Contract(MinipoolManagerAddress, miniManagerABI, signer)
-
-
-    let attachedPubkeyArray: Array<Boolean> = [];
-
-
-    for (const key of pubkeyArray) {
-
-      console.log("Pubkey:" + key);
-
-      let minipoolAddress = await MinipoolManager.getMinipoolByPubkey(key);
-
-      if (minipoolAddress === nullAddress) {
-        attachedPubkeyArray.push(false);
-      }
-
-      else {
-        attachedPubkeyArray.push(true);
-      }
-
-
-      console.log("Get minipool result:" + minipoolAddress);
-
-    }
+ 
 
 
 
@@ -3086,6 +3070,126 @@ const CreateValidator: NextPage = () => {
 
 
   }, [showForm4]);
+
+
+
+
+  useEffect(() => {
+
+
+    const getMinipoolTruth = async () => {
+
+
+      let newBool = false
+
+
+
+      try {
+
+
+
+        let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+
+
+        let signer = await browserProvider.getSigner()
+
+        // Only required when `chainId` is not provided in the `Provider` constructor
+
+
+        const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+
+
+        const NodeManagerAddress = await storageContract["getAddress(bytes32)"](ethers.id("contract.addressrocketNodeManager"))
+
+        const rocketNodeManager = await new ethers.Contract(NodeManagerAddress, managerABI, signer)
+
+        const bool = await rocketNodeManager.getSmoothingPoolRegistrationState(address)
+
+
+
+
+        console.log("Bool:" + bool)
+
+
+        if (typeof bool === "boolean") {
+          setChecked3(bool);
+
+          newBool = bool
+
+
+        }
+
+      } catch (error) {
+
+        console.log(error)
+        setChecked3(false)
+
+
+
+      }
+
+
+      return newBool
+
+
+
+
+
+
+    }
+
+    const checkIndex = async () => {
+
+
+      let browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+      let signer = await browserProvider.getSigner()
+      const storageContract = new ethers.Contract(storageAddress, storageABI, signer);
+  
+  
+  
+  
+  
+      //Get latest index
+  
+      const newNextIndex = await fetch(`https://api.vrün.com/${currentChain}/${address}/nextindex`, {
+        method: "GET",
+  
+        headers: {
+          "Content-Type": "application/json"
+        },
+      })
+        .then(async response => {
+  
+          var jsonString = await response.json()
+  
+  
+          console.log("Result of get next index" + jsonString)
+  
+  
+          return jsonString;
+  
+        })
+        .catch(error => {
+  
+          console.log(error);
+        });
+  
+  
+   
+  
+  
+  
+      setCurrentIndex(newNextIndex)
+  
+  
+  
+    }
+
+
+    getMinipoolTruth();
+    checkIndex();
+
+  }, [])
 
 
 
