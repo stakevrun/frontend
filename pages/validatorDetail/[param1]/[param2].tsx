@@ -4663,6 +4663,16 @@ const ValidatorDetail: NextPage = () => {
                                                     }
 
 
+{
+                                                        reduxData.statusResult === "Dissolved" && (
+
+                                                            <p className="text-yellow-500  text-md">dissolved</p>
+
+                                                        )
+
+                                                    }
+
+
                                                     {reduxData.statusResult === "Prelaunch" && Number(reduxData.timeRemaining) > 0 && reduxData.isEnabled === true &&
                                                         <>
                                                             <CountdownComponentScrub initialMilliseconds={reduxData.timeRemaining} reset={getMinipoolData} />
@@ -4758,6 +4768,11 @@ const ValidatorDetail: NextPage = () => {
 
 
                                                     }
+
+
+
+
+                                                    
 
 
                                                     {(reduxData.statusResult === "Staking" || reduxData.statusResult === "Dissolved") && reduxData.beaconStatus !== "" &&
