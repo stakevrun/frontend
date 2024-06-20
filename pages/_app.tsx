@@ -25,7 +25,7 @@ const queryClient = new QueryClient()
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
-   mainnet,
+   //mainnet,
     //polygon,
     //optimism,
     //arbitrum,
