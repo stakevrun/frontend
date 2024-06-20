@@ -2049,7 +2049,7 @@ const ValidatorDetail: NextPage = () => {
     const [closeDissolvedErrorMessage, setCloseDissolvedErrorMessage] = useState("")
 
 
-    const [turnOffCloseButton, setTurnOffCloseButton] = useState(false)
+    const [turnOffCloseButton, setTurnOffCloseButton] = useState(true)
 
 
 
