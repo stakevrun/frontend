@@ -1878,8 +1878,16 @@ const CreateValidator: NextPage = () => {
               beaconObject = await getValBeaconStats(pubkey);
 
 
-              if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done" ) {
+              if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject ) {
                 newValBalance = beaconObject[0].end_balance
+
+                
+              for (const beaconLog of beaconObject) {
+
+                let blocks = beaconLog.proposed_blocks
+
+                newValProposals += blocks
+              }
 
 
               } else {
@@ -1888,14 +1896,8 @@ const CreateValidator: NextPage = () => {
 
               }
 
-              for (const beaconLog of beaconObject) {
 
-                let blocks = beaconLog.proposed_blocks
-
-                newValProposals += blocks
-              }
-
-              if (beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") {
+              if ((beaconStatus === "active_ongoing" || beaconStatus === "active_exiting" || beaconStatus === "exited_unslashed" || beaconStatus === "exited_slashed" || beaconStatus === "active_slashed" || beaconStatus === "withdrawal_possible" || beaconStatus === "withdrawal_done") && beaconObject) {
 
                 newValVariance = beaconObject[0].end_balance - beaconObject[0].start_balance
 
@@ -2090,10 +2092,6 @@ const CreateValidator: NextPage = () => {
 
 
 
-  useEffect(() => {
-
-    console.log("Current Validator Index:" + currentIndex)
-  }, [currentIndex])
 
 
   const [addValidatorError, setAddValidatorError] = useState("")

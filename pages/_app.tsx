@@ -10,6 +10,8 @@ import {
 
 } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
+
 
 
 import {Providers} from "../globalredux/provider"
@@ -17,9 +19,13 @@ import {Providers} from "../globalredux/provider"
 const holeskyRPCKey = process.env.HOLESKY_RPC
 const mainnetRPCKey = process.env.MAINNET_RPC
 
+
+const queryClient = new QueryClient()
+
+
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
-   // mainnet,
+   //mainnet,
     //polygon,
     //optimism,
     //arbitrum,
@@ -62,6 +68,7 @@ const wagmiConfig = createConfig({
 function MyApp({ Component, pageProps }: AppProps) {
   return (
 <Providers>
+<QueryClientProvider client={queryClient}>
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider 
       chains={chains}
@@ -73,6 +80,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   
       </RainbowKitProvider>
     </WagmiConfig>
+    </QueryClientProvider>
     </Providers>
 
 
