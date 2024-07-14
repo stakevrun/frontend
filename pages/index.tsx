@@ -111,11 +111,18 @@ const Home: NextPage = () => {
             </div>
 
             <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-9 gap-6 lg:w-[50%]">
-              <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] bg-blue-100 rounded-full lg:h-[400px] lg:w-[400px]">
-                <MdBarChart
-                  className="text-xl text-blue-500 mb-2"
-                  style={{ width: "100%", height: "100%" }}
+              <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] rounded-full lg:h-[400px] lg:w-[400px]">
+                <Image
+                  src="/images/vrunlogo.png"
+                  alt="Vrun logo"
+                  width={400}
+                  height={400}
+                  className="h-[200px] w-[200px] lg:h-[400px] lg:w-[400px] rounded-full text-xl text-blue-500 mb-2"
                 />
+                {/* <MdBarChart */}
+                {/* className="text-xl text-blue-500 mb-2" */}
+                {/* style={{ width: "100%", height: "100%" }} */}
+                {/* /> */}
               </div>
             </div>
           </div>
