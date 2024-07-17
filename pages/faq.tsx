@@ -21,7 +21,7 @@ import type { RootState } from "../globalredux/store";
 import { useSelector, useDispatch } from "react-redux";
 import { getData } from "../globalredux/Features/validator/valDataSlice";
 
-const Faqs: NextPage = () => {
+const Faq: NextPage = () => {
   const { address } = useAccount({
     onConnect: ({ address }) => {
       console.log("Ethereum Wallet Connected!");
@@ -199,4 +199,4 @@ const Faqs: NextPage = () => {
   );
 };
 
-export default Faqs;
+export default Faq;
