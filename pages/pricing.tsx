@@ -3,10 +3,38 @@ import Head from "next/head";
 
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
+import { useState, useEffect } from "react";
+import { useAccount, useChainId } from "wagmi";
 import type { RootState } from "../globalredux/store";
 import { useSelector, useDispatch } from "react-redux";
+import { getData } from "../globalredux/Features/validator/valDataSlice";
 
 const Pricing: NextPage = () => {
+  const { address } = useAccount({
+    onConnect: ({ address }) => {
+      console.log("Ethereum Wallet Connected!");
+    },
+  });
+
+  useEffect(() => {
+    console.log(address);
+  }, [address]);
+
+  const currentChain = useChainId();
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!isInitialRender && address !== undefined) {
+      // This block will run after the initial render
+      dispatch(getData([{ address: "NO VALIDATORS" }]));
+    } else {
+      // This block will run only on the initial render
+
+      setIsInitialRender(false);
+    }
+  }, [currentChain, address]);
+
   const reduxDarkMode = useSelector(
     (state: RootState) => state.darkMode.darkModeOn
   );
@@ -37,40 +65,14 @@ const Pricing: NextPage = () => {
 
       <Navbar />
 
-      {/* TODO add pricing content */}
-
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
         <div className="flex flex-col justify-start items-start gap-4 w-[95%] lg:min-h-[92vh] p-4">
           <h1 className="text-2xl md:text-4xl self-center my-3 font-bold">
             Vrün Pricing
           </h1>
 
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Why Choose Vrün?</h2>
-            <ul className="list-disc pl-6">
-              <li>
-                <span className="font-bold">Secure:</span> We prioritize the
-                safety of your keys and validators.
-              </li>
-              <li>
-                <span className="font-bold">Non-Custodial:</span> You maintain
-                full control over your assets.
-              </li>
-              <li>
-                <span className="font-bold">Easy Setup:</span> No hardware
-                required, start staking quickly.
-              </li>
-              <li>
-                <span className="font-bold">Affordable:</span> Cost-effective
-                staking solutions.
-              </li>
-              <li>
-                <span className="font-bold">Community-Built:</span> Developed by
-                Rocket Pool community members, ensuring deep integration and
-                support.
-              </li>
-            </ul>
-          </div>
+          {/* insert pricing info here */}
+
         </div>
       </div>
 
