@@ -14,6 +14,9 @@ const Admin: NextPage = () => {
   const currentChain = useChainId();
 
   const [isAdmin, setIsAdmin] = useState(false);
+  const [nodeAddressInput, setNodeAddressInput] = useState("");
+  const [creditDaysInput, setCreditDaysInput] = useState(0);
+  const [reasonInput, setReasonInput] = useState("");
 
   const { address } = useAccount({
     onConnect: async ({ address }) => {
@@ -36,8 +39,7 @@ const Admin: NextPage = () => {
           (window as any).ethereum
         );
         const signerAddress = await browserProvider.getSigner().then(s => s.getAddress());
-        const adminAddresses: string[] = [];
-        // TODO: ensure adminAddresses exists, cache in redux?
+        const adminAddresses: string[] = await fetch('https://api.vrün.com/admins').then(r => r.json());
         return adminAddresses.includes(signerAddress.toLowerCase());
       } catch (error) {
         console.log(error);
@@ -75,11 +77,34 @@ const Admin: NextPage = () => {
       {address !== undefined ? (
         <>
           {isAdmin ? (
-            <>
-            <p>
-            TODO: form to issue a credit here
-            </p>
-            </>
+            <div className="flex flex-col py-12 max-w-md gap-2 place-self-center">
+              <input
+                value={nodeAddressInput}
+                className="mt-4 mb-2 border border-black-200"
+                placeholder="address of account to credit"
+                type="text"
+                onChange={e => setNodeAddressInput(e.target.value)}
+              />
+              <label>
+                <span className="mr-2">days to credit</span>
+                <input
+                  value={creditDaysInput}
+                  className="border max-w-fit text-right"
+                  type="number"
+                  onChange={e => setCreditDaysInput(e.target.value)}
+                />
+              </label>
+              <input
+                value={reasonInput}
+                type="text"
+                className="mt-4 mb-2 border border-black-200"
+                placeholder="reason for crediting account"
+                onChange={e => setReasonInput(e.target.value)}
+              />
+              <button
+                className="rounded-full border border-blue-500"
+              >Credit Account</button>
+            </div>
           ) : (
           <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
             <h2 className="text-2xl font-bold  sm:text-2xl">NOT ADMIN</h2>
