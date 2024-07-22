@@ -1,55 +1,28 @@
-'use client'
+"use client";
 
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
-
-
-
-
-type rowArray = [
-    []
-]
+type rowArray = [[]];
 
 type stateType = {
-    data: rowArray
-}
+  data: rowArray;
+};
 
-
-const initialState: stateType =  {
-
-   data: [[]]
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const initialState: stateType = {
+  data: [[]],
+};
 
 export const attestationsDataSlice = createSlice({
-    name: 'attestationsData',
-    initialState,
-    reducers: {
-        attestationsData: (state, action) => {
-            // Mutate the state to update it
-            state.data = action.payload;
-            console.log(state)
-        }
-    }
-})
+  name: "attestationsData",
+  initialState,
+  reducers: {
+    attestationsData: (state, action) => {
+      // Mutate the state to update it
+      state.data = action.payload;
+      console.log(state);
+    },
+  },
+});
 
 export const { attestationsData } = attestationsDataSlice.actions;
 
