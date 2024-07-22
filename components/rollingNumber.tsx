@@ -7,13 +7,15 @@ const RollingNumber = ({ n, bool }: any) => {
     from: { number: 0.0000001 },
     to: { number: parseFloat(n) },
     delay: 150,
-    config: { mass: 0.2, tension: 20, friction: 10 }
+    config: { mass: 0.2, tension: 20, friction: 10 },
   });
 
-  const fixedNum = bool ? 0.00000000 : 5.00000;
+  const fixedNum = bool ? 0.0 : 5.0;
 
   return (
-    <animated.div style={{ display: "inline-block", transition: "0.2s all ease-in-out" }}>
+    <animated.div
+      style={{ display: "inline-block", transition: "0.2s all ease-in-out" }}
+    >
       {number.to((value) => value.toFixed(fixedNum))}
     </animated.div>
   );
