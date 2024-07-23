@@ -286,7 +286,6 @@ const AccountMain: NextPage = () => {
     getMinipoolTruth();
   }, []);
 
-  // TODO figure out what this is doing
   useEffect(() => {
     if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
       setGraphTimeout(true);
@@ -581,11 +580,11 @@ const AccountMain: NextPage = () => {
 
           if (reg === true) {
             getMinipoolData();
-            getPayments();
+            // getPayments(); // DEBUG
             getNodeCollateral(address);
 
             getMinipoolTruth();
-            getCharges();
+            // getCharges();
           }
         } catch (error) {
           // Handle any errors that occur during registration check
@@ -596,6 +595,8 @@ const AccountMain: NextPage = () => {
   });
 
   const [isInitialRender, setIsInitialRender] = useState(true);
+
+  const [preloader, setPreloader] = useState(true);
 
   useEffect(() => {
     if (!isInitialRender && address !== undefined) {
@@ -610,8 +611,8 @@ const AccountMain: NextPage = () => {
       getMinipoolTruth();
       getMinipoolData();
       getNodeCollateral(address);
-      getPayments();
-      getCharges();
+      // getPayments();
+      // getCharges();
     } else {
       // This block will run only on the initial render
       setPreloader(true);
@@ -798,7 +799,6 @@ const AccountMain: NextPage = () => {
     return feeRecipient;
   };
 
-  const [preloader, setPreloader] = useState(true);
 
   const [validatorsInNeedOfAction, setValidatorsInNeedOfAction] = useState({
     withdrawn: 0,
@@ -872,7 +872,7 @@ const AccountMain: NextPage = () => {
       }
     )
       .then(async (response) => {
-        var jsonString = await response.json();
+        var jsonString = "0" // await response.json();
 
         console.log("Result of get next index" + jsonString);
 
@@ -1290,6 +1290,7 @@ const AccountMain: NextPage = () => {
   };
 
   useEffect(() => {
+    console.log("redux data length: " + reduxData.length); // DEBUG
     if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
       setPreloader(true);
       getPayments();
@@ -2305,6 +2306,8 @@ const AccountMain: NextPage = () => {
         const tx = await rocketNodeManager.setSmoothingPoolRegistrationState(
           checked2
         );
+
+
         console.log(tx);
 
         setIncrementer(1);
@@ -2677,11 +2680,12 @@ const AccountMain: NextPage = () => {
       }}
       className="flex w-full flex-col items-center   justify-center "
     >
+      <div>Preloader: {preloader.toString()} {typeof preloader}</div>
       {address !== undefined ? (
         <>
           {isRegistered ? (
             <>
-              {!preloader ? (
+              {(!preloader) ? (
                 <div className="w-full flex flex-col  items-center gap-7 lg:gap-0 justify-center">
                   <div className="w-full h-auto lg:h-[90vh] pt-[5vh] lg:pt-[0vh] flex flex-col items-center justify-center gap-[6vh]">
                     <div
