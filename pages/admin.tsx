@@ -13,10 +13,15 @@ import NoConnection from "../components/noConnection";
 const Admin: NextPage = () => {
   const currentChain = useChainId();
 
+  const datetimeNow = () =>
+    (new Date()).toISOString().slice(0, "YYYY-MM-DDTHH:mm:ss".length);
+
   const [isAdmin, setIsAdmin] = useState(false);
   const [nodeAddressInput, setNodeAddressInput] = useState("");
   const [creditDaysInput, setCreditDaysInput] = useState(0);
   const [reasonInput, setReasonInput] = useState("");
+  const [txHashInput, setTxHashInput] = useState("");
+  const [datetimeInput, setDatetimeInput] = useState(datetimeNow());
 
   const { address } = useAccount({
     onConnect: async ({ address }) => {
@@ -101,7 +106,25 @@ const Admin: NextPage = () => {
                 placeholder="reason for crediting account"
                 onChange={e => setReasonInput(e.target.value)}
               />
+              <div>
+                <input
+                  value={datetimeInput}
+                  type="datetime-local"
+                  onChange={e => setDatetimeInput(e.target.value)}
+                />
+                <button type="button" className="border"
+                 onClick={() => setDatetimeInput(datetimeNow())}
+                >reset to now</button>
+              </div>
+              <input
+                value={txHashInput}
+                type="text"
+                className="mt-4 mb-2 border border-black-200"
+                placeholder="optional transaction hash"
+                onChange={e => setTxHashInput(e.target.value)}
+              />
               <button
+                type="button"
                 className="rounded-full border border-blue-500"
               >Credit Account</button>
             </div>
