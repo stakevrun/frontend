@@ -286,6 +286,7 @@ const AccountMain: NextPage = () => {
     getMinipoolTruth();
   }, []);
 
+  // TODO figure out what this is doing
   useEffect(() => {
     if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
       setGraphTimeout(true);
@@ -1994,7 +1995,6 @@ const AccountMain: NextPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        mode: "no-cors",
       }
     )
       .then(async (response) => {
@@ -2029,7 +2029,6 @@ const AccountMain: NextPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        mode: "no-cors",
       }
     )
       .then(async (response) => {
