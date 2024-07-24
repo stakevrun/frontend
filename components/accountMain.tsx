@@ -1956,9 +1956,7 @@ const AccountMain: NextPage = () => {
       totalDays += days;
     }
 
-    let totalETH = totalDays * 0.0001; // TODO: this should stay in days, not convert to ETH
-
-    dispatch(getChargesData(totalETH));
+    dispatch(getChargesData(totalDays));
   };
 
   useEffect(() => {
