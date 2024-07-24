@@ -88,7 +88,7 @@ const AccountMain: NextPage = () => {
   const mainnetRPCKey = process.env.MAINNET_RPC;
 
   useEffect(() => {
-    console.log(publicKeyArmored);
+    console.log("publicKeyArmored: " + publicKeyArmored);
   }, [publicKeyArmored]);
 
   const encryptData = async (jsonData: string) => {
@@ -276,7 +276,7 @@ const AccountMain: NextPage = () => {
           newBool = bool;
         }
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         setChecked5(false);
       }
 
@@ -580,11 +580,11 @@ const AccountMain: NextPage = () => {
 
           if (reg === true) {
             getMinipoolData();
-            // getPayments(); // DEBUG
+            getPayments(); // DEBUG
             getNodeCollateral(address);
 
             getMinipoolTruth();
-            // getCharges();
+            getCharges();
           }
         } catch (error) {
           // Handle any errors that occur during registration check
@@ -611,8 +611,8 @@ const AccountMain: NextPage = () => {
       getMinipoolTruth();
       getMinipoolData();
       getNodeCollateral(address);
-      // getPayments();
-      // getCharges();
+      getPayments();
+      getCharges();
     } else {
       // This block will run only on the initial render
       setPreloader(true);
@@ -667,7 +667,8 @@ const AccountMain: NextPage = () => {
           storageABI,
           signer
         );
-        console.log("Storage Contract:" + storageContract);
+        console.log("Storage Contract:");
+        console.log(storageContract);
 
         const NodeManagerAddress = await storageContract["getAddress(bytes32)"](
           ethers.id("contract.addressrocketNodeManager")
@@ -678,10 +679,11 @@ const AccountMain: NextPage = () => {
           managerABI,
           signer
         );
-        console.log("Rocket Node Manager:" + rocketNodeManager);
+        console.log("Rocket Node Manager:")
+        console.log(rocketNodeManager);
         const bool = await rocketNodeManager.getNodeExists(add);
 
-        console.log("Bool:" + bool);
+        console.log("getNodeExists: " + bool);
 
         return bool;
       } catch (error) {
@@ -916,7 +918,7 @@ const AccountMain: NextPage = () => {
       withdrawals_amount: BigInt(0),
     };
 
-    if (newNextIndex === 0) {
+    if (Number(newNextIndex) === 0) {
       minipoolObjects.push({
         address: "",
         statusResult: "Empty",
@@ -963,7 +965,7 @@ const AccountMain: NextPage = () => {
 
       let attachedPubkeyArray: Array<Array<string>> = [];
 
-      for (let i = 0; i <= newNextIndex - 1; i++) {
+      for (let i = 0; i <= Number(newNextIndex) - 1; i++) {
         await fetch(
           `https://api.vrün.com/${currentChain}/${address}/pubkey/${i}`,
           {
@@ -1939,35 +1941,36 @@ const AccountMain: NextPage = () => {
 
       // https://fee.vrun.com
 
-      const charges: number = await fetch(
-        `https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`,
-        {
-          method: "GET",
+      const charges = await Promise.resolve(0); // DEBUG
+      // const charges: number = await fetch(
+      //   `https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`,
+      //   {
+      //     method: "GET",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
-        mode: "no-cors",
-        }
-      )
-        .then(async (response) => {
-          var jsonObject = await response.json();
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //   mode: "no-cors",
+      //   }
+      // )
+      //   .then(async (response) => {
+      //     var jsonObject = await response.json();
 
-          console.log("An Object of Power:" + Object.entries(jsonObject));
-          let numDays = 0;
+      //     console.log("An Object of Power:" + Object.entries(jsonObject));
+      //     let numDays = 0;
 
-          for (const object of jsonObject) {
-            console.log("Charges object:" + Object.entries(object));
+      //     for (const object of jsonObject) {
+      //       console.log("Charges object:" + Object.entries(object));
 
-            numDays += object.numDays;
-          }
+      //       numDays += object.numDays;
+      //     }
 
-          return numDays;
-        })
-        .catch((error) => {
-          console.log("Charges" + error);
-          return 0;
-        });
+      //     return numDays;
+      //   })
+      //   .catch((error) => {
+      //     console.log("Charges" + error);
+      //     return 0;
+      //   });
 
       totalCharges += charges;
     }
@@ -1988,34 +1991,35 @@ const AccountMain: NextPage = () => {
 
     let paymentData: Array<RowType> = [];
 
-    const payments: string = await fetch(
-      `https://fee.vrün.com/${currentChain}/${address}/payments`,
-      {
-        method: "GET",
+    const payments = await Promise.resolve("0");
+    // const payments: string = await fetch(
+    //   `https://fee.vrün.com/${currentChain}/${address}/payments`,
+    //   {
+    //     method: "GET",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
-      .then(async (response) => {
-        var jsonObject = await response.json();
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // )
+    //   .then(async (response) => {
+    //     var jsonObject = await response.json();
 
-        let balance = BigInt(0);
-        for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
-          const paymentsObject = Object(payments);
+    //     let balance = BigInt(0);
+    //     for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
+    //       const paymentsObject = Object(payments);
 
-          for (const { amount, timestamp, tx } of paymentsObject) {
-            balance += BigInt(amount);
-          }
-        }
+    //       for (const { amount, timestamp, tx } of paymentsObject) {
+    //         balance += BigInt(amount);
+    //       }
+    //     }
 
-        return ethers.formatEther(balance);
-      })
-      .catch((error) => {
-        console.log(error);
-        return "";
-      });
+    //     return ethers.formatEther(balance);
+    //   })
+    //   .catch((error) => {
+    //     console.log(error);
+    //     return "";
+    //   });
 
     setCurrentPayments(Number(payments));
     dispatch(getPaymentsData(Number(payments)));
@@ -2093,7 +2097,7 @@ const AccountMain: NextPage = () => {
   };
 
   useEffect(() => {
-    console.log(currentEditGraffiti);
+    console.log("currentEditGraffiti: " + currentEditGraffiti);
   }, [currentEditGraffiti]);
 
   const confirmGraffiti = () => {
@@ -2235,7 +2239,7 @@ const AccountMain: NextPage = () => {
 
     const newOne = Object.entries(graphData.datasets);
 
-    console.log(Object.entries(newOne));
+    console.log("newOne: " + Object.entries(newOne));
   }, [graphData]);
 
   const options = {
