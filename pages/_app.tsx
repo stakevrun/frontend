@@ -1,56 +1,57 @@
-import "../styles/globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
+import '../styles/globals.css';
+import '@rainbow-me/rainbowkit/styles.css';
+import { getDefaultWallets, RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowkit';
+import type { AppProps } from 'next/app';
+import { configureChains, createConfig, WagmiConfig } from 'wagmi';
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import {
-  getDefaultWallets,
-  RainbowKitProvider,
-  darkTheme,
-  lightTheme,
-} from "@rainbow-me/rainbowkit";
-import type { AppProps } from "next/app";
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
-import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
-import { holesky, mainnet } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
-import { QueryClient, QueryClientProvider, useQuery } from "react-query";
 
-import { Providers } from "../globalredux/provider";
+  holesky, mainnet
 
-const holeskyRPCKey = process.env.HOLESKY_RPC;
-const mainnetRPCKey = process.env.MAINNET_RPC;
+} from 'wagmi/chains';
+import { publicProvider } from 'wagmi/providers/public';
+import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
 
-const queryClient = new QueryClient();
+
+
+import {Providers} from "../globalredux/provider"
+
+const holeskyRPCKey = process.env.HOLESKY_RPC
+const mainnetRPCKey = process.env.MAINNET_RPC
+
+
+const queryClient = new QueryClient()
+
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
-    //mainnet,
+   //mainnet,
     //polygon,
     //optimism,
     //arbitrum,
-    // base,
+   // base,
     //zora,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true" ? [holesky] : []),
+    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [holesky] : []),
   ],
-  [
-    jsonRpcProvider({
-      rpc: () => ({
-        http: `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/`,
-      }),
+  [ jsonRpcProvider({
+    rpc: () => ({
+      http: `https://ultra-holy-road.ethereum-holesky.quiknode.pro/${holeskyRPCKey}/`,
     }),
-    jsonRpcProvider({
-      rpc: () => ({
-        http: `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`,
-      }),
+  }),
+  jsonRpcProvider({
+    rpc: () => ({
+      http: `https://chaotic-alpha-glade.quiknode.pro/${mainnetRPCKey}/`,
     }),
-    publicProvider(),
-  ]
+  })
+    ,publicProvider()]
 );
 
 //currentChain === 17000 ?   'https://ultra-holy-road.ethereum-holesky.quiknode.pro/b4bcc06d64cddbacb06daf0e82de1026a324ce77/'    :
 // "https://chaotic-alpha-glade.quiknode.pro/2dbf1a6251414357d941b7308e318a279d9856ec/"
 
 const { connectors } = getDefaultWallets({
-  appName: "RainbowKit App",
-  projectId: "64fa04740ab4284806bd0df2ea67c791",
+  appName: 'RainbowKit App',
+  projectId: '64fa04740ab4284806bd0df2ea67c791',
   chains,
 });
 
@@ -61,19 +62,28 @@ const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
+
 //comment test
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <Providers>
-      <QueryClientProvider client={queryClient}>
-        <WagmiConfig config={wagmiConfig}>
-          <RainbowKitProvider chains={chains}>
-            <Component {...pageProps} />
-          </RainbowKitProvider>
-        </WagmiConfig>
-      </QueryClientProvider>
+<Providers>
+<QueryClientProvider client={queryClient}>
+    <WagmiConfig config={wagmiConfig}>
+      <RainbowKitProvider 
+      chains={chains}
+    
+      >
+         
+   
+        <Component {...pageProps} />
+  
+      </RainbowKitProvider>
+    </WagmiConfig>
+    </QueryClientProvider>
     </Providers>
+
+
   );
 }
 
