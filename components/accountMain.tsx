@@ -1964,44 +1964,24 @@ const AccountMain: NextPage = () => {
   }, [currentCharges]);
 
   const getPayments = async () => {
-    type RowType = {
-      payments: number; // Assuming payments are numbers for calculation
-    };
+    const payments: number = await fetch(
+      `https://fee.vrün.com/${currentChain}/${address}/credits`,
+      {
+        method: "GET",
 
-    let paymentData: Array<RowType> = [];
+        headers: {
+          "Content-Type": "application/json",
+        },
+        mode: 'no-cors',
+      }
+    ).then(response => response.json())
+     .catch((error) => {
+       console.log(`credits error: ${error}`);
+       return 0;
+     });
 
-    const payments = await Promise.resolve("0"); // DEBUG
-    // const payments: string = await fetch(
-    //   `https://fee.vrün.com/${currentChain}/${address}/payments`,
-    //   {
-    //     method: "GET",
-
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   }
-    // )
-    //   .then(async (response) => {
-    //     var jsonObject = await response.json();
-
-    //     let balance = BigInt(0);
-    //     for (const [tokenAddress, payments] of Object.entries(jsonObject)) {
-    //       const paymentsObject = Object(payments);
-
-    //       for (const { amount, timestamp, tx } of paymentsObject) {
-    //         balance += BigInt(amount);
-    //       }
-    //     }
-
-    //     return ethers.formatEther(balance);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     return "";
-    //   });
-
-    setCurrentPayments(Number(payments));
-    dispatch(getPaymentsData(Number(payments)));
+    setCurrentPayments(payments);
+    dispatch(getPaymentsData(payments));
   };
 
   const getGraffiti = async (pubkey: string) => {
