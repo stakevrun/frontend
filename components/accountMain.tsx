@@ -2808,7 +2808,7 @@ const AccountMain: NextPage = () => {
                                   >
                                     {reduxPayments - reduxCharges}
                                   </span>{" "}
-                                  ETH
+                                  Val. Days
                                 </span>
                                 {reduxPayments - reduxCharges >= 0 ? (
                                   <span className="block text-sm text-gray-500 ">
