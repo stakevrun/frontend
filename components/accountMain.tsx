@@ -580,7 +580,7 @@ const AccountMain: NextPage = () => {
 
           if (reg === true) {
             getMinipoolData();
-            getPayments(); // DEBUG
+            getPayments();
             getNodeCollateral(address);
 
             getMinipoolTruth();
@@ -1991,7 +1991,7 @@ const AccountMain: NextPage = () => {
 
     let paymentData: Array<RowType> = [];
 
-    const payments = await Promise.resolve("0");
+    const payments = await Promise.resolve("0"); // DEBUG
     // const payments: string = await fetch(
     //   `https://fee.vrün.com/${currentChain}/${address}/payments`,
     //   {
