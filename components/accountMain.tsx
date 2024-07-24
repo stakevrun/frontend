@@ -1292,7 +1292,7 @@ const AccountMain: NextPage = () => {
   };
 
   useEffect(() => {
-    console.log("redux data length: " + reduxData.length); // DEBUG
+    console.log("redux data length: " + reduxData.length);
     if (reduxData.length > 0 && reduxData[0].address !== "NO VALIDATORS") {
       setPreloader(true);
       getPayments();
