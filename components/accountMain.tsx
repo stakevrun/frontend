@@ -1934,48 +1934,29 @@ const AccountMain: NextPage = () => {
   const [currentCharges, setCurrentCharges] = useState<number>(0);
 
   const getCharges = async () => {
-    let totalCharges = 0;
+    let totalDays = 0;
 
     for (const data of reduxData) {
-      console.log("Deffo here...");
+      const days: number = await fetch(
+        `https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json", },
+          mode: "no-cors",
+        }
+      ).then(response =>
+          response.json().then(
+            charges => charges.reduce((total, {numDays}) => total + numDays, 0)
+          )
+      ).catch((error) => {
+        console.log("Charges error: " + error);
+        return 0;
+      });
 
-      // https://fee.vrun.com
-
-      const charges = await Promise.resolve(0); // DEBUG
-      // const charges: number = await fetch(
-      //   `https://fee.vrün.com/${currentChain}/${address}/${data.pubkey}/charges`,
-      //   {
-      //     method: "GET",
-
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //   mode: "no-cors",
-      //   }
-      // )
-      //   .then(async (response) => {
-      //     var jsonObject = await response.json();
-
-      //     console.log("An Object of Power:" + Object.entries(jsonObject));
-      //     let numDays = 0;
-
-      //     for (const object of jsonObject) {
-      //       console.log("Charges object:" + Object.entries(object));
-
-      //       numDays += object.numDays;
-      //     }
-
-      //     return numDays;
-      //   })
-      //   .catch((error) => {
-      //     console.log("Charges" + error);
-      //     return 0;
-      //   });
-
-      totalCharges += charges;
+      totalDays += days;
     }
 
-    let totalETH = totalCharges * 0.0001;
+    let totalETH = totalDays * 0.0001; // TODO: this should stay in days, not convert to ETH
 
     dispatch(getChargesData(totalETH));
   };
