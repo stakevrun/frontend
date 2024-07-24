@@ -2684,7 +2684,6 @@ const AccountMain: NextPage = () => {
       }}
       className="flex w-full flex-col items-center   justify-center "
     >
-      <div>Preloader: {preloader.toString()} {typeof preloader}</div>
       {address !== undefined ? (
         <>
           {isRegistered ? (
