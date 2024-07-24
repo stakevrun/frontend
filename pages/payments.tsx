@@ -339,8 +339,6 @@ const Payments: NextPage = () => {
     let totalCharges = 0;
 
     for (const [pubkey] of attachedPubkeyArray) {
-      console.log("Deffo here...");
-
       const charges: number = await fetch(
         `https://fee.vrün.com/${currentChain}/${address}/${pubkey}/charges`,
         {
@@ -377,9 +375,7 @@ const Payments: NextPage = () => {
       totalCharges += charges;
     }
 
-    let totalETH = totalCharges * 0.0001;
-
-    dispatch(getChargesData(totalETH));
+    dispatch(getChargesData(totalCharges));
 
     const finalArray = sortInReverseChronologicalOrder(newChargesArray);
 
@@ -498,9 +494,8 @@ const Payments: NextPage = () => {
             }
           )
             .then(async (response) => {
-              var jsonObject = await response.json();
+              const jsonObject = await response.json();
 
-              console.log("An Object of Power:" + Object.entries(jsonObject));
               let numDays = 0;
 
               for (const object of jsonObject) {
@@ -524,9 +519,7 @@ const Payments: NextPage = () => {
         }
       }
 
-      let totalETH = totalCharges * 0.0001;
-
-      dispatch(getChargesData(totalETH));
+      dispatch(getChargesData(totalCharges));
 
       const finalArray = sortInReverseChronologicalOrder(newChargesArray);
 
