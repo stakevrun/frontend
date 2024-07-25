@@ -63,19 +63,19 @@ const Navbar: NextPage = () => {
     nodeAddress: string;
   };
 
-  const [isInitialRender, setIsInitialRender] = useState(true);
+  // const [isInitialRender, setIsInitialRender] = useState(true);
 
-  useEffect(() => {
-    if (!isInitialRender && address !== undefined) {
-      // This block will run after the initial render
-      dispatch(getData([{ address: "NO VALIDATORS" }]));
-      router.push(`/account`);
-    } else {
-      // This block will run only on the initial render
+  // useEffect(() => {
+  //   if (!isInitialRender && address !== undefined) {
+  //     // This block will run after the initial render
+  //     dispatch(getData([{ address: "NO VALIDATORS" }]));
+  //     router.push(`/account`);
+  //   } else {
+  //     // This block will run only on the initial render
 
-      setIsInitialRender(false);
-    }
-  }, [currentChain, address]);
+  //     setIsInitialRender(false);
+  //   }
+  // }, [currentChain, address]);
 
   const getGraffiti = async (pubkey: string) => {
     const graffiti = await fetch(
