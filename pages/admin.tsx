@@ -28,6 +28,7 @@ const Admin: NextPage = () => {
   const [tokenAddress, setTokenAddress] = useState("");
   const [timestampInput, setTimestampInput] = useState(secondsNow());
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const { address } = useAccount({
     onConnect: async ({ address }) => {
@@ -94,7 +95,7 @@ const Admin: NextPage = () => {
       ]
     };
 
-    const value = {
+    const data = {
       timestamp: timestampInput,
       nodeAccount: nodeAddressInput || "0x".padEnd(42, "0"),
       numDays: Math.abs(creditDaysInput),
@@ -105,15 +106,45 @@ const Admin: NextPage = () => {
       reason: reasonInput,
     };
 
-    console.log(value);
+    console.log('About to try signing this data:')
+    console.log(data);
 
+    let signature
     try {
-      const signature = await signerRef.current?.signTypedData(domain, types, value);
+      signature = await signerRef.current?.signTypedData(domain, types, data);
     }
     catch (e) {
       console.warn(`signTypedData error: ${e}`)
       setErrorMessage(e.message)
     }
+
+    const dataToPost = {
+      type: 'CreditAccount',
+      data,
+      signature
+    }
+    await fetch(
+      `https://api.vrün.com/${currentChain}/${nodeAccount}/credit`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", },
+        body: JSON.stringify(dataToPost),
+        mode: "no-cors",
+      }
+    ).then(async res => {
+      if (res.status !== 201)
+        throw new Error(`Unexpected return status from POST: ${res.status}. Body: ${await res.text()}`);
+      else {
+        setSuccessMessage("Posted credit");
+        console.log("Posted credit");
+        setTimeout(() => setSuccessMessage(""), 5000);
+      }
+    })
+    .catch(error => {
+      console.warn(`post credit error: ${error}`)
+      setErrorMessage(error.message)
+    });
+
   };
 
   const reduxDarkMode = useSelector(
@@ -208,7 +239,8 @@ const Admin: NextPage = () => {
                 className="rounded-full border border-blue-500"
                 onClick={handleCreditAccount}
               >Credit Account</button>
-              { errorMessage && <div>Error with signing: {errorMessage}</div> }
+              { errorMessage && <div>Error: {errorMessage}</div> }
+              { successMessage && <div>{successMessage}</div> }
             </div>
           ) : (
           <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
