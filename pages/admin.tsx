@@ -27,6 +27,7 @@ const Admin: NextPage = () => {
   const [tokenChainId, setTokenChainId] = useState(1);
   const [tokenAddress, setTokenAddress] = useState("");
   const [timestampInput, setTimestampInput] = useState(secondsNow());
+  const [errorMessage, setErrorMessage] = useState("");
 
   const { address } = useAccount({
     onConnect: async ({ address }) => {
@@ -65,7 +66,7 @@ const Admin: NextPage = () => {
     }
   };
 
-  const handleCreditAccount = () => {
+  const handleCreditAccount = async () => {
     // signer.signTypedData(domain: TypedDataDomain, types: Record< string, Array< TypedDataField > >, value: Record< string, any >)⇒ Promise< string >
     const domain = {
       name: "vrün",
@@ -106,7 +107,13 @@ const Admin: NextPage = () => {
 
     console.log(value);
 
-    signerRef.current?.signTypedData(domain, types, value);
+    try {
+      const signature = await signerRef.current?.signTypedData(domain, types, value);
+    }
+    catch (e) {
+      console.warn(`signTypedData error: ${e}`)
+      setErrorMessage(e.message)
+    }
   };
 
   const reduxDarkMode = useSelector(
@@ -201,6 +208,7 @@ const Admin: NextPage = () => {
                 className="rounded-full border border-blue-500"
                 onClick={handleCreditAccount}
               >Credit Account</button>
+              { errorMessage && <div>Error with signing: {errorMessage}</div> }
             </div>
           ) : (
           <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
