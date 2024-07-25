@@ -24,7 +24,7 @@ const Admin: NextPage = () => {
   const [creditDaysInput, setCreditDaysInput] = useState(0);
   const [reasonInput, setReasonInput] = useState("");
   const [txHashInput, setTxHashInput] = useState("");
-  const [tokenChainID, setTokenChainID] = useState(1);
+  const [tokenChainId, setTokenChainId] = useState(1);
   const [tokenAddress, setTokenAddress] = useState("");
   const [timestampInput, setTimestampInput] = useState(secondsNow());
 
@@ -98,7 +98,7 @@ const Admin: NextPage = () => {
       nodeAccount: nodeAddressInput,
       numDays: Math.abs(creditDaysInput),
       decreaseBalance: (creditDaysInput < 0),
-      tokenChainID,
+      tokenChainId,
       tokenAddress: tokenAddress || "0x".padEnd(42, "0"),
       transactionHash: txHashInput || "0x".padEnd(66, "0"),
       reason: reasonInput,
@@ -173,13 +173,15 @@ const Admin: NextPage = () => {
                  onClick={() => setTimestampInput(secondsNow())}
                 >reset to now</button>
               </div>
-              <input
-                value={tokenChainID}
-                type="number"
-                className="mt-4 mb-2 border border-black-200"
-                placeholder="optional token chain ID"
-                onChange={e => setTokenChainID(Number(e.target.value))}
-              />
+              <label>
+                <span className="mr-2">optional token chain id</span>
+                <input
+                  value={tokenChainId}
+                  type="number"
+                  className="mt-4 mb-2 border border-black-200"
+                  onChange={e => setTokenChainID(Number(e.target.value))}
+                />
+              </label>
               <input
                 value={tokenAddress}
                 type="text"
