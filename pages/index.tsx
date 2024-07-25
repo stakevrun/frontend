@@ -31,7 +31,7 @@ const Home: NextPage = () => {
   });
 
   useEffect(() => {
-    console.log(address);
+    console.log("Address: " + address);
   }, [address]);
 
   const reduxDarkMode = useSelector(

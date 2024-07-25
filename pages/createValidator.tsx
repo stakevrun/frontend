@@ -2423,6 +2423,7 @@ const CreateValidator: NextPage = () => {
   const [checkTruth, setCheckTruth] = useState(false);
 
   useEffect(() => {
+    console.log("redux data length: " + reduxData.length);
     if (reduxData[0].address === "NO VALIDATORS") {
       setCheckTruth(false);
       getMinipoolData();

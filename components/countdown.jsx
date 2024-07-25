@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const CountdownComponent = ({ milliseconds, reset }) => {
-  const [formattedTime, setFormattedTime] = useState('');
+  const [formattedTime, setFormattedTime] = useState("");
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -9,12 +9,11 @@ const CountdownComponent = ({ milliseconds, reset }) => {
 
       const now = new Date().getTime();
 
-    
-      console.log("NOW:" + now)
-      console.log("MILIS:" + milliseconds)
-      const remainingTime =  milliseconds - now;
+      console.log("NOW:" + now);
+      console.log("MILIS:" + milliseconds);
+      const remainingTime = milliseconds - now;
 
-      console.log("Remaing time:" + remainingTime)
+      console.log("Remaing time:" + remainingTime);
 
       // If remaining time is less than or equal to 0, stop countdown
       if (remainingTime <= 0) {
@@ -42,8 +41,7 @@ const CountdownComponent = ({ milliseconds, reset }) => {
 
   return (
     <div className="flex flex-col items-start justify-center gap-2">
-    <div className="font-bold text-gray-400 text-md">{formattedTime}</div>
-   
+      <div className="font-bold text-gray-400 text-md">{formattedTime}</div>
     </div>
   );
 };

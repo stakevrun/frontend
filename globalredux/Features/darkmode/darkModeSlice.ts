@@ -1,38 +1,26 @@
-'use client'
+"use client";
 
-
-import { createSlice } from '@reduxjs/toolkit'
-
+import { createSlice } from "@reduxjs/toolkit";
 
 type StateType = {
-    darkModeOn: boolean,
-}
+  darkModeOn: boolean;
+};
 
 const initialState: StateType = {
-    darkModeOn: false // Initialize total as empty string
-}
-
-
-
-
-
-
-
-
-
+  darkModeOn: false, // Initialize total as empty string
+};
 
 export const darkModeSlice = createSlice({
-    name: 'darkMode',
-    initialState,
-    reducers: {
-        changeDarkMode: (state) => {
-            // Mutate the state to update it
-            state.darkModeOn = !state.darkModeOn
-          
-        },
-    }
-})
+  name: "darkMode",
+  initialState,
+  reducers: {
+    changeDarkMode: (state) => {
+      // Mutate the state to update it
+      state.darkModeOn = !state.darkModeOn;
+    },
+  },
+});
 
-export const { changeDarkMode} = darkModeSlice.actions;
+export const { changeDarkMode } = darkModeSlice.actions;
 
 export default darkModeSlice.reducer;

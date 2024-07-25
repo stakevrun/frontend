@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const CountdownComponentScrub = ({ initialMilliseconds, reset }) => {
   const [remainingTime, setRemainingTime] = useState(initialMilliseconds);
-  const [formattedTime, setFormattedTime] = useState('');
+  const [formattedTime, setFormattedTime] = useState("");
 
   useEffect(() => {
     // Define a function to update the remaining time and format it
     const updateRemainingTime = () => {
-      setRemainingTime(prevTime => {
+      setRemainingTime((prevTime) => {
         // If remaining time is less than or equal to 0, stop countdown
         if (prevTime <= 1000) {
-            reset();
-            setFormattedTime("")
+          reset();
+          setFormattedTime("");
           return 0;
         }
         return prevTime - 1000;
@@ -27,7 +27,9 @@ const CountdownComponentScrub = ({ initialMilliseconds, reset }) => {
     const secondsLeft = Math.floor((remainingTime % 60000) / 1000);
 
     // Set formatted time
-    setFormattedTime(`${hoursLeft} hours ${minutesLeft} minutes ${secondsLeft} seconds`);
+    setFormattedTime(
+      `${hoursLeft} hours ${minutesLeft} minutes ${secondsLeft} seconds`
+    );
 
     // Clear timeout on component unmount
     return () => clearTimeout(timeoutId);
