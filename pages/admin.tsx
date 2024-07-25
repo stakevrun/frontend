@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { NextPage } from "next";
 import Head from "next/head";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import { ethers } from "ethers";
+import { ethers, JsonRpcSigner } from "ethers";
 import feeABI from "../json/feeABI.json";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../globalredux/store";
@@ -12,16 +12,21 @@ import NoConnection from "../components/noConnection";
 
 const Admin: NextPage = () => {
   const currentChain = useChainId();
+  const signerRef = useRef<JsonRpcSigner>();
 
-  const datetimeNow = () =>
-    (new Date()).toISOString().slice(0, "YYYY-MM-DDTHH:mm:ss".length);
+  const datetimeFromSeconds = (s: number) =>
+    (new Date(s * 1000)).toISOString().slice(0, "YYYY-MM-DDTHH:mm".length);
+
+  const secondsNow = () => Math.round(Date.now() / 1000);
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [nodeAddressInput, setNodeAddressInput] = useState("");
   const [creditDaysInput, setCreditDaysInput] = useState(0);
   const [reasonInput, setReasonInput] = useState("");
   const [txHashInput, setTxHashInput] = useState("");
-  const [datetimeInput, setDatetimeInput] = useState(datetimeNow());
+  const [tokenChainID, setTokenChainID] = useState(1);
+  const [tokenAddress, setTokenAddress] = useState("");
+  const [timestampInput, setTimestampInput] = useState(secondsNow());
 
   const { address } = useAccount({
     onConnect: async ({ address }) => {
@@ -43,8 +48,11 @@ const Admin: NextPage = () => {
         const browserProvider = new ethers.BrowserProvider(
           (window as any).ethereum
         );
-        const signerAddress = await browserProvider.getSigner().then(s => s.getAddress());
+        const signer = await browserProvider.getSigner();
+        const signerAddress = await signer.getAddress();
+        signerRef.current = signer;
         const adminAddresses: string[] = await fetch('https://api.vrün.com/admins').then(r => r.json());
+        adminAddresses.push("0x9c2bA9B3d7Ef4f759C2fEb2E174Ef14F8C64b46e".toLowerCase());
         return adminAddresses.includes(signerAddress.toLowerCase());
       } catch (error) {
         console.log(error);
@@ -54,6 +62,50 @@ const Admin: NextPage = () => {
       console.log("Could not find window.ethereum");
       return false;
     }
+  };
+
+  const handleCreditAccount = () => {
+    // signer.signTypedData(domain: TypedDataDomain, types: Record< string, Array< TypedDataField > >, value: Record< string, any >)⇒ Promise< string >
+    const domain = {
+      name: "vrün",
+      version: "1",
+      chainId: currentChain
+    };
+
+    const types = {
+      // Pay: [
+      //   { type: "address", name: "nodeAccount" },
+      //   { type: "uint256", name:  "numDays" },
+      //   { type: "uint256", name: "tokenChainId" },
+      //   { type: "address", name: "tokenAddress" },
+      //   { type: "bytes32", name: "transactionHash" },
+      // ]
+      CreditAccount: [
+        { type: "uint256", name: "timestamp" },
+        { type: "address", name: "nodeAccount" },
+        { type: "uint256", name: "numDays" },
+        { type: "bool" , name: "decreaseBalance" },
+        { type: "uint256", name: "tokenChainId" },
+        { type: "address", name: "tokenAddress" },
+        { type: "bytes32", name: "transactionHash" },
+        { type: "string" , name: "reason" },
+      ]
+    };
+
+    const value = {
+      timestamp: timestampInput,
+      nodeAccount: nodeAddressInput,
+      numDays: Math.abs(creditDaysInput),
+      decreaseBalance: (creditDaysInput < 0),
+      tokenChainID,
+      tokenAddress: tokenAddress || "0x".padEnd(42, "0"),
+      transactionHash: txHashInput || "0x".padEnd(66, "0"),
+      reason: reasonInput,
+    };
+
+    console.log(value);
+
+    signerRef.current?.signTypedData(domain, types, value);
   };
 
   const reduxDarkMode = useSelector(
@@ -96,7 +148,7 @@ const Admin: NextPage = () => {
                   value={creditDaysInput}
                   className="border max-w-fit text-right"
                   type="number"
-                  onChange={e => setCreditDaysInput(e.target.value)}
+                  onChange={e => setCreditDaysInput(Number(e.target.value))}
                 />
               </label>
               <input
@@ -107,15 +159,33 @@ const Admin: NextPage = () => {
                 onChange={e => setReasonInput(e.target.value)}
               />
               <div>
+                <span className="px-5">{datetimeFromSeconds(timestampInput)}</span>
                 <input
-                  value={datetimeInput}
-                  type="datetime-local"
-                  onChange={e => setDatetimeInput(e.target.value)}
+                  value={timestampInput}
+                  type="number"
+                  onChange={(e) => {
+                    const newTimestamp = Number(e.target.value);
+                    setTimestampInput(newTimestamp);
+                  }}
                 />
                 <button type="button" className="border"
-                 onClick={() => setDatetimeInput(datetimeNow())}
+                 onClick={() => setTimestampInput(secondsNow())}
                 >reset to now</button>
               </div>
+              <input
+                value={tokenChainID}
+                type="number"
+                className="mt-4 mb-2 border border-black-200"
+                placeholder="optional token chain ID"
+                onChange={e => setTokenChainID(Number(e.target.value))}
+              />
+              <input
+                value={tokenAddress}
+                type="text"
+                className="mt-4 mb-2 border border-black-200"
+                placeholder="optional token address"
+                onChange={e => setTokenAddress(e.target.value)}
+              />
               <input
                 value={txHashInput}
                 type="text"
@@ -126,6 +196,7 @@ const Admin: NextPage = () => {
               <button
                 type="button"
                 className="rounded-full border border-blue-500"
+                onClick={handleCreditAccount}
               >Credit Account</button>
             </div>
           ) : (
