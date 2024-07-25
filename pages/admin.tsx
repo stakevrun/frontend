@@ -85,7 +85,7 @@ const Admin: NextPage = () => {
         { type: "uint256", name: "timestamp" },
         { type: "address", name: "nodeAccount" },
         { type: "uint256", name: "numDays" },
-        { type: "bool" , name: "decreaseBalance" },
+        { type: "bool"   , name: "decreaseBalance" },
         { type: "uint256", name: "tokenChainId" },
         { type: "address", name: "tokenAddress" },
         { type: "bytes32", name: "transactionHash" },
@@ -95,7 +95,7 @@ const Admin: NextPage = () => {
 
     const value = {
       timestamp: timestampInput,
-      nodeAccount: nodeAddressInput,
+      nodeAccount: nodeAddressInput || "0x".padEnd(42, "0"),
       numDays: Math.abs(creditDaysInput),
       decreaseBalance: (creditDaysInput < 0),
       tokenChainId,
