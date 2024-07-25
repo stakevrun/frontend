@@ -5,7 +5,7 @@ import styles from "../styles/Home.module.css";
 import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import Navbar from "../components/navbar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { MdBarChart } from "react-icons/md";
 import Footer from "../components/footer";
@@ -38,19 +38,23 @@ const Home: NextPage = () => {
     (state: RootState) => state.darkMode.darkModeOn
   );
 
-  const [isInitialRender, setIsInitialRender] = useState(true);
+  // const [isInitialRender, setIsInitialRender] = useState(true);
+  const isInitialRender = useRef(true);
+
   const dispatch = useDispatch();
 
   const currentChain = useChainId();
 
   useEffect(() => {
-    if (!isInitialRender && address !== undefined) {
+    if (!isInitialRender.current && address !== undefined) {
       // This block will run after the initial render
       dispatch(getData([{ address: "NO VALIDATORS" }]));
     } else {
       // This block will run only on the initial render
 
-      setIsInitialRender(false);
+      // setIsInitialRender(false);
+      isInitialRender.current = false;
+
     }
   }, [currentChain, address]);
 
