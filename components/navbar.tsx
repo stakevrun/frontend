@@ -758,7 +758,7 @@ const Navbar: NextPage = () => {
           <div className="shrink-0"></div>
           <nav className="flex grow  w-full lg:w-auto ">
             <ul className="flex grow flex-wrap gap-x-5  sm:pl-5 items-center justify-start lg:justify-end">
-              <li className=" ml-0 ml-1">
+              <li className="ml-1">
                 <ConnectButton />
               </li>
               {address !== undefined ? (

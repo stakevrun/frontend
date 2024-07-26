@@ -84,7 +84,7 @@ const Home: NextPage = () => {
         <div className="h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start py-[5vh] lg:py-[10vh] xl:pt-[10vh]">
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
             <div className="w-full flex h-full items-center  flex-col justify-center xl:items-end p-4 gap-8 lg:w-[50%] ">
-              <h1 className="text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left  font-bold">
+              <h1 className="text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left font-bold">
                 Welcome to Vrün!
               </h1>
 
@@ -105,28 +105,24 @@ const Home: NextPage = () => {
               <a
                 href="https://discord.gg/eUhuZfnyVr"
                 target="_blank"
-                className="text-2xl self-center xl:self-start gap-2 font-bold  flex items-center items-center"
+                className="lg:text-2xl self-center xl:self-start gap-2 font-bold  flex items-center"
               >
                 <FaDiscord />{" "}
-                <span className="text-xs hover:text-gray-400">
+                <span className="hover:text-gray-400">
                   join our Discord server!
                 </span>
               </a>
             </div>
 
-            <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-9 gap-6 lg:w-[50%]">
-              <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] rounded-full lg:h-[400px] lg:w-[400px]">
+            <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-6 lg:w-[50%]">
+              <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center text-blue-600 ml-[20px] xl:h-[400px] xl:w-[400px]">
                 <Image
                   src="/images/vrunlogo.png"
                   alt="Vrun logo"
                   width={400}
                   height={400}
-                  className="h-[200px] w-[200px] lg:h-[400px] lg:w-[400px] rounded-full text-xl text-blue-500 mb-2"
+                  className="rounded-full"
                 />
-                {/* <MdBarChart */}
-                {/* className="text-xl text-blue-500 mb-2" */}
-                {/* style={{ width: "100%", height: "100%" }} */}
-                {/* /> */}
               </div>
             </div>
           </div>
