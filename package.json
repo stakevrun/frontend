@@ -45,6 +45,7 @@
     "react-router-dom": "^6.23.1",
     "react-spinners": "^0.13.8",
     "react-spring": "^9.7.3",
+    "sharp": "^0.33.4",
     "unique-names-generator": "^4.7.1",
     "viem": "~1.21.4",
     "wagmi": "^1.4.13",
