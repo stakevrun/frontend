@@ -124,7 +124,7 @@ const Admin: NextPage = () => {
       signature
     }
     await fetch(
-      `https://api.vrün.com/${currentChain}/${nodeAccount}/credit`,
+      `https://api.vrün.com/${currentChain}/${nodeAddressInput}/credit`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json", },
@@ -217,7 +217,7 @@ const Admin: NextPage = () => {
                   value={tokenChainId}
                   type="number"
                   className="mt-4 mb-2 border border-black-200"
-                  onChange={e => setTokenChainID(Number(e.target.value))}
+                  onChange={e => setTokenChainId(Number(e.target.value))}
                 />
               </label>
               <input

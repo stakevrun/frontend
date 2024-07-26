@@ -15,6 +15,11 @@ import { QueryClient, QueryClientProvider, useQuery } from "react-query";
 
 import { Providers } from "../globalredux/provider";
 
+import { Figtree } from "next/font/google";
+const figtree = Figtree({
+  subsets: ['latin'],
+});
+
 const holeskyRPCKey = process.env.HOLESKY_RPC;
 const mainnetRPCKey = process.env.MAINNET_RPC;
 
@@ -69,7 +74,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClient}>
         <WagmiConfig config={wagmiConfig}>
           <RainbowKitProvider chains={chains}>
+            <main className={figtree.className}>
             <Component {...pageProps} />
+            </main>
           </RainbowKitProvider>
         </WagmiConfig>
       </QueryClientProvider>
