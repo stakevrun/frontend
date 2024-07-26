@@ -113,7 +113,7 @@ const Admin: NextPage = () => {
     try {
       signature = await signerRef.current?.signTypedData(domain, types, data);
     }
-    catch (e) {
+    catch (e:any) {
       console.warn(`signTypedData error: ${e}`)
       setErrorMessage(e.message)
     }

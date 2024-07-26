@@ -1933,6 +1933,8 @@ const AccountMain: NextPage = () => {
   const [currentPayments, setCurrentPayments] = useState<number>(0);
   const [currentCharges, setCurrentCharges] = useState<number>(0);
 
+  interface Charges { numDays: number };
+
   const getCharges = async () => {
     let totalDays = 0;
 
@@ -1946,7 +1948,7 @@ const AccountMain: NextPage = () => {
         }
       ).then(response =>
           response.json().then(
-            charges => charges.reduce((total, {numDays}) => total + numDays, 0)
+            (charges:Array<Charges>) => charges.reduce((total:number, {numDays}) => total + numDays, 0)
           )
       ).catch((error) => {
         console.log("Charges error: " + error);
