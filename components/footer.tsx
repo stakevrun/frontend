@@ -20,18 +20,13 @@ const Footer: NextPage = () => {
         </p>
 
         <p className="text-white">
-          This app is a work in progress, please email any inquiries to
-          admin@vrün.com
+          This app is a work in progress. Please reach out on our Discord with any inquiries.
         </p>
       </div>
 
       <div className="w-[100%] lg:w-auto flex flex-col  items-start lg:items-center justify-center gap-2">
         <p className="font-bold hover:text-yellow-100 cursor-pointer text-white">
-          Terms & Conditions
-        </p>
-
-        <p className="font-bold hover:text-yellow-100 cursor-pointer text-white">
-          License
+          Terms
         </p>
       </div>
     </footer>
