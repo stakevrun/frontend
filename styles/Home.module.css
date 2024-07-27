@@ -209,3 +209,9 @@
     gap: 2rem;
   }
 }
+
+@media (max-width: 885px) {
+  .card {
+    max-width: 500px;
+  }
+}
