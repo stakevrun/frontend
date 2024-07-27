@@ -136,11 +136,11 @@ const Home: NextPage = () => {
             Resources & Documentation
           </h2>
 
-          <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl md:h-[40rem] lg:max-w-5xl">
+          <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl lg:h-[40rem] lg:max-w-5xl">
             <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-gray-100">
               <div className={styles.grid}>
                 <div className={styles.card}>
-                  <div className="inline-flex   flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
+                  <div className="inline-flex flex-shrink-8 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                     <FaMoneyBillWave className="text-3xl text-green-500  w-[70px]" />
                   </div>
                   <div>
