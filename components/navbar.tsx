@@ -725,7 +725,7 @@ const Navbar: NextPage = () => {
   return (
     <header
       style={{
-        backgroundColor: reduxDarkMode ? "#333" : "white",
+        backgroundColor: reduxDarkMode ? "#27272a" : "white",
         color: reduxDarkMode ? "white" : "#222",
       }}
       className="p-2 w-full h-auto bg-white flex flex-col items-center justify-center sticky top-0 z-50 shadow-md lg:h-[9vh]"
@@ -747,11 +747,11 @@ const Navbar: NextPage = () => {
               <span className="text-lg xl:text-2xl font-bold">VRÜN</span>
             </Link>
 
-            <Link href="/payments" className="hover:text-gray-600">
+            <Link href="/payments" className="hover:text-blue-500">
               Payments
             </Link>
 
-            <Link href="/rpl" className=" hover:text-gray-600">
+            <Link href="/rpl" className=" hover:text-blue-500">
               RPL
             </Link>
           </div>

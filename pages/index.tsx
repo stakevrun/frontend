@@ -105,10 +105,10 @@ const Home: NextPage = () => {
               <a
                 href="https://discord.gg/eUhuZfnyVr"
                 target="_blank"
-                className="lg:text-2xl self-center xl:self-start gap-2 font-bold  flex items-center"
+                className="lg:text-2xl self-center xl:self-start gap-2 font-bold  flex items-center hover:text-amber-600"
               >
                 <FaDiscord />{" "}
-                <span className="hover:text-gray-400">
+                <span>
                   join our Discord server!
                 </span>
               </a>
