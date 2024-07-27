@@ -3131,7 +3131,7 @@ const AccountMain: NextPage = () => {
                       </div>
                     </div>
 
-                    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 xl:grid-rows-2 gap-4">
+                    <section className={`grid grid-cols-1 ${Number(totalValidators) > 0 ? "md:grid-cols-2" : ""} xl:grid-rows-2 gap-4`}>
                       {Number(totalValidators) > 0 && (
                         <div className="flex items-center p-6 shadow-xl border rounded-lg">
                           <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-purple-600 bg-purple-100 rounded-full mr-6">
@@ -3157,7 +3157,7 @@ const AccountMain: NextPage = () => {
                         </div>
                       )}
 
-                      <div className="flex w-auto items-center p-6 shadow-xl border  rounded-lg">
+                      <div className="flex w-auto items-center p-6 shadow-xl border rounded-lg">
                         <div className="inline-flex flex-shrink-0 items-center justify-center h-16 w-16 text-blue-600 bg-blue-100 rounded-full mr-6">
                           <Image
                             width={70}

@@ -83,12 +83,12 @@ const Home: NextPage = () => {
       <div className="w-full h-auto py-1 flex flex-col justify-center items-center gap-2 ">
         <div className="h-auto w-full flex flex-col justify-center items-center xl:h-[92vh] xl:justify-start py-[5vh] lg:py-[10vh] xl:pt-[10vh]">
           <div className=" w-[75%] h-auto flex flex-col-reverse justify-center items-center xl:flex-row">
-            <div className="w-full flex h-full items-center  flex-col justify-center xl:items-end p-4 gap-8 lg:w-[50%] ">
-              <h1 className="text-4xl self-center text-center md:text-5xl  lg:text-6xl  xl:text-7xl  xl:self-start xl:text-left font-bold">
+            <div className="w-full flex h-full items-center  flex-col justify-center xl:items-end p-4 gap-8 lg:w-[70%] xl:w-[50%] ">
+              <h1 className="text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
                 Welcome to Vrün!
               </h1>
 
-              <p className="text-md text-black-100  text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start">
+              <p className="text-md text-black-100 text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start ">
                 Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking
                 for Forward-Thinking Node Operators.
               </p>
