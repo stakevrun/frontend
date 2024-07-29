@@ -3,7 +3,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import type { AppProps } from 'next/app';
 // import type { AppPropsWithLayout } from '../types'; // need this if we wind up using nested layouts
 
-import Layout from '../components/layout';
+import Layout from '../components/layout/layout';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
