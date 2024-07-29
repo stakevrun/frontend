@@ -36,6 +36,3 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-
-# pnpm (optional alternative to npm)
-pnpm-lock.yaml
