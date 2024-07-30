@@ -8,17 +8,18 @@ import {
   // polygon,
   // sepolia,
 } from 'wagmi/chains';
+import { NEXT_PUBLIC_PROJECT_ID } from './constants';
 
 export const config = getDefaultConfig({
   appName: 'RainbowKit App',
-  projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
+  projectId: NEXT_PUBLIC_PROJECT_ID,
   chains: [
     mainnet,
+    holesky,
     // polygon,
     // optimism,
     // arbitrum,
     // base,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [holesky] : []),
   ],
   ssr: true,
 });
