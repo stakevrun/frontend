@@ -54,11 +54,13 @@ const Admin: NextPage = () => {
         const signer = await browserProvider.getSigner();
         const signerAddress = await signer.getAddress();
         signerRef.current = signer;
-        const adminAddresses: string[] = await fetch('https://api.vrün.com/admins').then(r => r.json());
+        const adminAddresses: string[] = await fetch(
+          'https://api.vrün.com/admins', {mode: 'no-cors'}
+        ).then(r => r.json()).catch(e => { throw new Error(`Failed to fetch admins: ${e.message}`); });
         adminAddresses.push("0x9c2bA9B3d7Ef4f759C2fEb2E174Ef14F8C64b46e".toLowerCase()); // TEST
         return adminAddresses.includes(signerAddress.toLowerCase());
       } catch (error) {
-        console.log(error);
+        console.error(error.message);
         return false;
       }
     } else {
