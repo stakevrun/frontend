@@ -1,0 +1,295 @@
+[
+    {
+        "name": "SetAdmin",
+        "inputs": [
+            {
+                "name": "old",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "new",
+                "type": "address",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "name": "SetToken",
+        "inputs": [
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "accepted",
+                "type": "bool",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "name": "Withdraw",
+        "inputs": [
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "name": "Refund",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "name": "Pay",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "name": "ClaimRefund",
+        "inputs": [
+            {
+                "name": "user",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "token",
+                "type": "address",
+                "indexed": true
+            },
+            {
+                "name": "amount",
+                "type": "uint256",
+                "indexed": true
+            }
+        ],
+        "anonymous": false,
+        "type": "event"
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "constructor",
+        "inputs": [
+            {
+                "name": "_weth",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "setAdmin",
+        "inputs": [
+            {
+                "name": "_newAdmin",
+                "type": "address"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "setToken",
+        "inputs": [
+            {
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "name": "_accepted",
+                "type": "bool"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "withdraw",
+        "inputs": [
+            {
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "refund",
+        "inputs": [
+            {
+                "name": "_user",
+                "type": "address"
+            },
+            {
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "payToken",
+        "inputs": [
+            {
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "payable",
+        "type": "function",
+        "name": "payEther",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "name": "claimRefund",
+        "inputs": [
+            {
+                "name": "_token",
+                "type": "address"
+            },
+            {
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "admin",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "weth",
+        "inputs": [],
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ]
+    },
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "acceptedTokens",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ]
+    },
+    {
+        "stateMutability": "view",
+        "type": "function",
+        "name": "pendingRefund",
+        "inputs": [
+            {
+                "name": "arg0",
+                "type": "address"
+            },
+            {
+                "name": "arg1",
+                "type": "address"
+            }
+        ],
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint256"
+            }
+        ]
+    }
+]
