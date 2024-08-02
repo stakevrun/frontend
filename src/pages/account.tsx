@@ -1,7 +1,8 @@
 import { useAccount } from "wagmi";
 import { NoConnection } from "../components/layout/NoConnection";
+import { NextPage } from "next";
 
-const Account = () => {
+const Account: NextPage = () => {
   const { address } = useAccount();
 
   // consider setting up rocketpool registration check as middleware: https://nextjs.org/docs/app/building-your-application/routing/middleware

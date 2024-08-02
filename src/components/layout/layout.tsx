@@ -28,7 +28,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       <div>Chain ID: {chainId}</div>
       <div>Connected: {isConnected.toString()}</div>
       <main
-        className="flex-1 flex flex-col justify-center items-center"
+        // className="flex-1 flex flex-col justify-center items-center"
       >
         {children}
       </main>
