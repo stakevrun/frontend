@@ -16,10 +16,11 @@ export function useAdminCheck(address: string | undefined) {
       try {
         console.log("running admin check");
 
-        // const adminAddresses: string[] = await fetch(
-        //   "https://api.vrün.com/admins"
-        // ).then((r) => r.json())
-        const adminAddresses: string[] = await Promise.resolve([]); // for testing purposes
+        const adminAddresses: string[] = await fetch(
+          "https://api.vrün.com/admins",
+          { mode: "no-cors" },
+        ).then((r) => r.json());
+        // const adminAddresses: string[] = await Promise.resolve([]); // for testing purposes
 
         adminAddresses.push(
           "0x9c2bA9B3d7Ef4f759C2fEb2E174Ef14F8C64b46e".toLowerCase()

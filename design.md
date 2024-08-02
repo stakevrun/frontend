@@ -245,3 +245,11 @@ Route: `/admin`
 Requires:
 - Connected
 - Admin
+
+## Shared Custom Hooks/Components/Utilities
+
+### Send Transaction
+
+### Sign Typed Message
+
+### Submit to Vrün API
