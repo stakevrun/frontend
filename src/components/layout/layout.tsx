@@ -3,7 +3,6 @@ import { FC, ReactNode } from "react";
 import Head from "next/head";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
-import { useAccount } from "wagmi";
 
 import { Figtree } from "next/font/google";
 const figtree = Figtree({
@@ -11,8 +10,6 @@ const figtree = Figtree({
 });
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
-  const { address, chainId, isConnected } = useAccount({});
-
   return (
     <div className={`${figtree.className} min-h-screen`}>
       <Head>
@@ -24,9 +21,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
         <link href="/favicon.ico" rel="icon" />
       </Head>
       <Navbar />
-      <div>Address: {address}</div>
-      <div>Chain ID: {chainId}</div>
-      <div>Connected: {isConnected.toString()}</div>
+
       <main
         className="flex-1 flex flex-col justify-center items-center"
       >
