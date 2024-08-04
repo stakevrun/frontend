@@ -1,4 +1,4 @@
-import { MAINNET_ROCKET_STORAGE, HOLESKY_ROCKET_STORAGE } from "constants";
+import { MAINNET_ROCKET_STORAGE, HOLESKY_ROCKET_STORAGE } from "../constants";
 import { useChainId, useReadContract } from "wagmi";
 import { keccak256, stringToBytes } from "viem";
 import { mainnet } from "wagmi/chains";
@@ -14,7 +14,7 @@ export const useRocketStorage = () => {
   return {address, abi};
 };
 
-export const useRocketAddress = ({contractName}) => {
+export const useRocketAddress = (contractName: string) => {
   const {address, abi} = useRocketStorage();
   return useReadContract({
     address,
