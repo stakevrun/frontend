@@ -2,12 +2,13 @@ import { useReadContract } from "wagmi";
 import { abi } from "../../abi/rocketNodeManagerABI";
 import { useRocketAddress } from "../../hooks/useRocketAddress";
 import { TransactionSubmitter } from "./TransactionSubmitter";
-import { FC, ReactNode, useState } from "react";
+import { FC, ReactNode, ChangeEvent, useState } from "react";
 
-export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: address}> = ({isRegistered, rocketNodeManager}) => {
+export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: `0x${string}`}> = ({isRegistered, rocketNodeManager}) => {
   const [selectedTimezone, setSelectedTimezone] = useState("");
-  const handleSelectTimezone = (e) => {
-    setSelectedTimezone(e.target.value || "");
+  const handleSelectTimezone = (e: ChangeEvent) => {
+    const element = e.currentTarget as HTMLInputElement;
+    setSelectedTimezone(element.value || "");
   };
   return (
     <>
@@ -39,15 +40,21 @@ export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: add
   );
 };
 
-export const IfRegistered: FC<{children: ReactNode, address: `0x${string}` | undefined}> = ({children, address: accountAddress}) => {
-  const {data: address} = useRocketAddress('rocketNodeManager');
-  const {data: isRegistered, error, isPending} = useReadContract({
-    address, abi, functionName: 'getNodeExists', args: accountAddress ? [accountAddress] : undefined,
+export const IfRegistered: FC<{children: ReactNode, address: `0x${string}`}> = ({children, address: accountAddress}) => {
+  const {data: address, error: addressError} = useRocketAddress('rocketNodeManager');
+  const {data: isRegistered, error, isPending, refetch} = useReadContract({
+    address, abi,
+    functionName: 'getNodeExists',
+    args: [accountAddress],
   });
   return (
+    addressError ? <p>Error fetching rocketNodeManager address: {addressError.message}</p> :
     isPending ? <p>Fetching node registration status...</p> :
-      error ? <p>Error reading getNodeExists: {error.message}</p> :
-        isRegistered ? <><p>Debug Info: Registered with Rocket Pool.</p> {children}</> :
-          <RegistrationForm rocketNodeManager={address} isRegistered={isRegistered} />
+    error ? <p>Error reading getNodeExists: {error.message}</p> :
+    isRegistered ? <><p>Debug Info: Registered with Rocket Pool.</p> {children}</> :
+    <RegistrationForm
+       rocketNodeManager={address as `0x${string}`}
+       isRegistered={isRegistered}
+    />
   );
 };

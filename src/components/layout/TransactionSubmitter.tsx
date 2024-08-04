@@ -1,7 +1,15 @@
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { useEffect } from "react";
+import { Abi } from "abitype";
+import { FC, useEffect } from "react";
 
-export const TransactionSubmitter = ({
+export const TransactionSubmitter: FC<{
+  address: `0x${string}`,
+  abi: Abi,
+  functionName: string,
+  args: Array<any>, // TODO what is the correct type?
+  buttonText: string,
+  onSuccess?: ((receipt: any) => void) // TODO: use correct receipt type
+}> = ({
   address, abi, functionName, args,
   buttonText, onSuccess
 }) => {
