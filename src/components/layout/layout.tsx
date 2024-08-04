@@ -15,8 +15,8 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       <Head>
         <title>Vrün | Nodes & Staking</title>
         <meta
-          content="Vrun is a cutting-edge Ethereum staking service that empowers node operators with secure, non-custodial staking solutions for unparalleled control and efficiency."
-          name="Vrün  | Nodes & Staking"
+          content="Vrün is a cutting-edge Ethereum staking service that empowers node operators with secure, non-custodial staking solutions for unparalleled control and efficiency."
+          name="Vrün | Nodes & Staking"
         />
         <link href="/favicon.ico" rel="icon" />
       </Head>
