@@ -3,7 +3,7 @@ import type { NextPage } from "next";
 // import { ethers, JsonRpcSigner } from "ethers";
 import { useAccount, useChainId } from "wagmi";
 import { useAdminCheck } from "../hooks/useAdminCheck";
-import { NoConnection } from "../components/layout/NoConnection";
+import IfConnected from "../components/layout/IfConnected";
 
 const Admin: NextPage = () => {
   const currentChain = useChainId();
@@ -15,7 +15,7 @@ const Admin: NextPage = () => {
   const secondsNow = () => Math.round(Date.now() / 1000);
 
   // const [isAdmin, setIsAdmin] = useState(false);
-  const { address } = useAccount();
+  const { address, status: accountStatus} = useAccount();
   const isAdmin = useAdminCheck(address);
   const [nodeAddressInput, setNodeAddressInput] = useState("");
   const [creditDaysInput, setCreditDaysInput] = useState(0);
@@ -157,8 +157,7 @@ const Admin: NextPage = () => {
 */
   return (
     <div className="flex w-full h-auto flex-col">
-      {address !== undefined ? (
-        <>
+    <IfConnected accountStatus={accountStatus}>
           {isAdmin ? (
             <div className="flex flex-col py-12 max-w-md gap-2 place-self-center">
               <input
@@ -245,10 +244,7 @@ const Admin: NextPage = () => {
               </p>
             </div>
           )}
-        </>
-      ) : (
-        <NoConnection />
-      )}
+      </IfConnected>
     </div>
   );
 };
