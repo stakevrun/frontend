@@ -33,12 +33,12 @@ export const TransactionSubmitter: FC<{
     if (isConfirmed && onSuccess) onSuccess(receipt);
   }, [isConfirmed, receipt]);
   // TODO: also log errors in console somehow
-  // TODO: style the button better
   // TODO: should this be a modal instead of div?
+  // TODO: allow customisation on when it should be disabled (e.g. allow duplicate or not)
   return (
     <div>
       <button
-       className="border rounded"
+       className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
        disabled={isPending || (isWritten && !(errorOnWait || isConfirmed))}
        onClick={handler}>{buttonText}</button>
       {hash && !receipt && <p>Submitted transaction with hash {hash}</p>}
@@ -47,5 +47,5 @@ export const TransactionSubmitter: FC<{
       {errorOnWrite && <p>Error sending transaction: {errorOnWrite.message}</p>}
       {errorOnWait && <p>Error waiting for transaction confirmation: {errorOnWait.message}</p>}
     </div>
-  )
+  );
 };

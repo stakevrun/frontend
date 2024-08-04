@@ -67,7 +67,7 @@ const Admin: NextPage = () => {
   //   }
   // };
 
-  
+
   const handleCreditAccount = () => {
     console.log("just kidding");
   }
