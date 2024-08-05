@@ -25,8 +25,8 @@ export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: `0x
     />
     </label>
     <datalist id="timezones">
-     {Intl.supportedValuesOf('timeZone').map(timezone => (
-       <option>{timezone}</option>
+     {Intl.supportedValuesOf('timeZone').map((timezone, index) => (
+       <option key={index}>{timezone}</option>
      ))}
     </datalist>
     <TransactionSubmitter

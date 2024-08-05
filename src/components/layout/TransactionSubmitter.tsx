@@ -31,7 +31,7 @@ export const TransactionSubmitter: FC<{
   };
   useEffect(() => {
     if (isConfirmed && onSuccess) onSuccess(receipt);
-  }, [isConfirmed, receipt]);
+  }, [isConfirmed, receipt]); // TODO: add onSuccess to dependency array, or move this functionality to handler
   // TODO: also log errors in console somehow
   // TODO: should this be a modal instead of div?
   // TODO: allow customisation on when it should be disabled (e.g. allow duplicate or not)
