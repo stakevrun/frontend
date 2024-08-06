@@ -4,7 +4,11 @@ import { useRocketAddress } from "../../hooks/useRocketAddress";
 import { TransactionSubmitter } from "./TransactionSubmitter";
 import { FC, ReactNode, ChangeEvent, useState } from "react";
 
-export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: `0x${string}`}> = ({isRegistered, rocketNodeManager}) => {
+export const RegistrationForm: FC<{
+  isRegistered: boolean,
+  rocketNodeManager: `0x${string}`,
+  refetch: (options?: any) => Promise<any>, // TODO: use correct types
+}> = ({isRegistered, rocketNodeManager, refetch}) => {
   const [selectedTimezone, setSelectedTimezone] = useState("");
   const handleSelectTimezone = (e: ChangeEvent) => {
     const element = e.currentTarget as HTMLInputElement;
@@ -35,6 +39,7 @@ export const RegistrationForm: FC<{isRegistered: boolean, rocketNodeManager: `0x
        abi={abi}
        functionName="registerNode"
        args={[selectedTimezone]}
+       onSuccess={refetch}
     />
     </>
   );
@@ -55,6 +60,7 @@ export const IfRegistered: FC<{children: ReactNode, address: `0x${string}`}> = (
     <RegistrationForm
        rocketNodeManager={address as `0x${string}`}
        isRegistered={isRegistered}
+       refetch={refetch}
     />
   );
 };
