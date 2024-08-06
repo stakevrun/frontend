@@ -1,4 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { Abi } from "abitype";
 import { FC, useEffect } from "react";
 
@@ -14,12 +15,13 @@ export const TransactionSubmitter: FC<{
   buttonText, onSuccess
 }) => {
   const {
-    writeContract,
+    writeContractAsync,
     data: hash,
     error: errorOnWrite,
     isPending,
     isSuccess: isWritten,
   } = useWriteContract();
+  const addRecentTransaction = useAddRecentTransaction();
   const {
     data: receipt,
     error: errorOnWait,
@@ -27,7 +29,9 @@ export const TransactionSubmitter: FC<{
     isSuccess: isConfirmed,
   } = useWaitForTransactionReceipt({hash, query: {enabled: isWritten}});
   const handler = () => {
-    writeContract({ address, abi, functionName, args });
+    writeContractAsync({ address, abi, functionName, args }).then(
+      hash => addRecentTransaction({ hash, description: functionName })
+    );
   };
   useEffect(() => {
     if (isConfirmed && onSuccess) onSuccess(receipt);

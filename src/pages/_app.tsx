@@ -36,7 +36,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     `}</style>
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
-        <RainbowKitProvider initialChain={holesky} theme={customRainbowKitTheme}> {/*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/}
+        <RainbowKitProvider
+           initialChain={holesky/*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/}
+           showRecentTransactions={true}
+           theme={customRainbowKitTheme}>
           <Layout>
             <Component {...pageProps} />
           </Layout>
