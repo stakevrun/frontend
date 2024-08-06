@@ -1,4 +1,5 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { http } from 'wagmi';
 import {
   // arbitrum,
   // base,
@@ -8,7 +9,7 @@ import {
   // polygon,
   // sepolia,
 } from 'wagmi/chains';
-import { NEXT_PUBLIC_PROJECT_ID } from './constants';
+import { NEXT_PUBLIC_PROJECT_ID, HOLESKY_RPC } from './constants';
 
 // Recommended for wagmi + TS (https://wagmi.sh/react/typescript#requirements)
 declare module 'wagmi' {
@@ -28,5 +29,8 @@ export const config = getDefaultConfig({
     // arbitrum,
     // base,
   ],
+  transports: {
+    [holesky.id]: http(HOLESKY_RPC),
+  },
   ssr: true,
 });
