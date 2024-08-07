@@ -1,13 +1,13 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { http } from 'wagmi';
 import {
-  // arbitrum,
+  arbitrum,
   // base,
   holesky,
   mainnet,
   // optimism,
   // polygon,
-  // sepolia,
+  sepolia,
 } from 'wagmi/chains';
 import { NEXT_PUBLIC_PROJECT_ID, HOLESKY_RPC } from './constants';
 
@@ -26,11 +26,15 @@ export const config = getDefaultConfig({
     holesky,
     // polygon,
     // optimism,
-    // arbitrum,
+    arbitrum,
     // base,
+    sepolia,
   ],
   transports: {
+    [mainnet.id]: http(),
     [holesky.id]: http(HOLESKY_RPC),
+    [arbitrum.id]: http(),
+    [sepolia.id]: http(),
   },
   ssr: true,
 });
