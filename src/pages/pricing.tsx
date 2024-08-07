@@ -108,7 +108,7 @@ const Pricing: NextPage = () => {
               <tr>
                 <td>{tokenChainId.toString()}</td>
                 <td>{tokenName.result as string} {tokenAddress != nullAddress && `(${tokenAddress})`}</td>
-                <td>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result}</td>
+                <td>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result as string}</td>
               </tr>
             );
           })}
