@@ -4,16 +4,13 @@ import { Abi } from "abitype";
 import { FC, useEffect } from "react";
 
 export const TransactionSubmitter: FC<{
-  address: `0x${string}`,
-  abi: Abi,
-  functionName: string,
-  args: Array<any>, // TODO what is the correct type?
-  buttonText: string,
-  onSuccess?: ((receipt: any) => void) // TODO: use correct receipt type
-}> = ({
-  address, abi, functionName, args,
-  buttonText, onSuccess
-}) => {
+  address: `0x${string}`;
+  abi: Abi;
+  functionName: string;
+  args: Array<any>; // TODO what is the correct type?
+  buttonText: string;
+  onSuccess?: (receipt: any) => void; // TODO: use correct receipt type
+}> = ({ address, abi, functionName, args, buttonText, onSuccess }) => {
   const {
     writeContractAsync,
     data: hash,
@@ -27,10 +24,10 @@ export const TransactionSubmitter: FC<{
     error: errorOnWait,
     isLoading,
     isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({hash, query: {enabled: isWritten}});
+  } = useWaitForTransactionReceipt({ hash, query: { enabled: isWritten } });
   const handler = () => {
-    writeContractAsync({ address, abi, functionName, args }).then(
-      hash => addRecentTransaction({ hash, description: functionName })
+    writeContractAsync({ address, abi, functionName, args }).then((hash) =>
+      addRecentTransaction({ hash, description: functionName })
     );
   };
   useEffect(() => {
@@ -42,14 +39,23 @@ export const TransactionSubmitter: FC<{
   return (
     <div>
       <button
-       className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
-       disabled={isPending || (isWritten && !(errorOnWait || isConfirmed))}
-       onClick={handler}>{buttonText}</button>
+        className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+        disabled={isPending || (isWritten && !(errorOnWait || isConfirmed))}
+        onClick={handler}
+      >
+        {buttonText}
+      </button>
       {hash && !receipt && <p>Submitted transaction with hash {hash}</p>}
-      {receipt && receipt.status == 'success' && <p>{hash} confirmed</p>}
-      {receipt && isConfirmed && receipt.status != 'success' && <p>{hash} {receipt.status}</p>}
+      {receipt && receipt.status == "success" && <p>{hash} confirmed</p>}
+      {receipt && isConfirmed && receipt.status != "success" && (
+        <p>
+          {hash} {receipt.status}
+        </p>
+      )}
       {errorOnWrite && <p>Error sending transaction: {errorOnWrite.message}</p>}
-      {errorOnWait && <p>Error waiting for transaction confirmation: {errorOnWait.message}</p>}
+      {errorOnWait && (
+        <p>Error waiting for transaction confirmation: {errorOnWait.message}</p>
+      )}
     </div>
   );
 };
