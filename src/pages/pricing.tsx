@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useChainId, useReadContracts } from "wagmi";
 import { type ContractFunctionParameters, formatUnits } from "viem";
 
+const nullAddress = '0x'.padEnd(42, '0');
+
 // work in progress
 const Pricing: NextPage = () => {
   const chainId = useChainId();
@@ -52,7 +54,7 @@ const Pricing: NextPage = () => {
               abi: [{name: functionName, type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{name: functionName, type: outputType}]}],
               functionName
             });
-            return [
+            return tokenAddress == nullAddress ? [] : [
               readToken({functionName: "decimals", outputType: "uint8"}),
               readToken({functionName: "name", outputType: "string"}),
             ];
@@ -87,6 +89,8 @@ const Pricing: NextPage = () => {
           </thead>
           <tbody>
           {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}, i) => {
+            // TODO: broken due to the removal of the nullAddress entries.
+            // TODO: find a better way to connect the results to the tokenChainId+tokenAddress
             const [tokenDecimals, tokenName] = results.slice(i * 2, 2);
             return (
               <tr>
