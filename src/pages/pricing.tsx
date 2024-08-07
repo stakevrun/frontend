@@ -60,10 +60,11 @@ const Pricing: NextPage = () => {
             });
             if (tokenAddress == nullAddress) return [];
             tokenToIndex[`${tokenChainId}:${tokenAddress}`] = currentIndex;
-            currentIndex += 2;
+            currentIndex += 3;
             return [
               readToken({functionName: "decimals", outputType: "uint8"}),
               readToken({functionName: "name", outputType: "string"}),
+              readToken({functionName: "symbol", outputType: "string"}),
             ];
           }
       );
@@ -97,13 +98,17 @@ const Pricing: NextPage = () => {
           </thead>
           <tbody>
           {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}) => {
-            const index = prices.tokenToIndex[`${tokenChainId}:${tokenAddress}`];
-            const [tokenDecimals, tokenName] = results.slice(index, index + 2);
+            const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == nullAddress ?
+              [{result: 18}, {result: 'Ether'}, {result: 'ETH'}] :
+              (() => {
+                const index = prices.tokenToIndex[`${tokenChainId}:${tokenAddress}`];
+                return results.slice(index, index + 3);
+              })();
             return (
               <tr>
                 <td>{tokenChainId.toString()}</td>
-                <td>{tokenName.result as string}({tokenAddress})</td>
-                <td>{formatUnits(price, tokenDecimals.result as number)}</td>
+                <td>{tokenName.result as string} {tokenAddress != nullAddress && `(${tokenAddress})`}</td>
+                <td>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result}</td>
               </tr>
             );
           })}
