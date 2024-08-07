@@ -15,7 +15,7 @@ const Admin: NextPage = () => {
   const secondsNow = () => Math.round(Date.now() / 1000);
 
   // const [isAdmin, setIsAdmin] = useState(false);
-  const { address, status: accountStatus} = useAccount();
+  const { address } = useAccount();
   const isAdmin = useAdminCheck(address);
   const [nodeAddressInput, setNodeAddressInput] = useState("");
   const [creditDaysInput, setCreditDaysInput] = useState(0);
@@ -157,7 +157,7 @@ const Admin: NextPage = () => {
 */
   return (
     <div className="flex w-full h-auto flex-col">
-    <IfConnected accountStatus={accountStatus}>
+    <IfConnected>
           {isAdmin ? (
             <div className="flex flex-col py-12 max-w-md gap-2 place-self-center">
               <input

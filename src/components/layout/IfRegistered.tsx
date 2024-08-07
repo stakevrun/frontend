@@ -1,4 +1,4 @@
-import { useReadContract, UseReadContractReturnType } from "wagmi";
+import { useAccount, useReadContract, UseReadContractReturnType } from "wagmi";
 import { type UseQueryResult } from "@tanstack/react-query";
 import { type ReadContractReturnType, type ReadContractErrorType } from "viem";
 import { abi } from "../../abi/rocketNodeManagerABI";
@@ -54,9 +54,10 @@ export const RegistrationForm: FC<{
 };
 
 export const IfRegistered: FC<{
-  children: ReactNode;
-  address: `0x${string}`;
-}> = ({ children, address: accountAddress }) => {
+  children: ReactNode,
+}> = ({ children }) => {
+  const {address: accountAddress} = useAccount();
+  if (!accountAddress) return <p>Error: no connected account</p>
   const { data: address, error: addressError } =
     useRocketAddress("rocketNodeManager");
   const {
