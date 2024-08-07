@@ -16,7 +16,8 @@ const Pricing: NextPage = () => {
     validUntil: number | "now",
     pricesPerDay: pricesPerDayType,
     pricingRowData: pricingRowType[],
-    contractReads: ContractFunctionParameters[]
+    contractReads: ContractFunctionParameters[],
+    tokenToIndex: {[key: string]: number},
   }
 
   const [prices, setPrices] = useState<pricesStateType | undefined>();
@@ -44,6 +45,9 @@ const Pricing: NextPage = () => {
           )
       );
 
+      let currentIndex = 0;
+      const tokenToIndex: {[key: string]: number} = {};
+
       const contractReads =
         pricingRowData.flatMap(
           ({tokenChainId, tokenAddress}) => {
@@ -54,7 +58,10 @@ const Pricing: NextPage = () => {
               abi: [{name: functionName, type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{name: functionName, type: outputType}]}],
               functionName
             });
-            return tokenAddress == nullAddress ? [] : [
+            if (tokenAddress == nullAddress) return [];
+            tokenToIndex[`${tokenChainId}:${tokenAddress}`] = currentIndex;
+            currentIndex += 2;
+            return [
               readToken({functionName: "decimals", outputType: "uint8"}),
               readToken({functionName: "name", outputType: "string"}),
             ];
@@ -66,6 +73,7 @@ const Pricing: NextPage = () => {
         pricesPerDay,
         pricingRowData,
         contractReads,
+        tokenToIndex,
       })
     };
 
@@ -88,10 +96,9 @@ const Pricing: NextPage = () => {
             </tr>
           </thead>
           <tbody>
-          {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}, i) => {
-            // TODO: broken due to the removal of the nullAddress entries.
-            // TODO: find a better way to connect the results to the tokenChainId+tokenAddress
-            const [tokenDecimals, tokenName] = results.slice(i * 2, 2);
+          {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}) => {
+            const index = prices.tokenToIndex[`${tokenChainId}:${tokenAddress}`];
+            const [tokenDecimals, tokenName] = results.slice(index, index + 2);
             return (
               <tr>
                 <td>{tokenChainId.toString()}</td>
