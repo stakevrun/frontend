@@ -16,9 +16,6 @@ export function useAdminCheck(address: string | undefined) {
 
         const adminAddresses: string[] = await fetch(
           "https://api.vrün.com/admins",
-          {
-            mode: "no-cors", // TODO: soon won't need this (allowed origins will be *)
-          },
         ).then((r) => {
           console.log("Response status: ", r.status); // DEBUG
           console.log("Response body: ", r.body); // DEBUG
