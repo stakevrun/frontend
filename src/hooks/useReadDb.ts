@@ -1,9 +1,13 @@
 import { useChainId, useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 
-export function useReadDb(
-  { path, searchParams } : { path: string, searchParams?: Record<string, string> }
-) {
+export function useReadDb({
+  path,
+  searchParams,
+} : {
+  path: string,
+  searchParams?: Record<string, string>,
+}) {
   const chainId = useChainId();
   const {address} = useAccount();
   const qs = searchParams && (new URLSearchParams(searchParams)).toString();
@@ -13,8 +17,8 @@ export function useReadDb(
   const queryFn = () =>
     fetch(url)
       .then(
-        r => r.status === 200 ?
-          r.json() :
+        r => r.status === 200 ? r.json().then(value => ({status: 200, value})) :
+          r.status === 404 ? {status: 404} :
           r.text().then(msg => { throw new Error(`${r.status} error fetching ${url}: ${msg}`) }));
   return useQuery({
     queryKey,

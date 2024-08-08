@@ -1,15 +1,12 @@
-import { useAccount, useChainId } from "wagmi";
 import { FC, ReactNode } from "react";
+import { useReadDb } from "../../hooks/useReadDb";
 
 export const IfSigned: FC<{
   children: ReactNode,
 }> = ({ children }) => {
-  const {address} = useAccount();
-  const chainId = useChainId();
-  return (
-    <>
-    <p>Todo: check that the account {address} on {chainId.toString()} has actually signed the ToS. Assuming so...</p>
-    {children}
-    </>
-  );
+  const { data, error } = useReadDb({path: 'acceptance'});
+  const isSigned = data?.status === 200;
+  if (error) return (<p>Error checking ToS signature: {error.message}</p>);
+  else if (isSigned) return (<><p>Debug Info: Signed ToS</p>{children}</>);
+  else return (<p>Placeholder: form to sign ToS</p>);
 };
