@@ -1,4 +1,4 @@
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect } from "react";
 
 import Head from "next/head";
 import { Navbar } from "./Navbar";
@@ -10,8 +10,12 @@ const figtree = Figtree({
 });
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    console.log(process.env.HOLESKY_RPC);
+  }, []);
+
   return (
-    <div className={`${figtree.className} min-h-screen`}>
+    <div className={`${figtree.className} flex flex-col min-h-screen`}>
       <Head>
         <title>Vrün | Nodes & Staking</title>
         <meta
@@ -22,12 +26,12 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       </Head>
       <Navbar />
 
-      <main
-        className="flex-1 flex flex-col justify-center items-center"
-      >
-        {children}
-      </main>
-      <Footer />
+      <div className="flex flex-col grow justify-between">
+        <main className="flex flex-col justify-center items-center">
+          {children}
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };
