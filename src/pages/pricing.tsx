@@ -97,7 +97,7 @@ const Pricing: NextPage = () => {
             </tr>
           </thead>
           <tbody>
-          {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}) => {
+          {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}, i) => {
             const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == nullAddress ?
               [{result: 18}, {result: 'Ether'}, {result: 'ETH'}] :
               (() => {
@@ -105,7 +105,7 @@ const Pricing: NextPage = () => {
                 return results.slice(index, index + 3);
               })();
             return (
-              <tr>
+              <tr key={i}>
                 <td>{tokenChainId.toString()}</td>
                 <td>{tokenName.result as string} {tokenAddress != nullAddress && `(${tokenAddress})`}</td>
                 <td>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result as string}</td>

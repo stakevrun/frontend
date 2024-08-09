@@ -1,7 +1,10 @@
-<article className="prose prose-h1:text-center">
+import MarkdownToDisclosure from '../components/markdownToDisclosure';
+
+<article className="prose prose-headings:text-center">
 
 # Vrün FAQ
 
+<MarkdownToDisclosure>
 ## What is Ethereum Staking?
 
 Ethereum staking involves locking up your ETH to support network operations such as transaction validation and network security. In return, you earn rewards.
@@ -31,11 +34,12 @@ Vrün is a service for Rocket Pool Node Operators, enabling them to run Rocket P
 Vrün is entrusted with running, securing, and managing your validator keys. While we ensure high uptime and implement multiple checks to prevent slashing, there is a potential risk of slashed and exited validators due to actions taken by Vrün. To safeguard against the risk of our service becoming unavailable, we also provide encrypted pre-signed exit messages. This ensures you can always exit your validators if necessary, maintaining access and control over your staking operations.
 
 ## Why Choose Vrün?
-
+<div>
 - **Secure:** We prioritize the safety of your keys and validators.
 - **Non-Custodial:** You maintain full control over your assets.
 - **Easy Setup:** No hardware required, start staking quickly.
 - **Affordable:** Cost-effective staking solutions.
 - **Community-Built:** Developed by Rocket Pool community members, ensuring deep integration and support.
-
+</div>
+</MarkdownToDisclosure>
 </article>
