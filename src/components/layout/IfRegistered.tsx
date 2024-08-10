@@ -70,10 +70,10 @@ export const IfRegistered: FC<{
     address,
     abi,
     functionName: "getNodeExists",
-    args: accountAddress ? [accountAddress] : undefined, // satisfying type checker - is this ok?
+    args: accountAddress && [accountAddress],
   });
-  
-  if (!accountAddress) return <p>Error: no connected account</p> // return statements have to come after all hook calls in a component
+
+  if (!accountAddress) return (<p>Error: no connected account</p>);
   return addressError ? (
     <p>Error fetching rocketNodeManager address: {addressError.message}</p>
   ) : isPending ? (
