@@ -57,9 +57,10 @@ export const IfRegistered: FC<{
   children: ReactNode,
 }> = ({ children }) => {
   const {address: accountAddress} = useAccount();
-  if (!accountAddress) return <p>Error: no connected account</p>
+
   const { data: address, error: addressError } =
     useRocketAddress("rocketNodeManager");
+
   const {
     data: isRegistered,
     error,
@@ -69,8 +70,10 @@ export const IfRegistered: FC<{
     address,
     abi,
     functionName: "getNodeExists",
-    args: [accountAddress],
+    args: accountAddress ? [accountAddress] : undefined, // satisfying type checker - is this ok?
   });
+  
+  if (!accountAddress) return <p>Error: no connected account</p> // return statements have to come after all hook calls in a component
   return addressError ? (
     <p>Error fetching rocketNodeManager address: {addressError.message}</p>
   ) : isPending ? (
