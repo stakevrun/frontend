@@ -7,7 +7,7 @@ export function Navbar() {
   const { isConnected } = useAccount({});
 
   return (
-    <header className="px-6 py-4 flex flex-row justify-between">
+    <header className="px-6 py-4 mb-8 flex flex-row justify-between border-b">
       <div className="flex flex-row gap-8 items-center">
         <Link
           className="flex flex-row gap-2"
