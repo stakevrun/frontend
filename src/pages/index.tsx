@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@headlessui/react";
 import {
   FaEthereum,
   FaMoneyBillWave,
@@ -43,9 +44,9 @@ const Home: NextPage = () => {
                   </h2>
                   <p>We provide an onsite service for staking your RPL</p>
 
-                    <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+                    <Button className="btn-primary text-xs">
                       Stake RPL
-                    </button>
+                    </Button>
                 </div>
               </div>
                   </Link>
@@ -63,9 +64,9 @@ const Home: NextPage = () => {
                     Learn how Vrün interacts with Ethereum and the beacon chain.
                   </p>
                   <Link href="/faqs">
-                    <button className="bg-blue-500 text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+                    <Button className="btn-primary text-xs">
                       Get started!
-                    </button>
+                    </Button>
                   </Link>
                 </div>
               </div>
@@ -93,9 +94,9 @@ const Home: NextPage = () => {
                     target="_blank"
                     className="self-start mt-3"
                   >
-                    <button className="bg-blue-500 text-xs self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+                    <Button className="btn-primary text-xs">
                       Go to Docs
-                    </button>
+                    </Button>
                   </a>
                 </div>
               </div>
@@ -116,9 +117,9 @@ const Home: NextPage = () => {
                     target="_blank"
                     className="self-start mt-3"
                   >
-                    <button className="bg-blue-500 self-start text-xs hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+                    <Button className="btn-primary text-xs">
                       Go to Github
-                    </button>
+                    </Button>
                   </a>
                 </div>
               </div>

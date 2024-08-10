@@ -2,6 +2,7 @@ import { FC, ReactNode } from "react";
 import { useSignTypedData } from "wagmi";
 import { useReadDb } from "../../hooks/useReadDb";
 import { types, declaration, useApiDomain } from "../../hooks/useApiTypes";
+import { Button } from "@headlessui/react";
 
 export const SignTermsForm: FC<{}> = ({}) => {
   const domain = useApiDomain();
@@ -13,11 +14,11 @@ export const SignTermsForm: FC<{}> = ({}) => {
   };
 
   return (
-    <button
-      className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+    <Button
+      className="btn-primary"
       onClick={handler}>
     Sign Terms
-    </button>);
+    </Button>);
 };
 
 export const IfSigned: FC<{

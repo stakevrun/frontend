@@ -2,6 +2,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { Abi } from "abitype";
 import { FC, useEffect } from "react";
+import { Button } from "@headlessui/react";
 
 export const TransactionSubmitter: FC<{
   address: `0x${string}`;
@@ -38,13 +39,13 @@ export const TransactionSubmitter: FC<{
   // TODO: allow customisation on when it should be disabled (e.g. allow duplicate or not)
   return (
     <div>
-      <button
-        className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md"
+      <Button
+        className="btn-primary"
         disabled={isPending || (isWritten && !(errorOnWait || isConfirmed))}
         onClick={handler}
       >
         {buttonText}
-      </button>
+      </Button>
       {hash && !receipt && <p>Submitted transaction with hash {hash}</p>}
       {receipt && receipt.status == "success" && <p>{hash} confirmed</p>}
       {receipt && isConfirmed && receipt.status != "success" && (

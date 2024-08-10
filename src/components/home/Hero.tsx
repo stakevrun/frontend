@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@headlessui/react";
 import { FaDiscord } from "react-icons/fa";
 
 export function Hero() {
@@ -16,9 +17,9 @@ export function Hero() {
           </p>
 
           <Link href="/createValidator" className=" self-center xl:self-start">
-            <button className="bg-blue-500 self-center xl:self-start hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+            <Button className="btn-primary">
               Create Validator
-            </button>
+            </Button>
           </Link>
 
           <a
