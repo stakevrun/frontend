@@ -1,24 +1,34 @@
 import { FC, ReactNode } from "react";
 import { useSignTypedData } from "wagmi";
 import { useReadDb } from "../../hooks/useReadDb";
-import { types, declaration, useApiDomain } from "../../hooks/useApiTypes";
 import { Button } from "@headlessui/react";
+import { useApiTypes, useDeclaration } from "../../hooks/useApiTypes";
 
 export const SignTermsForm: FC<{}> = ({}) => {
-  const domain = useApiDomain();
+  const {data: typesData, error: typesError} = useApiTypes();
+  const {data: declaration, error: declarationError} = useDeclaration();
   const {signTypedData, data, error} = useSignTypedData();
   const primaryType = "AcceptTermsOfService";
   const message = { declaration };
   const handler = () => {
+    if (!typesData) return;
+    const {types, domain} = typesData;
     signTypedData({types, domain, primaryType, message});
   };
 
   return (
+    <>
     <Button
       className="btn-primary"
+      disabled={!!typesError || !!declarationError}
       onClick={handler}>
     Sign Terms
-    </Button>);
+    </Button>
+    {typesError && <p>Error fetching types: {typesError.message}</p>}
+    {declarationError && <p>Error fetching required declaration: {declarationError.message}</p>}
+    {error && <p>Error signing data: {error.message}</p>}
+    </>
+  );
 };
 
 export const IfSigned: FC<{

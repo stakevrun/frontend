@@ -1,4 +1,4 @@
-import { useChainId, useAccount } from "wagmi";
+import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
 
 export function useReadDb({
@@ -8,11 +8,10 @@ export function useReadDb({
   path: string,
   searchParams?: Record<string, string>,
 }) {
-  const chainId = useChainId();
-  const {address} = useAccount();
+  const {address, chainId} = useAccount();
   const qs = searchParams && (new URLSearchParams(searchParams)).toString();
   const queryString = qs ? `?${qs}` : '';
-  const queryKey = [chainId, address, path, queryString];
+  const queryKey = ['vrün', chainId, address, path, queryString];
   const url = `https://api.vrün.com/${chainId}/${address}/${path}${queryString}`;
   const queryFn = () =>
     fetch(url)
