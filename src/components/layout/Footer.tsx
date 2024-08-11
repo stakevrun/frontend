@@ -8,7 +8,7 @@ export function Footer() {
         <Link href="/faq" className="text-zinc-500 hover:text-zinc-800">FAQ</Link>
         <Link href="/terms" className="text-zinc-500 hover:text-zinc-800">Terms</Link>
       </div>
-      <p className="p-6 text-xs text-center">Vrün website and staking service © 2024</p>
+      <p className="p-6 text-xs text-center text-zinc-500">Vrün website and staking service © 2024</p>
     </footer>
   );
 }

@@ -6,4 +6,8 @@
   .btn-primary {
     @apply bg-blue-500 self-start data-[hover]:bg-blue-700 data-[disabled]:bg-gray-400 text-white font-bold py-2 px-4 rounded-md;
   }
+  
+  .tab-primary {
+    @apply rounded-lg py-1 px-3 text-sm/6 font-semibold focus:outline-none data-[hover]:bg-zinc-100 data-[selected]:bg-zinc-200 data-[selected]:data-[hover]:bg-zinc-200 data-[focus]:outline-1 data-[focus]:outline-cyan-500;
+  }
 }
