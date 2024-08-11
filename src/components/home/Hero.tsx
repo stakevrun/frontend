@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@headlessui/react";
 import { FaDiscord } from "react-icons/fa";
 
-export function Hero() {
+const Hero = () => {
   return (
       <div className="h-auto w-[75%] flex flex-col-reverse justify-center items-center xl:h-[92vh] xl:flex-row">
         <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-4 gap-8 lg:w-[70%] xl:w-[50%] ">
@@ -43,3 +43,5 @@ export function Hero() {
       </div>
   )
 }
+
+export default Hero;
