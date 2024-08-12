@@ -56,7 +56,7 @@ const Resources = () => {
                 </CardIcon>
                 <CardContent
                   title="Rocket Pool Docs"
-                  description="Learn about the under the hood functions which help to power Vrün!"
+                  description="Learn about the under the hood functions that help to power Vrün."
                 ></CardContent>
                 <Button className="btn-primary text-xs">Go to Docs</Button>
               </Card>
