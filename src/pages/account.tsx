@@ -1,9 +1,8 @@
-import { useAccount } from "wagmi";
+import { NextPage } from "next";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { IfConnected } from "../components/layout/IfConnected";
 import { IfRegistered } from "../components/layout/IfRegistered";
 import { IfSigned } from "../components/layout/IfSigned";
-import { NextPage } from "next";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import Overview from "../components/account/Overview";
 import RPL from "../components/account/RPL";
 import Rewards from "../components/account/Rewards";
@@ -21,7 +20,7 @@ const Account: NextPage = () => {
   return (
     <IfConnected>
       <IfRegistered>
-        <IfSigned>
+        {/* <IfSigned> */}
           <div className="flex w-full mx-auto flex-col ">
             <div className="flex w-full h-auto sticky top-[8vh] mb-6 lg:mb-2 pb-[34vh] xl:pb-[10vh]">
               <section className="flex w-full flex-col items-center justify-center ">
@@ -41,7 +40,7 @@ const Account: NextPage = () => {
               </section>
             </div>
           </div>
-        </IfSigned>
+        {/* </IfSigned> */}
       </IfRegistered>
     </IfConnected>
   );

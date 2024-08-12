@@ -1,14 +1,4 @@
 import type { NextPage } from "next";
-import Image from "next/image";
-
-import {
-  FaEthereum,
-  FaCoins,
-} from "react-icons/fa";
-import { VscActivateBreakpoints } from "react-icons/vsc";
-import { MdOnlinePrediction } from "react-icons/md";
-import { BsSignStopFill } from "react-icons/bs";
-import { ImPower } from "react-icons/im";
 
 import Hero from "../components/home/Hero";
 import Resources from "../components/home/Resources";
