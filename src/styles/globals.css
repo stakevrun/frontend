@@ -10,4 +10,8 @@
   .tab-primary {
     @apply rounded-lg py-1 px-3 text-sm/6 font-semibold focus:outline-none data-[hover]:bg-zinc-100 data-[selected]:bg-zinc-200 data-[selected]:data-[hover]:bg-zinc-200 data-[focus]:outline-1 data-[focus]:outline-cyan-500;
   }
+
+  .panel {
+    @apply p-5 border rounded-lg flex items-center shadow-xl;
+  }
 }

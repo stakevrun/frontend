@@ -2,9 +2,9 @@ import { Input, RadioGroup, Radio, Field, Label, Button } from "@headlessui/reac
 
 const RPL = () => {
   return (
-    <div className="border p-4 m-6">
+    <div className="panel flex-col m-6">
       <h1 className="text-center">RPL interface</h1>
-      <div className="border p-2 m-4">
+      <div className="panel flex-col m-4">
         <h2>Unstaked RPL:</h2>
         <p>0</p>
         <h2>Staked RPL:</h2>
@@ -23,7 +23,7 @@ const RPL = () => {
           <span>Unstake</span>
         </Radio>
       </RadioGroup>
-      <Button className="btn-primary">Submit</Button>
+      <Button className="btn-primary self-center">Submit</Button>
     </div>
   );
 };
