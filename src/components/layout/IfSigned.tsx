@@ -1,19 +1,29 @@
 import { FC, ReactNode } from "react";
 import { useSignTypedData } from "wagmi";
 import { useReadDb } from "../../hooks/useReadDb";
+import { useWriteDb } from "../../hooks/useWriteDb";
 import { Button } from "@headlessui/react";
 import { useApiTypes, useDeclaration } from "../../hooks/useApiTypes";
+import { UseQueryResult } from "@tanstack/react-query";
 
-export const SignTermsForm: FC<{}> = ({}) => {
+export const SignTermsForm: FC<{
+  refetch: (options?: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<UseQueryResult>
+}> = ({refetch}) => {
   const {data: typesData, error: typesError} = useApiTypes();
   const {data: declaration, error: declarationError} = useDeclaration();
-  const {signTypedData, data, error} = useSignTypedData();
+  const {signTypedDataAsync, error: signingError} = useSignTypedData();
   const primaryType = "AcceptTermsOfService";
   const message = { declaration };
-  const handler = () => {
+  const {mutateAsync, error: writingError} = useWriteDb({
+    method: 'PUT', type: primaryType, data: message,
+  });
+
+  const handler = async () => {
     if (!typesData) return;
     const {types, domain} = typesData;
-    signTypedData({types, domain, primaryType, message});
+    const signature = await signTypedDataAsync({types, domain, primaryType, message});
+    const res = await mutateAsync({signature});
+    return refetch();
   };
 
   return (
@@ -26,7 +36,8 @@ export const SignTermsForm: FC<{}> = ({}) => {
     </Button>
     {typesError && <p>Error fetching types: {typesError.message}</p>}
     {declarationError && <p>Error fetching required declaration: {declarationError.message}</p>}
-    {error && <p>Error signing data: {error.message}</p>}
+    {signingError && <p>Error signing data: {signingError.message}</p>}
+    {writingError && <p>Error writing data: {writingError.message}</p>}
     </>
   );
 };
@@ -34,9 +45,9 @@ export const SignTermsForm: FC<{}> = ({}) => {
 export const IfSigned: FC<{
   children: ReactNode,
 }> = ({ children }) => {
-  const { data, error } = useReadDb({path: 'acceptance'});
+  const { data, error, refetch } = useReadDb({path: 'acceptance'});
   const isSigned = data?.status === 200;
   if (error) return (<p>Error checking ToS signature: {error.message}</p>);
   else if (isSigned) return (<><p>Debug Info: Signed ToS</p>{children}</>);
-  else return <SignTermsForm />;
+  else return <SignTermsForm refetch={refetch} />;
 };
