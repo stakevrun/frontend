@@ -7,8 +7,8 @@ import {
 import { CiCirclePlus, CiCircleMinus } from "react-icons/ci";
 
 interface HeaderContentPair {
-  header: ReactNode;
-  content: ReactNode;
+  question: ReactNode;
+  answer: ReactNode;
 }
 
 const MarkdownToDisclosure: React.FC<{ children: ReactNode }> = ({
@@ -22,34 +22,39 @@ const MarkdownToDisclosure: React.FC<{ children: ReactNode }> = ({
   for (let i = 0; i < elements.length; i += 2) {
     if (i + 1 < elements.length) {
       groups.push({
-        header: elements[i],
-        content: elements[i + 1],
+        question: elements[i],
+        answer: elements[i + 1],
       });
     }
   }
 
   return (
-    <div className="w-full mx-auto rounded-2xl">
-      {groups.map(({ header, content }, index) => (
-        <Disclosure key={index} as="div" className="mt-4">
-          {({ open }) => (
-            <>
-              <DisclosureButton className="w-full flex flex-row justify-between p-4 text-md font-medium text-sky-950 bg-sky-100 rounded-lg hover:bg-sky-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:ring-opacity-75">
-                <span>
-                  {React.isValidElement(header)
-                    ? header.props.children
-                    : header}
-                </span>
-                <span className="self-center">{open ? <CiCircleMinus /> : <CiCirclePlus />}</span>
-              </DisclosureButton>
-              <DisclosurePanel className="px-4 pt-1 pb-4 text-sm text-gray-500">
-                {content}
-              </DisclosurePanel>
-            </>
-          )}
+    <dl className="mt-10 space-y-6 divide-y divide-zinc-900/10">
+      {groups.map(({ question, answer }, index) => (
+        <Disclosure key={index} as="div" className="pt-6">
+          <dt>
+            <DisclosureButton className="group flex w-full items-start justify-between text-left text-zinc-900">
+              <span className="text-lg font-semibold leading-7">
+                {question}
+              </span>
+              <span className="ml-6 flex h-7 items-center">
+                <CiCirclePlus
+                  aria-hidden="true"
+                  className="h-6 w-6 text-zinc-900 group-data-[open]:hidden"
+                />
+                <CiCircleMinus
+                  aria-hidden="true"
+                  className="h-6 w-6 text-zinc-900 [.group:not([data-open])_&]:hidden"
+                />
+              </span>
+            </DisclosureButton>
+          </dt>
+          <DisclosurePanel as="dd" className="mt-2 pr-12">
+            <p className="text-base leading-7 text-zinc-600">{answer}</p>
+          </DisclosurePanel>
         </Disclosure>
       ))}
-    </div>
+    </dl>
   );
 };
 
