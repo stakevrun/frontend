@@ -4,7 +4,7 @@ import { IfConnected } from "../components/layout/IfConnected";
 import { IfRegistered } from "../components/layout/IfRegistered";
 import { IfSigned } from "../components/layout/IfSigned";
 import Overview from "../components/account/Overview";
-import RPL from "../components/account/RPL";
+import RPL from "../components/RPL/Staking";
 import Rewards from "../components/account/Rewards";
 import Payments from "../components/account/Payments";
 
@@ -29,13 +29,11 @@ const Account: NextPage = () => {
                   {/* this tab organization will probably change; first stab */}
                   <TabList className="flex justify-center gap-4">
                     <Tab className="tab-primary">Overview</Tab>
-                    <Tab className="tab-primary">RPL</Tab>
                     <Tab className="tab-primary">Rewards</Tab>
                     <Tab className="tab-primary">Payments</Tab>
                   </TabList>
                   <TabPanels>
                     <TabPanel><Overview /></TabPanel>
-                    <TabPanel><RPL /></TabPanel>
                     <TabPanel><Rewards /></TabPanel>
                     <TabPanel><Payments /></TabPanel>
                   </TabPanels>

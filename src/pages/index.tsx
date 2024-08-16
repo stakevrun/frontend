@@ -18,8 +18,8 @@ const Home: NextPage = () => {
             </h2>
 
             <p className="mt-4 text-gray-500">
-              Premium Validator management service powered by experts in
-              Cryptography
+              Premium validator management service powered by experts in
+              cryptography
             </p>
           </div>
 
