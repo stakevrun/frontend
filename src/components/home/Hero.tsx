@@ -16,9 +16,9 @@ const Hero = () => {
             Forward-Thinking Node Operators.
           </p>
 
-          <Link href="/createValidator" className=" self-center xl:self-start">
+          <Link href="/validators" className=" self-center xl:self-start">
             <Button className="btn-primary">
-              Create Validator
+              Get Started
             </Button>
           </Link>
 
