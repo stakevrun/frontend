@@ -1,6 +1,6 @@
 import { Input, RadioGroup, Radio, Field, Label, Button } from "@headlessui/react";
 
-const RPL = () => {
+const Staking = () => {
   return (
     <div className="panel flex-col m-6">
       <h1 className="text-center">RPL interface</h1>
@@ -28,4 +28,4 @@ const RPL = () => {
   );
 };
 
-export default RPL;
+export default Staking;
