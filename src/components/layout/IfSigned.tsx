@@ -20,10 +20,16 @@ export const SignTermsForm: FC<{
 
   const handler = async () => {
     if (!typesData) return;
-    const {types, domain} = typesData;
-    const signature = await signTypedDataAsync({types, domain, primaryType, message});
-    const res = await mutateAsync({signature});
-    return refetch();
+    try {
+      const {types, domain} = typesData;
+      const signature = await signTypedDataAsync({types, domain, primaryType, message});
+      const res = await mutateAsync({signature});
+      return refetch();
+    }
+    catch (e) {
+      console.warn(e)
+      return;
+    }
   };
 
   return (
