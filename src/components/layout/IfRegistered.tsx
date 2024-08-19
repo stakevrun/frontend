@@ -21,10 +21,6 @@ export const RegistrationForm: FC<{
   };
   return (
     <>
-      <p>
-        Debug Info: isRegistered={isRegistered?.toString()} :{" "}
-        {typeof isRegistered}
-      </p>
       <p>Placeholder: Rocket Pool logo, Register form heading</p>
       <label>
         <span className="pr-1">Node Timezone:</span>
@@ -80,11 +76,7 @@ export const IfRegistered: FC<{
     <p>Fetching node registration status...</p>
   ) : error ? (
     <p>Error reading getNodeExists: {error.message}</p>
-  ) : isRegistered ? (
-    <>
-      <p>Debug Info: Registered with Rocket Pool.</p> {children}
-    </>
-  ) : (
+  ) : isRegistered ? children : (
     <RegistrationForm
       rocketNodeManager={address as `0x${string}`}
       isRegistered={isRegistered}

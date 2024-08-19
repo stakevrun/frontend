@@ -54,6 +54,6 @@ export const IfSigned: FC<{
   const { data, error, refetch } = useReadDb({path: 'acceptance'});
   const isSigned = data?.status === 200;
   if (error) return (<p>Error checking ToS signature: {error.message}</p>);
-  else if (isSigned) return (<><p>Debug Info: Signed ToS</p>{children}</>);
+  else if (isSigned) return children;
   else return <SignTermsForm refetch={refetch} />;
 };
