@@ -86,7 +86,7 @@ export function Navbar() {
                   alt="Vrun logo"
                   className="rounded-full"
                 />
-                <span className="invisible md:visible md:ml-6 content-center text-lg xl:text-2xl font-bold">
+                <span className="invisible md:visible md:ml-2 content-center text-lg xl:text-2xl font-bold">
                   VRÜN
                 </span>
               </Link>
@@ -106,10 +106,12 @@ export function Navbar() {
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white shadow-sm">
-                <ConnectButton />
+              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
+                <ConnectButton 
+                  accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
+                />
               </span>
-              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white shadow-sm">
+              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
                 <ModeToggle />
               </span>
             </div>

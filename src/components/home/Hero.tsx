@@ -12,8 +12,8 @@ const Hero = () => {
           </h1>
 
           <p className="text-md text-black-100 text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start ">
-            Embrace True Ownership with Vrün: Non-Custodial Ethereum Staking for
-            Forward-Thinking Node Operators.
+            Embrace true ownership with Vrün: non-custodial Ethereum staking for
+            forward-thinking node operators.
           </p>
 
           <Link href="/validators" className=" self-center xl:self-start">
@@ -31,7 +31,7 @@ const Hero = () => {
           </a>
         </div>
 
-        <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center ml-[20px] xl:h-[400px] xl:w-[400px]">
+        <div className=" h-[200px] w-[200px] flex flex-col p-6 items-center justify-center lg:ml-[20px] xl:h-[400px] xl:w-[400px]">
           <Image
             src="/images/vrunlogo.png"
             alt="Vrun logo"
