@@ -15,7 +15,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   return (
-    <div className={`${figtree.className} flex flex-col min-h-screen`}>
+    <div className={`${figtree.className} flex flex-col min-h-screen bg-zinc-50 dark:bg-stone-900`}>
       <Head>
         <title>Vrün | Nodes & Staking</title>
         <meta

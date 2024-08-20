@@ -1,4 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import ModeToggle from "../ModeToggle";
 import { useAccount } from "wagmi";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,7 +8,7 @@ export function Navbar() {
   const { isConnected } = useAccount({});
 
   return (
-    <header className="px-6 py-4 mb-8 flex flex-row justify-between border-b">
+    <header className="bg-transparent px-6 py-4 mb-8 flex flex-row justify-between border-b">
       <div className="flex flex-row gap-8 items-center">
         <Link
           className="flex flex-row gap-2"
@@ -25,6 +26,7 @@ export function Navbar() {
         {isConnected && <Link href="/account" className="content-center">Account</Link>}
       </div>
       <ConnectButton />
+      <ModeToggle />
     </header>
   );
 }

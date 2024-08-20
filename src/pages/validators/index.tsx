@@ -18,7 +18,7 @@ Definitely include in table:
 - pubkey
 - beacon chain index
 
-Other info (decide which to include/save for detail pages):
+Other info (decide which to include/save for detail pages/exclude):
 - vrün index
 - fee recipient
 - graffiti
