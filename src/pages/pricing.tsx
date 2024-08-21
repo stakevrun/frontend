@@ -3,6 +3,15 @@ import { useState, useEffect } from "react";
 import { useChainId, useReadContracts } from "wagmi";
 import { type ContractFunctionParameters, formatUnits } from "viem";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/layout/table";
+
 const nullAddress = '0x'.padEnd(42, '0');
 
 // work in progress
@@ -84,19 +93,19 @@ const Pricing: NextPage = () => {
   const {data: results, error, status} = useReadContracts({contracts: prices?.contractReads});
 
   return (
-    <div>
-      <h1>Pricing</h1>
+    <div className="max-w-full md:px-10">
+      <h1 className="my-16 text-xl self-center text-center md:text-2xl lg:text-3xl xl:text-4xl font-bold">Pricing</h1>
       {error ? <p>Error reading token contracts: {error.message}</p> :
        prices && results ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Payment Token Chain</th>
-              <th>Payment Token</th>
-              <th>Validator Day Price</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table className="px-6"> 
+          <TableHead>
+            <TableRow>
+              <TableHeader>Payment Token Chain</TableHeader>
+              <TableHeader className="hidden sm:table-cell">Payment Token</TableHeader>
+              <TableHeader>Validator Day Price</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
           {prices.pricingRowData.map(({tokenChainId, tokenAddress, price}, i) => {
             const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == nullAddress ?
               [{result: 18}, {result: 'Ether'}, {result: 'ETH'}] :
@@ -105,15 +114,15 @@ const Pricing: NextPage = () => {
                 return results.slice(index, index + 3);
               })();
             return (
-              <tr key={i}>
-                <td>{tokenChainId.toString()}</td>
-                <td>{tokenName.result as string} {tokenAddress != nullAddress && `(${tokenAddress})`}</td>
-                <td>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result as string}</td>
-              </tr>
+              <TableRow key={i}>
+                <TableCell>{tokenChainId.toString()}</TableCell>
+                <TableCell className="hidden sm:table-cell">{tokenName.result as string} {tokenAddress != nullAddress && `(${tokenAddress})`}</TableCell>
+                <TableCell>{formatUnits(price, tokenDecimals.result as number)} {tokenSymbol.result as string}</TableCell>
+              </TableRow>
             );
           })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       ) : <p>Reading payment token info... (status={status})</p>}
     </div>
   );
