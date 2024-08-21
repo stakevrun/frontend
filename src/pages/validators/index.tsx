@@ -2,6 +2,7 @@ import { NextPage } from "next";
 import IfConnected from "../../components/layout/IfConnected";
 import { IfRegistered } from "../../components/layout/IfRegistered";
 import { IfSigned } from "../../components/layout/IfSigned";
+import { useValidatorPubkeys } from "../../hooks/useValidatorPubkeys";
 import {
   Table,
   TableBody,
@@ -32,54 +33,42 @@ Other info (decide which to include/save for detail pages/exclude):
 
 // TODO: determine how to handle data fetching and layout wrt validator tetail pages
 
-// fake placeholder 
+// fake placeholder
 type Validator = {
-  pubKey: string;
-  bcIndex: number;
+  pubkey: `0x${string}`;
+  index: number;
   vIndex: number;
 };
 
-const validators: Validator[] = [
-  {
-    pubKey: "0",
-    bcIndex: 0,
-    vIndex: 0,
-  },
-  {
-    pubKey: "1",
-    bcIndex: 1,
-    vIndex: 1,
-  },
-  {
-    pubKey: "2",
-    bcIndex: 2,
-    vIndex: 2,
-  },
-];
-
 const Validators: NextPage = () => {
+  const {data: pubkeys, error: pubkeysError} = useValidatorPubkeys();
+
+  const validators: Validator[] = pubkeysError ? [] :
+    pubkeys.map((pubkey, i) => ({pubkey, index: i /* todo */, vIndex: i /* todo */}));
+
   return (
     <IfConnected>
       <IfRegistered>
         <IfSigned>
+          {pubkeysError ? <p>Error getting pubkeys: {pubkeysError.toString()}</p> : (
           <Table >
             <TableHead>
               <TableRow>
                 <TableHeader>Public Key</TableHeader>
-                <TableHeader>BC Index</TableHeader>
-                <TableHeader>Vrun Index</TableHeader>
+                <TableHeader>Validator Index</TableHeader>
+                <TableHeader>Vrün Index</TableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
               {validators.map((v, i) => (
-                <TableRow key={i} href={`/validators/${v.vIndex}`}>
-                  <TableCell className="text-zinc-800">{v.pubKey}</TableCell>
-                  <TableCell className="text-zinc-800">{v.bcIndex}</TableCell>
+                <TableRow key={i} href={`/validators/${v.vIndex}`/*TODO: use pubkey instead*/}>
+                  <TableCell className="text-zinc-800">{v.pubkey}</TableCell>
+                  <TableCell className="text-zinc-800">{v.index}</TableCell>
                   <TableCell className="text-zinc-800">{v.vIndex}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table>)}
         </IfSigned>
       </IfRegistered>
     </IfConnected>

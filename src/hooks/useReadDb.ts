@@ -17,7 +17,7 @@ export function useReadDb({
     fetch(url)
       .then(
         r => r.status === 200 ? r.json().then(value => ({status: 200, value})) :
-          r.status === 404 ? {status: 404} :
+          r.status === 404 ? {status: 404, value: undefined} :
           r.text().then(msg => { throw new Error(`${r.status} error fetching ${url}: ${msg}`) }));
   return useQuery({
     queryKey,
