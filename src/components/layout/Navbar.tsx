@@ -58,8 +58,8 @@ export function Navbar() {
   const pathname = usePathname();
 
   return (
-    <Disclosure as="nav" className="bg-transparent">
-      <div className="mx-auto max-w-7xl px-2 sm:px-4 lg:px-6">
+    <Disclosure as="nav" className="bg-transparent text-xs sm:text-sm lg:text-base">
+      <div className="mx-auto max-w-7xl px-2 py-2 sm:px-4 lg:px-6">
         <div className="flex h-16 justify-between">
           <div className="flex">
             <div className="-ml-2 mr-2 flex items-center md:hidden">
@@ -91,13 +91,13 @@ export function Navbar() {
                 </span>
               </Link>
             </div>
-            <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
+            <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4 text-slate-700 dark:text-slate-300">
               {isConnected && (
                 <>
-                  <Link href="/account" className="content-center">
+                  <Link href="/account" className="content-center hover:text-sky-700 dark:hover:text-slate-100 mx-8">
                     Account
                   </Link>
-                  <Link href="/validators" className="content-center">
+                  <Link href="/validators" className="content-center hover:text-sky-700 dark:hover:text-slate-100">
                     Validators
                   </Link>
                 </>
@@ -106,12 +106,12 @@ export function Navbar() {
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
                 <ConnectButton 
                   accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
                 />
               </span>
-              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold">
                 <ModeToggle />
               </span>
             </div>
@@ -119,6 +119,7 @@ export function Navbar() {
         </div>
       </div>
 
+      {/* TODO hide links in mobile, maybe replace with connect button*/}
       <DisclosurePanel className="sm:hidden">
         <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
           <DisclosureButton

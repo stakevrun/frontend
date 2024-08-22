@@ -52,7 +52,7 @@ const values: Value[] = [
     description: "Seamlessly sign in with your wallet. No need for traditional accounts, making the process swift and secure."
   },
   {
-    icon: <FaEthereum className="text-2xl text-purple-500" />,
+    icon: <FaEthereum className="text-2xl text-violet-500" />,
     title: "Affordable Staking Solutions",
     description: "Benefit from cost-effective staking without compromising on quality or security. Enjoy staking with competitive pricing."
   },
@@ -80,7 +80,7 @@ const ValueItem = ({ icon, title, description }: ValueItemProps) => (
     </span>
     <div>
       <h2 className="text-lg font-bold">{title}</h2>
-      <p className="mt-1 text-md text-gray-500">{description}</p>
+      <p className="mt-1 text-md text-slate-500">{description}</p>
     </div>
   </div>
 );

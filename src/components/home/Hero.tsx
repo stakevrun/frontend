@@ -7,11 +7,11 @@ const Hero = () => {
   return (
       <div className="h-auto w-[75%] flex flex-col-reverse justify-center items-center xl:h-[92vh] xl:flex-row">
         <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-4 gap-8 lg:w-[70%] xl:w-[50%] ">
-          <h1 className="bg-clip-text text-transparent bg-gradient-to-r from-sky-600 via-sky-400 to-sky-200 text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
+          <h1 className="bg-clip-text text-transparent bg-gradient-to-r dark:from-sky-500 dark:via-vrun-2 dark:to-sky-100 from-vrun-6 via-vrun-3 to-vrun-4 text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
             Welcome to Vrün!
           </h1>
 
-          <p className="w-[80%] text-md text-black-100 text-center xl:text-left md:text-lg self-center lg:text-xl xl:text-2xl lg:self-start">
+          <p className="w-[80%] text-md text-slate-800 dark:text-slate-300 font-light text-center xl:text-left md:text-lg self-center lg:text-xl xl:text-2xl xl:leading-relaxed lg:self-start">
             Embrace true ownership with Vrün: non-custodial Ethereum staking for
             forward-thinking node operators.
           </p>
