@@ -1,5 +1,25 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
-import { http } from 'wagmi';
+import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import {
+  injectedWallet,
+  walletConnectWallet,
+  safeWallet,
+  frameWallet,
+  ledgerWallet,
+  rabbyWallet,
+  metaMaskWallet,
+  mewWallet,
+  rainbowWallet,
+  argentWallet,
+  oneInchWallet,
+  braveWallet,
+  uniswapWallet,
+  binanceWallet,
+  bybitWallet,
+  coinbaseWallet,
+  krakenWallet,
+  okxWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { http, createConfig } from 'wagmi';
 import {
   arbitrum,
   // base,
@@ -18,9 +38,43 @@ declare module 'wagmi' {
   }
 }
 
-export const config = getDefaultConfig({
-  appName: 'RainbowKit App',
-  projectId: NEXT_PUBLIC_PROJECT_ID,
+const projectInfo = {
+  appName: 'Vrün',
+  projectId: NEXT_PUBLIC_PROJECT_ID
+};
+
+const walletGroups = [
+  {
+    groupName: 'General',
+    wallets: [ injectedWallet, walletConnectWallet, safeWallet ],
+  },
+  {
+    groupName: 'Specific',
+    wallets: [
+      frameWallet,
+      metaMaskWallet,
+      rabbyWallet,
+      braveWallet,
+      mewWallet,
+      rainbowWallet,
+      oneInchWallet,
+      uniswapWallet,
+      ledgerWallet,
+      argentWallet,
+    ],
+  },
+  {
+    groupName: 'Exchange',
+    wallets: [ coinbaseWallet, krakenWallet, binanceWallet, okxWallet, bybitWallet ],
+  }
+];
+
+const connectors = connectorsForWallets(
+  walletGroups,
+  projectInfo
+);
+
+export const config = createConfig({
   chains: [
     mainnet,
     holesky,
@@ -30,6 +84,7 @@ export const config = getDefaultConfig({
     // base,
     sepolia,
   ],
+  connectors,
   transports: {
     [mainnet.id]: http(),
     [holesky.id]: http(HOLESKY_RPC),
