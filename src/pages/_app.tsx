@@ -1,16 +1,20 @@
-import '../styles/globals.css';
-import '@rainbow-me/rainbowkit/styles.css';
-import type { AppProps } from 'next/app';
+import "../styles/globals.css";
+import "@rainbow-me/rainbowkit/styles.css";
+import type { AppProps } from "next/app";
 // import type { AppPropsWithLayout } from '../types'; // need this if we wind up using nested layouts
 
-import Layout from '../components/layout/layout';
+import Layout from "../components/layout/layout";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider } from "wagmi";
 import { holesky, mainnet } from "wagmi/chains";
-import { lightTheme, RainbowKitProvider, Theme } from '@rainbow-me/rainbowkit';
+import {
+  lightTheme,
+  darkTheme,
+  RainbowKitProvider,
+} from "@rainbow-me/rainbowkit";
 
-import { config } from '../wagmi';
+import { config } from "../wagmi";
 
 const client = new QueryClient();
 
@@ -19,33 +23,47 @@ const figtree = Figtree({
   subsets: ["latin"],
 });
 
-const customRainbowKitTheme: Theme = {
+const customRainbowKitLightTheme = {
   ...lightTheme(),
   fonts: {
     body: figtree.style.fontFamily,
-  }
-}
+  },
+  colors: {
+    ...lightTheme().colors,
+    connectButtonBackground: "#38bdf8",
+    connectButtonText: "#283d4a",
+  },
+};
+const customRainbowKitDarkTheme = {
+  ...darkTheme(),
+  fonts: {
+    body: figtree.style.fontFamily,
+  },
+};
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
-    <style jsx global>{`
-      html {
-        font-family: ${figtree.style.fontFamily};
-      }
-    `}</style>
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={client}>
-        <RainbowKitProvider
-           initialChain={holesky/*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/}
-           showRecentTransactions={true}
-           theme={customRainbowKitTheme}>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+      <style jsx global>{`
+        html {
+          font-family: ${figtree.style.fontFamily};
+        }
+      `}</style>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={client}>
+          <RainbowKitProvider
+            initialChain={
+              holesky /*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/
+            }
+            showRecentTransactions={true}
+            theme={customRainbowKitLightTheme}
+          >
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </>
   );
 }

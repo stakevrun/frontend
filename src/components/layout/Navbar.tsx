@@ -86,7 +86,7 @@ export function Navbar() {
                   alt="Vrun logo"
                   className="rounded-full"
                 />
-                <span className="invisible md:visible md:ml-2 content-center text-lg xl:text-2xl font-bold">
+                <span className="invisible md:visible content-center text-lg xl:text-2xl font-bold">
                   VRÜN
                 </span>
               </Link>

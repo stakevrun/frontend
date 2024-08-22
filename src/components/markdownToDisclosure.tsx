@@ -33,24 +33,24 @@ const MarkdownToDisclosure: React.FC<{ children: ReactNode }> = ({
       {groups.map(({ question, answer }, index) => (
         <Disclosure key={index} as="div" className="pt-6">
           <dt>
-            <DisclosureButton className="group flex w-full items-start justify-between text-left text-zinc-900">
+            <DisclosureButton className="group flex w-full items-start justify-between text-left text-zinc-900 dark:text-zinc-100">
               <span className="text-lg font-semibold leading-7">
                 {question}
               </span>
-              <span className="ml-6 flex h-7 items-center">
+              <span className="ml-6 flex h-7 items-center text-zinc-900 dark:text-zinc-100 ">
                 <CiCirclePlus
                   aria-hidden="true"
-                  className="h-6 w-6 text-zinc-900 group-data-[open]:hidden"
+                  className="h-6 w-6 group-data-[open]:hidden"
                 />
                 <CiCircleMinus
                   aria-hidden="true"
-                  className="h-6 w-6 text-zinc-900 [.group:not([data-open])_&]:hidden"
+                  className="h-6 w-6 [.group:not([data-open])_&]:hidden"
                 />
               </span>
             </DisclosureButton>
           </dt>
           <DisclosurePanel as="dd" className="mt-2 pr-12">
-            <p className="text-base leading-7 text-zinc-600">{answer}</p>
+            <p className="text-base font-thin tracking-wide leading-7 text-zinc-600 dark:text-zinc-300">{answer}</p>
           </DisclosurePanel>
         </Disclosure>
       ))}
