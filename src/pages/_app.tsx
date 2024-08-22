@@ -11,6 +11,7 @@ import { holesky, mainnet } from "wagmi/chains";
 import {
   lightTheme,
   darkTheme,
+  cssStringFromTheme,
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 
@@ -24,21 +25,27 @@ const figtree = Figtree({
 });
 
 const customRainbowKitLightTheme = {
-  ...lightTheme(),
+  ...lightTheme({
+    accentColor: "#8b5cf6",
+  }),
   fonts: {
     body: figtree.style.fontFamily,
   },
-  colors: {
-    ...lightTheme().colors,
-    connectButtonBackground: "#38bdf8",
-    connectButtonText: "#283d4a",
-  },
+  // colors: {
+    // ...lightTheme().colors,
+    // connectButtonBackground: "rgba(0, 0, 0, 0.5)",
+    // connectButtonText: "white",
+  // },
 };
 const customRainbowKitDarkTheme = {
   ...darkTheme(),
   fonts: {
     body: figtree.style.fontFamily,
   },
+  // colors: {
+  //   ...darkTheme().colors,
+  //   connectButtonBackground: "linear-gradient(to right, #0284c7, #38bdf8)",
+  // }
 };
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -56,8 +63,25 @@ function MyApp({ Component, pageProps }: AppProps) {
               holesky /*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/
             }
             showRecentTransactions={true}
+            // theme={{ lightMode: customRainbowKitLightTheme, darkMode: customRainbowKitDarkTheme }} // depends on prefers-color-scheme; doesn't work with Tailwind's selector approach
             theme={customRainbowKitLightTheme}
           >
+            {/* recommended by RainbowKit docs, but doesn't work */}
+            {/* <style
+              dangerouslySetInnerHTML={{
+                __html: `
+                  :root {
+                    ${cssStringFromTheme(lightTheme)}
+                  }
+
+                  html.dark {
+                    ${cssStringFromTheme(darkTheme, {
+                      extends: lightTheme,
+                    })}
+                  }
+                `,
+              }}
+            /> */}
             <Layout>
               <Component {...pageProps} />
             </Layout>

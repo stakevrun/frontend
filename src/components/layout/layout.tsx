@@ -15,7 +15,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
   }, []);
 
   return (
-    <div className={`${figtree.className} flex flex-col min-h-screen bg-vrun-neutral-1 dark:bg-slate-900 dark:text-indigo-50`}>
+    <div className={`${figtree.className} flex flex-col min-h-screen bg-vrun-neutral-1 dark:bg-vrun-9 dark:text-indigo-50`}>
       <Head>
         <title>Vrün | Nodes & Staking</title>
         <meta

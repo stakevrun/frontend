@@ -48,6 +48,8 @@ function ModeToggle() {
     let isSystemDarkMode = darkModeMediaQuery.matches;
     let isDarkMode = document.documentElement.classList.toggle("dark");
 
+    document.documentElement.setAttribute('data-force-color-scheme', isDarkMode ? 'dark' : 'light');
+
     if (isDarkMode === isSystemDarkMode) {
       delete window.localStorage.isDarkMode;
     } else {

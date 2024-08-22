@@ -11,7 +11,7 @@ const Hero = () => {
             Welcome to Vrün!
           </h1>
 
-          <p className="text-md text-black-100 text-center xl:text-left md:text-lg self-center lg:text-xl  xl:text-2xl  lg:self-start ">
+          <p className="w-[80%] text-md text-black-100 text-center xl:text-left md:text-lg self-center lg:text-xl xl:text-2xl lg:self-start">
             Embrace true ownership with Vrün: non-custodial Ethereum staking for
             forward-thinking node operators.
           </p>
@@ -25,7 +25,7 @@ const Hero = () => {
           <a
             href="https://discord.gg/eUhuZfnyVr"
             target="_blank"
-            className="lg:text-2xl self-center xl:self-start gap-2 font-bold  flex items-center hover:text-amber-600"
+            className="lg:text-2xl self-center xl:self-start gap-2 font-bold  flex items-center text-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
           >
             <FaDiscord /> <span>join our Discord server!</span>
           </a>

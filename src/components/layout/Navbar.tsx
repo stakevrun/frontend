@@ -106,12 +106,12 @@ export function Navbar() {
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
                 <ConnectButton 
                   accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
                 />
               </span>
-              <span className="relative inline-flex items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold text-white">
                 <ModeToggle />
               </span>
             </div>

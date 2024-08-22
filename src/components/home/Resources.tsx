@@ -6,7 +6,7 @@ import { Card, CardIcon, CardContent } from "../layout/Card";
 
 const Resources = () => {
   return (
-    <div className="h-auto w-full flex flex-col gap-[10vh] py-[10vh] justify-center items-center bg-purple-600">
+    <div className="h-auto w-full flex flex-col gap-[10vh] py-[10vh] justify-center items-center bg-violet-500">
       <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl max-w-[80%] font-bold text-white">
         Resources & Documentation
       </h2>
