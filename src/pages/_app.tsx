@@ -12,9 +12,10 @@ import {
   lightTheme,
   darkTheme,
   RainbowKitProvider,
+  WalletButton,
 } from "@rainbow-me/rainbowkit";
 
-import { config } from "../wagmi";
+import { useCreateConfig } from "../wagmi";
 
 const client = new QueryClient();
 
@@ -42,6 +43,15 @@ const customRainbowKitDarkTheme = {
 };
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const {config, setMockAccount} = useCreateConfig();
+
+  function handleMockInput(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target?.value && e.target.value.startsWith('0x'))
+      setMockAccount(e.target.value as `0x${string}`);
+    else
+      setMockAccount(undefined);
+  };
+
   return (
     <>
       <style jsx global>{`
@@ -59,6 +69,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             theme={customRainbowKitLightTheme}
           >
             <Layout>
+              <label>Mock account: <input type="text" onInput={handleMockInput}></input></label>
+              <WalletButton wallet="mock" />
               <Component {...pageProps} />
             </Layout>
           </RainbowKitProvider>
