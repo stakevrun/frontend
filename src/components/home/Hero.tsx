@@ -5,7 +5,7 @@ import { FaDiscord } from "react-icons/fa";
 
 const Hero = () => {
   return (
-      <div className="h-auto w-[75%] flex flex-col-reverse justify-center items-center xl:h-[92vh] xl:flex-row">
+      <div className="h-auto py-24 sm:py-40 lg:py-48 w-[75%] flex flex-col-reverse justify-center items-center xl:flex-row">
         <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-4 gap-8 lg:w-[70%] xl:w-[50%] ">
           <h1 className="bg-clip-text text-transparent bg-gradient-to-r dark:from-sky-500 dark:via-vrun-2 dark:to-sky-100 from-vrun-6 via-vrun-3 to-vrun-4 text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
             Welcome to Vrün!

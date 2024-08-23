@@ -132,11 +132,11 @@ export function Navbar() {
                   accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
                 />
               </span>
-              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 py-2 px-3 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
                 <label>Address: <input type="text" onInput={handleMockInput}></input></label>
                 <Button className="btn-primary" onClick={handleMockButton}>{isConnected ? "Stop Viewing" : "View Account"}</Button>
               </span>
-              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2">
                 <ModeToggle />
               </span>
             </div>
