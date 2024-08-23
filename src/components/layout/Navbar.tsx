@@ -1,6 +1,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import ModeToggle from "../ModeToggle";
-import { useAccount } from "wagmi";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { mock } from "wagmi/connectors";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,7 +13,8 @@ import {
   MenuItem,
   MenuItems,
 } from "@headlessui/react";
-import { SVGProps } from "react";
+import { SVGProps, useState } from "react";
+import { Button } from "@headlessui/react";
 import { usePathname } from "next/navigation";
 
 function Bars3Icon(props: SVGProps<SVGSVGElement>) {
@@ -55,7 +57,26 @@ function XMarkIcon(props: SVGProps<SVGSVGElement>) {
 
 export function Navbar() {
   const { isConnected } = useAccount({});
+  const { connect } = useConnect();
+  const { disconnect } = useDisconnect();
   const pathname = usePathname();
+  const [mockInput, setMockInput] = useState<`0x${string}`>("0x");
+  const handleMockInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target?.value && e.target.value.startsWith("0x"))
+      setMockInput(e.target.value as `0x${string}`);
+    else
+      setMockInput("0x");
+  };
+  const handleMockButton = () => {
+    if (isConnected) {
+      console.log('Disconnecting manually');
+      disconnect();
+    }
+    else {
+      console.log(`Connecting manually to view ${mockInput}`);
+      connect({ connector: mock({ accounts: [mockInput], features: { } }) });
+    }
+  };
 
   return (
     <Disclosure as="nav" className="bg-transparent text-xs sm:text-sm lg:text-base">
@@ -107,9 +128,13 @@ export function Navbar() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
-                <ConnectButton 
+                <ConnectButton
                   accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
                 />
+              </span>
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
+                <label>Address: <input type="text" onInput={handleMockInput}></input></label>
+                <Button className="btn-primary" onClick={handleMockButton}>{isConnected ? "Stop Viewing" : "View Account"}</Button>
               </span>
               <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2 text-sm font-semibold">
                 <ModeToggle />
