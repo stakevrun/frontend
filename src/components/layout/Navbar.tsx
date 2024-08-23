@@ -83,7 +83,7 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-2 py-2 sm:px-4 lg:px-6">
         <div className="flex h-16 justify-between">
           <div className="flex">
-            <div className="-ml-2 mr-2 flex items-center md:hidden">
+            <div className="-ml-2 mr-2 flex items-center lg:hidden">
               {/* Mobile menu button */}
               <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                 <span className="absolute -inset-0.5" />
@@ -98,7 +98,7 @@ export function Navbar() {
                 />
               </DisclosureButton>
             </div>
-            <div className="flex flex-shrink-0 items-center">
+            <div className="invisible lg:visible flex flex-shrink-0 items-center">
               <Link className="flex flex-row gap-2" href="/">
                 <Image
                   height={30}
@@ -107,12 +107,12 @@ export function Navbar() {
                   alt="Vrun logo"
                   className="rounded-full"
                 />
-                <span className="invisible md:visible content-center text-lg xl:text-2xl font-bold">
+                <span className="content-center text-lg xl:text-2xl font-bold">
                   VRÜN
                 </span>
               </Link>
             </div>
-            <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4 text-slate-700 dark:text-slate-300">
+            <div className="hidden lg:ml-6 lg:flex lg:items-center lg:space-x-4 text-slate-700 dark:text-slate-300">
               {isConnected && (
                 <>
                   <Link href="/account" className="content-center hover:text-sky-700 dark:hover:text-slate-100 mx-8">
@@ -144,9 +144,17 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* TODO hide links in mobile, maybe replace with connect button*/}
-      <DisclosurePanel className="sm:hidden">
+      {/* TODO make visibility conditional on connected state, maybe replace with connect button*/}
+      <DisclosurePanel className="lg:hidden">
         <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
+          <DisclosureButton
+            key={"home"}
+            as={Link}
+            href={"/"}
+            className="block"
+          >
+            Home
+          </DisclosureButton>
           <DisclosureButton
             key={"account"}
             as={Link}
