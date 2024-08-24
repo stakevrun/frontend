@@ -57,7 +57,7 @@ const values: Value[] = [
     description: "Benefit from cost-effective staking without compromising on quality or security. Enjoy staking with competitive pricing."
   },
   {
-    icon: <MdOnlinePrediction className="text-2xl text-blue-500" />,
+    icon: <MdOnlinePrediction className="text-2xl text-green-500" />,
     title: "Easy Setup, No Hardware Required",
     description: "Begin staking effortlessly. Our service eliminates the need for specialized hardware, providing a hassle-free setup experience."
   },
