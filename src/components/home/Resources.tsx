@@ -11,8 +11,8 @@ const Resources = () => {
         Resources & Documentation
       </h2>
 
-      <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-3 lg:p-5 shadow-2xl lg:h-[40rem] lg:max-w-5xl">
-        <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-slate-50">
+      <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] border-4 border-slate-500 bg-slate-900 p-3 lg:p-5 shadow-2xl lg:h-[40rem] lg:max-w-5xl">
+        <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-vrun-neutral-1">
           <div className="flex flex-col items-center justify-center max-w-3xl w-full sm:flex-row sm:flex-wrap">
             <Link href="/account">
               <Card>

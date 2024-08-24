@@ -127,13 +127,13 @@ export function Navbar() {
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-500 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#8b5cf6;]">
                 <ConnectButton
                   accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
                 />
               </span>
-              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 py-2 px-3 text-xs font-semibold dark:bg-violet-700 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#6d28d9;]">
-                <label>Address: <input type="text" onInput={handleMockInput}></input></label>
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 py-2 px-3 text-xs font-semibold rounded-2xl">
+                <label>Address: <input type="text" onInput={handleMockInput} className="border border-slate-400 rounded-md px-2 py-1 bg-transparent"/></label>
                 <Button className="btn-primary" onClick={handleMockButton}>{isConnected ? "Stop Viewing" : "View Account"}</Button>
               </span>
               <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2">

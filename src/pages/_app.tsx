@@ -67,21 +67,18 @@ function MyApp({ Component, pageProps }: AppProps) {
             theme={customRainbowKitLightTheme}
           >
             {/* recommended by RainbowKit docs, but doesn't work */}
-            {/* <style
+            <style
               dangerouslySetInnerHTML={{
                 __html: `
                   :root {
                     ${cssStringFromTheme(lightTheme)}
                   }
 
-                  html.dark {
-                    ${cssStringFromTheme(darkTheme, {
-                      extends: lightTheme,
-                    })}
-                  }
+                  html .dark {
+                    ${cssStringFromTheme(darkTheme)}
                 `,
               }}
-            /> */}
+            />
             <Layout>
               <Component {...pageProps} />
             </Layout>
