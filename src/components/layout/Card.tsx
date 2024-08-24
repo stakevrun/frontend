@@ -8,7 +8,7 @@ type CardProps = {
 export const Card = ({ children, className = "" }: CardProps) => {
   return (
     <div
-      className={`group m-4 p-6 text-left text-inherit no-underline border border-slate-200 rounded-lg transition-colors duration-150 ease-in-out hover:bg-slate-100 focus:border-blue-500 active:border-blue-500 max-w-[350px] ${className}`}
+      className={`group m-4 p-6 text-left text-inherit no-underline border border-slate-200 dark:border-slate-600 rounded-lg transition-colors duration-150 ease-in-out hover:bg-vrun-neutral-2/50 dark:bg-slate-800 dark:hover:bg-slate-700/60 focus:border-blue-500 active:border-blue-500 max-w-[350px] ${className}`}
   
     >
       {children}
@@ -27,8 +27,8 @@ export const CardContent = ({
 }) => {
   return (
     <div>
-      <h2 className={`font-bold text-slate-950 ${className}`}>{title}</h2>
-      <p className="my-2 text-sm text-slate-800">{description}</p>
+      <h2 className={`font-bold my-3 ${className}`}>{title}</h2>
+      <p className="my-2 text-sm dark:text-slate-300">{description}</p>
     </div>
   );
 };
