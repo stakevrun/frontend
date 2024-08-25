@@ -134,7 +134,7 @@ export function Navbar() {
           </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-500 rounded-2xl dark:shadow-[0px_0px_35px_-5px_#8b5cf6;]">
+              <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 p-1 text-xs font-semibold dark:bg-violet-500 rounded-2xl dark:shadow-[0px_0px_42px_-3px_#8b5cf6;]">
                 <ConnectButton
                   accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
                 />
