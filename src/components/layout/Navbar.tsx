@@ -13,6 +13,7 @@ import {
   MenuItem,
   MenuItems,
 } from "@headlessui/react";
+import { FaStop } from "react-icons/fa";
 import { SVGProps, useState } from "react";
 import { Button } from "@headlessui/react";
 import { usePathname } from "next/navigation";
@@ -99,7 +100,7 @@ export function Navbar() {
                 />
               </DisclosureButton>
             </div>
-            <div className="invisible lg:visible flex flex-shrink-0 items-center">
+            <div className="hidden lg:visible lg:flex flex-shrink-0 items-center">
               <Link className="flex flex-row gap-2" href="/">
                 <Image
                   height={30}
@@ -139,19 +140,23 @@ export function Navbar() {
                   accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
                 />
               </span>
+              {/* TODO make this a dropdown menu that exposes two connection options, each of which opens to a dialog */}
               <span className="relative inline-flex align-top items-center gap-x-1.5 my-1 py-2 px-3 text-xs font-semibold rounded-2xl">
                 {isConnected || (
-                <label>
-                  Address:{" "}
-                  <input
-                    type="text"
-                    onInput={handleMockInput}
-                    className="border border-slate-400 rounded-md px-2 py-1 bg-transparent"
-                  />
-                </label>
+                  <label>
+                    Address:{" "}
+                    <input
+                      type="text"
+                      onInput={handleMockInput}
+                      className="border border-slate-400 rounded-md px-2 py-1 bg-transparent"
+                    />
+                  </label>
                 )}
-                <Button className="btn-primary" onClick={handleMockButton}>
+                <Button className="btn-primary hidden md:visible" onClick={handleMockButton}>
                   {isConnected ? "Stop Viewing" : "View Account"}
+                </Button>
+                <Button className="btn-primary md:hidden" onClick={handleMockButton}>
+                  <FaStop className="text-violet-50" />
                 </Button>
               </span>
               <span className="relative inline-flex align-top items-center gap-x-1.5 px-3 py-2">
@@ -188,32 +193,4 @@ export function Navbar() {
       </DisclosurePanel>
     </Disclosure>
   );
-  {
-    /* </Disclosure>
-    <header className="bg-transparent px-6 py-4 mb-8 flex flex-row justify-between border-b">
-      <div className="flex flex-row gap-8 items-center">
-        <Link
-          className="flex flex-row gap-2"
-          href="/"
-        >
-          <Image
-            height={30}
-            width={30}
-            src={"/images/vrunlogo.png"}
-            alt="Vrun logo"
-            className="rounded-full"
-          />
-          <span className="content-center text-lg xl:text-2xl font-bold">VRÜN</span>
-        </Link>
-        {isConnected && (
-          <>
-          <Link href="/account" className="content-center">Account</Link>
-          <Link href="/validators" className="content-center">Validators</Link>
-          </>
-        )}
-      </div>
-      <ConnectButton />
-      <ModeToggle />
-    </header> */
-  }
 }

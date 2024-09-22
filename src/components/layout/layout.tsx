@@ -27,7 +27,7 @@ const Layout: FC<{ children: ReactNode }> = ({ children }) => {
       <Navbar />
 
       <div className="flex flex-col grow justify-between">
-        <main className="flex flex-col justify-center items-center relative isolate">
+        <main className="flex flex-col justify-center items-center">
           {children}
         </main>
         <Footer />

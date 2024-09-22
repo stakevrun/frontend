@@ -5,7 +5,7 @@ import { FaDiscord } from "react-icons/fa";
 
 const Hero = () => {
   return (
-    <div className="h-auto my-10 py-10 sm:my-12 sm:py-12 lg:mt-16 lg:pt-16 lg:pb-20 lg:mb-20 w-[75%] flex flex-col-reverse justify-center items-center xl:flex-row">
+    <div className="h-auto py-24 sm:py-28 lg:py-40 w-[75%] flex flex-col-reverse justify-center items-center xl:flex-row">
       {/* <div
         aria-hidden="true"
         className="absolute inset-x-0 top-2 -z-10 flex transform-gpu justify-center overflow-hidden blur-3xl"
@@ -19,7 +19,7 @@ const Hero = () => {
         />
       </div> */}
       <div className="w-full flex h-full items-center flex-col justify-center xl:items-end p-4 gap-8 lg:w-[70%] xl:w-[50%]">
-        <h1 className="bg-clip-text text-transparent text-vrun-4 text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
+        <h1 className="text-vrun-4 text-4xl self-center text-center md:text-5xl lg:text-6xl xl:text-7xl xl:self-start xl:text-left font-bold">
           Welcome to Vrün
         </h1>
         <h2 className="text-green-500 text-xl self-center text-center md:text-2xl lg:text-3xl xl:text-4xl xl:self-start xl:text-left font-semibold">
@@ -30,7 +30,7 @@ const Hero = () => {
           Non-custodial Ethereum staking for forward-thinking node operators
         </p>
 
-        <span className="flex gap-10  self-start">
+        <span className="flex flex-col sm:flex-row gap-10 self-center items-center xl:self-start">
           <Link href="/validators" className="xl:self-start">
             <Button className="btn-primary">Get Started</Button>
           </Link>
@@ -40,7 +40,7 @@ const Hero = () => {
             target="_blank"
             className="inline-flex lg:text-2xl gap-2 font-bold items-center text-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
           >
-            <FaDiscord /> <span>join us on Discord!</span>
+            <FaDiscord /> <span>join us on Discord</span>
           </a>
         </span>
       </div>
