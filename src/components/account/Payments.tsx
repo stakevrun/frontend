@@ -1,5 +1,13 @@
 import { Input, Button } from "@headlessui/react";
 import { FaCoins } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+
+/*
+const [credits, setCredits] = useState<number | undefined>(); //chainId/address/credits
+// for this, need the pubkeys associated with the address - maybe do the validator list page first to get that component?
+const [charges, setCharges] = useState<chargesType | undefined>(); //chainId/address/pubkey/charges
+*/
 
 const Payments = () => {
   return (
