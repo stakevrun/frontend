@@ -114,7 +114,7 @@ const Pricing: NextPage = () => {
             const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == nullAddress ?
               [{result: 18}, {result: 'Ether'}, {result: 'ETH'}] :
               (() => {
-                const index = prices.tokenToIndex[`${tokenChainId}:${tokenAddress}`];
+                const index = prices.tokenToIndex[`${tokenChainId}:${tokenAddress}`] || 0;
                 return results.slice(index, index + 3);
               })();
             return (

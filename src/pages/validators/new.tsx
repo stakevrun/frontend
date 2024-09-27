@@ -1,5 +1,5 @@
 // this could be part of main validators page instead of its own route; starting here for now
-import { NextPage } from "next";
+import { type NextPage } from "next";
 
 /* New validators:
 - how many

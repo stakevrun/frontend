@@ -1,10 +1,10 @@
-import { FC, ReactNode } from "react";
+import type { FC, ReactNode } from "react";
 import { useSignTypedData } from "wagmi";
 import { useReadDb } from "../../hooks/useReadDb";
 import { useWriteDb } from "../../hooks/useWriteDb";
 import { Button } from "@headlessui/react";
 import { useApiTypes, useDeclaration } from "../../hooks/useApiTypes";
-import { UseQueryResult } from "@tanstack/react-query";
+import type { UseQueryResult } from "@tanstack/react-query";
 
 export const SignTermsForm: FC<{
   refetch: (options?: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<UseQueryResult>

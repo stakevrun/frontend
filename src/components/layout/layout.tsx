@@ -1,4 +1,5 @@
-import { FC, ReactNode, useEffect } from "react";
+import type { FC, ReactNode } from "react";
+import { useEffect } from "react";
 
 import Head from "next/head";
 import { Navbar } from "./Navbar";

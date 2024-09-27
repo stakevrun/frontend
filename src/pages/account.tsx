@@ -1,4 +1,4 @@
-import { NextPage } from "next";
+import { type NextPage } from "next";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { IfConnected } from "../components/layout/IfConnected";
 import { IfRegistered } from "../components/layout/IfRegistered";

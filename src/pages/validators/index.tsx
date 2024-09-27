@@ -1,4 +1,4 @@
-import { NextPage } from "next";
+import { type NextPage } from "next";
 import IfConnected from "../../components/layout/IfConnected";
 import { IfRegistered } from "../../components/layout/IfRegistered";
 import { IfSigned } from "../../components/layout/IfSigned";

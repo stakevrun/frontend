@@ -1,5 +1,5 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { FC, ReactNode } from "react";
+import type { FC, ReactNode } from "react";
 import { useAccount } from "wagmi";
 
 export const IfConnected: FC<{children: ReactNode}> = ({children}) => {

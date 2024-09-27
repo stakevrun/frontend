@@ -1,10 +1,11 @@
-import { useAccount, useReadContract, UseReadContractReturnType } from "wagmi";
+import { useAccount, useReadContract, type UseReadContractReturnType } from "wagmi";
 import { type UseQueryResult } from "@tanstack/react-query";
 import { type ReadContractReturnType, type ReadContractErrorType } from "viem";
 import { abi } from "../../abi/rocketNodeManagerABI";
 import { useRocketAddress } from "../../hooks/useRocketAddress";
 import { TransactionSubmitter } from "./TransactionSubmitter";
-import { FC, ReactNode, ChangeEvent, useState } from "react";
+import type { FC, ReactNode, ChangeEvent } from "react";
+import { useState } from "react";
 
 export const RegistrationForm: FC<{
   isRegistered: boolean;

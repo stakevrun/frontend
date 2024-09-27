@@ -14,7 +14,7 @@ import {
   MenuItems,
 } from "@headlessui/react";
 import { FaStop } from "react-icons/fa";
-import { SVGProps, useState } from "react";
+import { type SVGProps, useState } from "react";
 import { Button } from "@headlessui/react";
 import { usePathname } from "next/navigation";
 
