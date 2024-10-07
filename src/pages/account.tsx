@@ -34,9 +34,15 @@ const Account: NextPage = () => {
                     <Tab className="tab-primary">RPL</Tab>
                   </TabList>
                   <TabPanels>
-                    <TabPanel><Overview /></TabPanel>
-                    <TabPanel><Rewards /></TabPanel>
-                    <TabPanel><Payments /></TabPanel>
+                    <TabPanel>
+                      <Overview />
+                    </TabPanel>
+                    <TabPanel>
+                      <Rewards />
+                    </TabPanel>
+                    <TabPanel>
+                      <Payments />
+                    </TabPanel>
                     <TabPanel>
                       <Staking />
                       <SmoothingPool />

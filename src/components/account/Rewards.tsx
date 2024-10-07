@@ -3,8 +3,11 @@
 
 const Rewards = () => {
   return (
-    <h1>Rewards info goes here</h1>
-  )
+    <div className="panel flex-col m-6">
+      <h1>Rewards info goes here</h1>
+      <p>TODO: need refresher on the formats rewards can come in</p>
+    </div>
+  );
 };
 
 export default Rewards;

@@ -1,10 +1,12 @@
-// yes/no (boolean) whether the node is in or out of the smoothing pool
-// could also display the time when they last joined/exited the smoothing pool
-
 const SmoothingPool = () => {
+  // state needed (smoothing pool status and time last changed)
+
   return (
-    <></>
-  )
+    <>
+      <p>Smoothing pool status:</p>
+      <p>Last changed at:</p>
+    </>
+  );
 };
 
 export default SmoothingPool;
