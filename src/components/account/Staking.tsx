@@ -1,15 +1,9 @@
 import { useState } from "react";
-import {
-  Input,
-  RadioGroup,
-  Radio,
-  Field,
-  Label,
-  Button,
-} from "@headlessui/react";
+import { Input, Field, Label, Button } from "@headlessui/react";
+import { Radio, RadioGroup } from "../layout/radio";
 
 const Staking = () => {
-  const [stakeMode, setStakeMode] = useState(0);
+  const [stakeMode, setStakeMode] = useState("stake");
 
   return (
     <div className="panel flex-col m-6 gap-6 p-12">
@@ -37,25 +31,11 @@ const Staking = () => {
         placeholder="RPL Value"
         className="border border-slate-200 p-2 rounded-md bg-transparent"
       />
-      <RadioGroup
-        value={stakeMode}
-        onChange={setStakeMode}
-        className="flex justify-around"
-      >
-        <Radio
-          key={0}
-          value={0}
-          className="group p-2 rounded-md data-[checked]:bg-lime-100 cursor-pointer"
-        >
-          <span>Stake</span>
-        </Radio>
-        <Radio
-          key={1}
-          value={1}
-          className="group p-2 rounded-md data-[checked]:bg-lime-100 cursor-pointer"
-        >
-          <span>Unstake</span>
-        </Radio>
+      <RadioGroup value={stakeMode} onChange={setStakeMode} className="flex">
+        <Radio value={"stake"} className="cursor-pointer" />
+        <Label>Stake</Label>
+        <Radio value={"unstake"} className="cursor-pointer" />
+        <Label>Unstake</Label>
       </RadioGroup>
       <Button className="btn-primary self-center">Submit</Button>
     </div>

@@ -1,5 +1,14 @@
 // this could be part of main validators page instead of its own route; starting here for now
 import { type NextPage } from "next";
+import {
+  Fieldset,
+  Field,
+  Label,
+  Description,
+} from "../../components/layout/fieldset";
+import { TransactionSubmitter } from "../../components/layout/TransactionSubmitter";
+import { Input } from "../../components/layout/input";
+import { Checkbox } from "../../components/layout/checkbox";
 
 /* New validators:
 - how many
@@ -20,11 +29,33 @@ have a preview for possible failure states:
 - need enough account balance (maybe a warning rather than a blocker?)
 */
 
-
 const ValidatorCreationInterface: NextPage = () => {
   return (
-    <h1>Create</h1>
-  )
+    <form>
+      <h1>Create</h1>
+      <Fieldset>
+        <Field>
+          <Label>Number of validators</Label>
+          <Description>
+            Create a single validator, or several as a batch.
+          </Description>
+          <Input type="number" />
+        </Field>
+        <Field>
+          <Label>Graffiti</Label>
+          <Description>
+            Graffiti will apply to the entire batch if creating more than one
+            validator.
+          </Description>
+          {/* TODO what type of input */}
+        </Field>
+        <Field>
+          <Label>Opt in to smoothing pool?</Label>
+          <Checkbox></Checkbox>
+        </Field>
+      </Fieldset>
+    </form>
+  );
 };
 
 export default ValidatorCreationInterface;
