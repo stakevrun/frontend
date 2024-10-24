@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply bg-violet-500 dark:border dark:border-violet-700 dark:bg-transparent self-start data-[hover]:bg-violet-600 dark:data-[hover]:bg-violet-950 dark:data-[hover]:border-violet-500 data-[disabled]:bg-gray-400 text-white dark:text-violet-300 font-bold py-2 px-4 rounded-md;
+  }
+  
+  .tab-primary {
+    @apply rounded-lg py-1 px-3 text-sm/6 font-semibold focus:outline-none data-[hover]:bg-zinc-100 data-[selected]:bg-zinc-200 data-[selected]:data-[hover]:bg-zinc-200 data-[focus]:outline-1 data-[focus]:outline-cyan-500;
+  }
+
+  .panel {
+    @apply p-5 border rounded-lg flex items-center shadow-xl;
+  }
+}
