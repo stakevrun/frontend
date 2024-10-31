@@ -11,9 +11,9 @@ const Resources = () => {
         Resources & Documentation
       </h2>
 
-      <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] bg-slate-900 p-3 lg:p-5 shadow-2xl lg:h-[40rem] lg:max-w-5xl">
-        <div className="grid h-full w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-vrun-neutral-1 dark:bg-slate-900">
-          <div className="flex flex-col items-center justify-center max-w-3xl w-full sm:flex-row sm:flex-wrap">
+      <div className="mx-auto h-auto w-[90%] lg:w-auto rounded-[30px] bg-slate-900 p-3 lg:p-5 shadow-2xl lg:max-w-5xl">
+        <div className="grid w-full grid-cols-1 gap-4 overflow-hidden rounded-2xl bg-vrun-neutral-1 dark:bg-slate-900">
+          <div className="grid grid-cols-1 md:grid-cols-2 max-w-3xl w-full">
             <Link href="/account">
               <Card>
                 <CardIcon>
@@ -45,7 +45,6 @@ const Resources = () => {
             <a
               href="https://docs.rocketpool.net/overview/contracts-integrations"
               target="_blank"
-              className="lg:self-start mt-3"
             >
               <Card>
                 <CardIcon>
@@ -68,7 +67,6 @@ const Resources = () => {
             <a
               href="https://github.com/stakevrun/db"
               target="_blank"
-              className="lg:self-start mt-3"
             >
               <Card>
                 <CardIcon>
