@@ -44,7 +44,7 @@ export const RegistrationForm: FC<{
         abi={abi}
         functionName="registerNode"
         args={[selectedTimezone]}
-        onSuccess={refetch}
+        onSuccess={(receipt) => refetch({})}
       />
     </>
   );

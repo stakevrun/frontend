@@ -3,7 +3,7 @@ import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { type Abi } from "abitype";
 import { type FC, useEffect } from "react";
 import { Button } from "@headlessui/react";
-import { type ContractFunctionArgs } from "viem";
+import { type ContractFunctionArgs, type TransactionReceipt } from "viem";
 
 export const TransactionSubmitter: FC<{
   address: `0x${string}`;
@@ -11,7 +11,7 @@ export const TransactionSubmitter: FC<{
   functionName: string;
   args: ContractFunctionArgs; // I think this is right?
   buttonText: string;
-  onSuccess?: (receipt: any) => void; // TODO: use correct receipt type
+  onSuccess?: (receipt: TransactionReceipt) => void;
 }> = ({ address, abi, functionName, args, buttonText, onSuccess }) => {
   const {
     writeContractAsync,
