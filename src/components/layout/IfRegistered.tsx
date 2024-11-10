@@ -4,7 +4,7 @@ import { type ReadContractReturnType, type ReadContractErrorType } from "viem";
 import { abi } from "../../abi/rocketNodeManagerABI";
 import { useRocketAddress } from "../../hooks/useRocketAddress";
 import { TransactionSubmitter } from "./TransactionSubmitter";
-import type { FC, ReactNode, ChangeEvent } from "react";
+import type { FC, ReactNode, ChangeEvent, ClickEvent } from "react";
 import { useState } from "react";
 
 export const RegistrationForm: FC<{
@@ -16,37 +16,70 @@ export const RegistrationForm: FC<{
   }) => Promise<UseQueryResult<ReadContractReturnType, ReadContractErrorType>>;
 }> = ({ isRegistered, rocketNodeManager, refetch }) => {
   const [selectedTimezone, setSelectedTimezone] = useState("");
+  const [error, setError] = useState(false);
+
   const handleSelectTimezone = (e: ChangeEvent) => {
     const element = e.currentTarget as HTMLInputElement;
     setSelectedTimezone(element.value || "");
   };
+
+  const validate = () => {
+    if(!selectedTimezone.trim()) {
+      setError(true)
+      return false
+    } else {
+      setError(false)
+      return true
+    }
+  };
+
   return (
-    <>
-      <p>Placeholder: Rocket Pool logo, Register form heading</p>
-      <label>
-        <span className="pr-1">Node Timezone:</span>
-        <input
-          type="text"
-          list="timezones"
-          placeholder="Region/City"
-          onChange={handleSelectTimezone}
-          value={selectedTimezone}
-        />
-      </label>
-      <datalist id="timezones">
-        {Intl.supportedValuesOf("timeZone").map((timezone, index) => (
+    <div className="w-full max-w-md">
+      <p className="my-4 text-center">Placeholder: Rocket Pool logo, Register form heading</p>
+      <div className="md:flex md:items-center mt-6">
+        <div className="md:w-1/3">
+          <label for="timezone" className="block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4" for="inline-full-name">
+            Node Timezone:
+          </label>
+        </div>
+        <div className="md:w-2/3">
+          <input 
+            className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="inline-full-name"
+            id="timezone"
+            type="text"
+            list="timezones"
+            placeholder="Region/City"
+            onChange={handleSelectTimezone}
+            value={selectedTimezone}
+            aria-required="true"
+            aria-invalid={error}
+            aria-describedby="errmsg"
+          />
+        </div>
+        <datalist id="timezones">
+          {Intl.supportedValuesOf("timeZone").map((timezone, index) => (
           <option key={index}>{timezone}</option>
-        ))}
-      </datalist>
-      <TransactionSubmitter
-        buttonText="Register"
-        address={rocketNodeManager}
-        abi={abi}
-        functionName="registerNode"
-        args={[selectedTimezone]}
-        onSuccess={(receipt) => refetch({})}
-      />
-    </>
+          ))}
+        </datalist>
+      </div>
+      <div
+        id="errmsg"
+	className={'md:flex md:justify-end text-red-500 text-xs italic' + (error?' visible':' invisible')}
+      >
+        Please select a valid region.
+      </div>
+      <div className="md:flex md:justify-end mt-3">
+        <TransactionSubmitter
+          validate={validate}
+          buttonText="Register"
+          address={rocketNodeManager}
+          abi={abi}
+          functionName="registerNode"
+          args={[selectedTimezone]}
+          onSuccess={(receipt) => refetch({})}
+        />
+      </div>
+    </div>
   );
 };
 

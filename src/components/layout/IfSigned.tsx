@@ -32,19 +32,44 @@ export const SignTermsForm: FC<{
     }
   };
 
+  const hasError = () => {
+    if (typesError || declarationError || signingError || writingError) {
+      return true
+    }
+
+    return false
+  };
+
+  const errorMessage = () => {
+    if(typesError) {
+      return `Error fetching types: ${typesError.message}`
+    }
+    if(declarationError) {
+      return `Error fetching required declaration: ${declarationError.message}`
+    }
+    if(signingError) {
+      return `Error signing data: ${signingError.message}`
+    }
+    if(writingError) {
+      return `Error writing data: ${writingError.message}`
+    }
+  };
+
   return (
-    <>
-    <Button
-      className="btn-primary"
-      disabled={!!typesError || !!declarationError}
-      onClick={handler}>
-    Sign Terms
-    </Button>
-    {typesError && <p>Error fetching types: {typesError.message}</p>}
-    {declarationError && <p>Error fetching required declaration: {declarationError.message}</p>}
-    {signingError && <p>Error signing data: {signingError.message}</p>}
-    {writingError && <p>Error writing data: {writingError.message}</p>}
-    </>
+    <div className="w-full max-w-md">
+      <div className="flex flex-col justify-center content-center max-w-md">
+        <p className="self-center mb-4">Please verify the terms <a className="underline" href="/terms">here</a></p>
+        <Button
+          className="btn-primary self-center"
+          disabled={!!typesError || !!declarationError}
+          onClick={handler}>
+        Sign Terms
+        </Button>
+        <div className={'self-center whitespace-pre-wrap break-words mt-4 border border-red-500 rounded p-4 ' + (hasError() ? 'visible' : 'invisible' )}>
+          {errorMessage()}
+        </div>
+      </div>
+    </div>
   );
 };
 
