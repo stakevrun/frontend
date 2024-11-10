@@ -4,7 +4,7 @@ import { type ReadContractReturnType, type ReadContractErrorType } from "viem";
 import { abi } from "../../abi/rocketNodeManagerABI";
 import { useRocketAddress } from "../../hooks/useRocketAddress";
 import { TransactionSubmitter } from "./TransactionSubmitter";
-import type { FC, ReactNode, ChangeEvent, ClickEvent } from "react";
+import type { FC, ReactNode, ChangeEvent } from "react";
 import { useState } from "react";
 
 export const RegistrationForm: FC<{
