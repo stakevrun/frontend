@@ -1,6 +1,7 @@
 import { useAccount } from "wagmi";
 import { type Hex } from "viem";
 import { useMutation } from "@tanstack/react-query";
+import { API_URL } from '../constants';
 
 export function useWriteDb({
   path,
@@ -15,7 +16,7 @@ export function useWriteDb({
 }) {
   const {chainId, address} = useAccount();
   const addPath = typeof path == 'undefined' ? '' : `/${path}`;
-  const url = `https://api.vrün.com/${chainId}/${address}${addPath}`;
+  const url = `${API_URL}/${chainId}/${address}${addPath}`;
   const mutationFn = async ({signature}: {signature: Hex}) => {
     const options = {
       method: method || "POST",
