@@ -22,12 +22,6 @@ export function useAdminCheck(address: string | undefined) {
           console.log("Response body: ", r.body); // DEBUG
           return r.json()
       });
-        // const adminAddresses: string[] = await Promise.resolve([]); // TEST
-
-        adminAddresses.push(
-          "0x9c2bA9B3d7Ef4f759C2fEb2E174Ef14F8C64b46e".toLowerCase()
-        ); // TEST
-
         const normalizedAddress = getAddress(address).toLowerCase();
         setIsAdmin(adminAddresses.includes(normalizedAddress));
       } catch (error) {
