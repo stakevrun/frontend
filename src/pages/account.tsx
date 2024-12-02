@@ -27,23 +27,23 @@ const Account: NextPage = () => {
             <div className="flex w-full h-auto sticky top-[8vh] mb-6 lg:mb-2 pb-[34vh] xl:pb-[10vh]">
               <section className="flex w-full flex-col items-center justify-center ">
                 <TabGroup>
-                  <TabList className="flex justify-center gap-4">
+                  <TabList className="flex justify-center gap-4 mb-4">
                     <Tab className="tab-primary">Overview</Tab>
                     <Tab className="tab-primary">Rewards</Tab>
                     <Tab className="tab-primary">Payments</Tab>
                     <Tab className="tab-primary">RPL</Tab>
                   </TabList>
                   <TabPanels>
-                    <TabPanel>
+                    <TabPanel className="w-full max-w-md">
                       <Overview />
                     </TabPanel>
-                    <TabPanel>
+                    <TabPanel className="w-full max-w-md">
                       <Rewards />
                     </TabPanel>
-                    <TabPanel>
+                    <TabPanel className="w-full max-w-md">
                       <Payments />
                     </TabPanel>
-                    <TabPanel>
+                    <TabPanel className="w-full max-w-md">
                       <Staking />
                       <SmoothingPool />
                     </TabPanel>

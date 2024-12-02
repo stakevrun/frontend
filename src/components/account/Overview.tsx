@@ -4,7 +4,7 @@ import { FaCoins, FaEthereum, FaMoneyBillWave } from "react-icons/fa";
 
 const Overview = () => {
   return (
-    <section className="my-10 py-5">
+    <section className="grid gap-4 my-10 py-5">
       <div className="panel flex-col">
         <p>Withdrawal Address:</p>
         <p className="font-bold text-vrun-4 hover:text-vrun-5 dark:hover:text-vrun-2">
