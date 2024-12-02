@@ -3,10 +3,12 @@
 
 const Rewards = () => {
   return (
-    <div className="panel flex-col m-6">
-      <h1>Rewards info goes here</h1>
-      <p>TODO: need refresher on the formats rewards can come in</p>
-    </div>
+    <section className="grid gap-4 my-10 py-5">
+      <div className="panel flex-col m-6">
+        <h1>Rewards info goes here</h1>
+        <p>TODO: need refresher on the formats rewards can come in</p>
+      </div>
+    </section>
   );
 };
 
