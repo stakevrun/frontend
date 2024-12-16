@@ -2,12 +2,13 @@ import { useAccount, useTransaction, useSignTypedData } from "wagmi";
 import { useEffect, useState, useRef } from "react";
 import { useWriteFee } from "./useWriteFee";
 import { useFeeApiTypes } from "./useApiTypes";
-import { API_URL } from '../constants';
+import { API_URL, ETH_TOKEN_ADDRESS } from '../constants';
 import { formatEther } from 'viem';
 
 export function useSignPaymentTransaction(transactionHash: string, prices: object) {
   const [ error, setError ] = useState(null);
   const [ signedData, setSignedData ] = useState(null);
+  const [ selectedTokenAddress, setSelectedTokenAddress ] = useState(ETH_TOKEN_ADDRESS); // Hardcoded for now, should be selectable by user
 
   const {data: typesData, error: typesError} = useFeeApiTypes();
   const {signTypedDataAsync, error: signingError} = useSignTypedData();
@@ -29,7 +30,7 @@ export function useSignPaymentTransaction(transactionHash: string, prices: objec
     const getNumDays = () => {
       return (formatEther(transactionData.value) /
       prices.pricingRowData.find((contract) => {
-        return contract.tokenAddress === '0x0000000000000000000000000000000000000000' && contract.tokenChainId === domain.chainId;
+        return contract.tokenAddress === selectedTokenAddress && contract.tokenChainId === domain.chainId;
       }).price);
     }
 
@@ -46,11 +47,11 @@ export function useSignPaymentTransaction(transactionHash: string, prices: objec
       return;
     }
 
-    // TODO: compose the right values for message
+    // TODO: get the right tokenAddress matching the selected token (hardcoded for ETH only atm)
     const message = {
       nodeAccount: address,
       numDays: getNumDays(),
-      tokenAddress: '0x0000000000000000000000000000000000000000',
+      tokenAddress: selectedTokenAddress,
       tokenChainId: domain.chainId,
       transactionHash: transactionHash,
     }
@@ -73,7 +74,7 @@ export function useSignPaymentTransaction(transactionHash: string, prices: objec
     };
 
     signTransaction();
-  }, [typesData, transactionData, signTypedDataAsync, address, prices, transactionHash]);
+  }, [typesData, transactionData, signTypedDataAsync, address, prices, transactionHash, selectedTokenAddress]);
 
   return { data: signedData, error }
 }
