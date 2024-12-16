@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useChainId, useReadContracts } from "wagmi";
 import { type ContractFunctionParameters, formatUnits } from "viem";
-import { FEE_URL } from "../constants";
-
-const nullAddress = '0x'.padEnd(42, '0');
+import { FEE_URL, ETH_TOKEN_ADDRESS } from "../constants";
 
 export function useVrunPrices() {
   const chainId = useChainId();
@@ -42,8 +40,18 @@ export function useVrunPrices() {
     if (r.status === 200) return r.json();
     else throw new Error(`${r.status} error fetching prices: ${await r.text()}`);
   });
-  const { data: pricesData, error: pricesError, status: pricesStatus, isLoading: pricesIsLoading } = useQuery({queryKey, queryFn});
-  const { data: contracts, error: readContractError, status: readContractStatus, isLoading: readContractsIsLoading} = useReadContracts({contracts: contractReads});
+  const {
+    data: pricesData,
+    error: pricesError,
+    status: pricesStatus,
+    isLoading: pricesIsLoading
+  } = useQuery({queryKey, queryFn});
+  const {
+    data: contracts,
+    error: readContractError,
+    status: readContractStatus,
+    isLoading: readContractsIsLoading
+  } = useReadContracts({contracts: contractReads});
 
   useEffect(() => {
     setIsLoading(pricesIsLoading || readContractsIsLoading);
@@ -73,7 +81,7 @@ export function useVrunPrices() {
             abi: [{name: functionName, type: "function" as const, stateMutability: "view" as const, inputs: [], outputs: [{name: functionName, type: outputType}]}],
             functionName
           });
-          if (tokenAddress == nullAddress) return [];
+          if (tokenAddress == ETH_TOKEN_ADDRESS) return [];
           tokenToIndex[`${tokenChainId}:${tokenAddress}`] = currentIndex;
           currentIndex += 3;
           return [
@@ -91,7 +99,7 @@ export function useVrunPrices() {
       ([tokenChainId, chainPrices]: [string, pricesPerDayByTokenType]) =>
       Object.entries(chainPrices).map(
         ([tokenAddress, price]: [string, bigint]) => {
-          const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == nullAddress ?
+          const [tokenDecimals, tokenName, tokenSymbol] = tokenAddress == ETH_TOKEN_ADDRESS ?
             [{result: 18, status: "success"}, {result: 'Ether', status: "success"}, {result: 'ETH', status: "success"}] :
             (() => {
               const index = tokenToIndex[`${tokenChainId}:${tokenAddress}`] || 0;

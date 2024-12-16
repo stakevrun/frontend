@@ -4,6 +4,7 @@ import { type TransactionReceipt, parseEther } from 'viem'
 import { FaInfoCircle } from "react-icons/fa";
 import { Button, Input, Popover } from "@headlessui/react";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { ETH_TOKEN_ADDRESS } from '../../constants';
 
 export const PayForm: FC<{
   onSuccess?: (hash: String) => void;
@@ -11,17 +12,17 @@ export const PayForm: FC<{
   pricesIsLoading: boolean;
   prices?: object;
 }> = ({onSuccess, pricesError, pricesIsLoading, prices}) => {
-  const [value, setValue] = useState("");
-  const [days, setDays] = useState(0);
-  const { data: hash, error: sendTransactionError, isPending, sendTransaction } = useSendTransaction();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
+  const [value,                setValue]                 = useState("");
+  const [days,                 setDays]                  = useState(0);
+  const [selectedTokenAddress, setSelectedTokenAddress ] = useState(ETH_TOKEN_ADDRESS); // Hardcoded for now, should be selectable by user
+
+  const {data: hash, error: sendTransactionError, isPending, sendTransaction} = useSendTransaction();
+  const {isLoading: isConfirming, isSuccess: isConfirmed} = useWaitForTransactionReceipt({ hash });
   const {address, chainId} = useAccount();
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    //onSuccess('0xe648c89179122424f26c442530959aae430331530b743c35a91c1caf317f7e58');
-
     const formData = new FormData(e.target as HTMLFormElement);
     const to = '0x99E2b1FB1085C392b9091A5505b0Ac27979501F8';
     sendTransaction({ to, value: parseEther(value) });
@@ -34,10 +35,10 @@ export const PayForm: FC<{
   useEffect(() => {
     if(prices) {
       setDays(value / prices.pricingRowData.find((contract) => {
-          return contract.tokenAddress === '0x0000000000000000000000000000000000000000' && contract.tokenChainId === chainId;
+          return contract.tokenAddress === selectedTokenAddress && contract.tokenChainId === chainId;
         }).price);
     }
-  }, [value, prices]);
+  }, [value, prices, selectedTokenAddress]);
 
   useEffect(() => {
     console.log("prices");
