@@ -14,16 +14,14 @@ export const SignTermsForm: FC<{
   const {signTypedDataAsync, error: signingError} = useSignTypedData();
   const primaryType = "AcceptTermsOfService";
   const message = { declaration };
-  const {mutateAsync, error: writingError} = useWriteDb({
-    method: 'PUT', type: primaryType, data: message,
-  });
+  const {mutateAsync, error: writingError} = useWriteDb({ method: 'PUT', type: primaryType });
 
   const handler = async () => {
     if (!typesData) return;
     try {
       const {types, domain} = typesData;
       const signature = await signTypedDataAsync({types, domain, primaryType, message});
-      const res = await mutateAsync({signature});
+      const res = await mutateAsync({signature, data: message});
       return refetch();
     }
     catch (e) {
