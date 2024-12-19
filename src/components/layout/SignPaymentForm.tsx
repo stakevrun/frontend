@@ -8,14 +8,13 @@ import { useFeeApiTypes } from "../../hooks/useApiTypes";
 import type { UseQueryResult } from "@tanstack/react-query";
 
 export const SignPaymentForm: FC<{
-  refetch: (options?: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<UseQueryResult>;
   setPayHash: (hash: String) => void;
   payHash: string;
-}> = ({refetch, setPayHash, payHash}) => {
+}> = ({setPayHash, payHash}) => {
 
   const [isPending, setIsPending] = useState(false);
   const [signError, setSignError] = useState();
-  const [value, setValue] = useState(payHash || "");
+  const [value,     setValue]     = useState(payHash || "");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,7 +57,6 @@ export const SignPaymentForm: FC<{
         <Button type="submit" className="btn-primary self-center" disabled={isPending || payHash} >
           {isPending || payHash ? 'Signing...' : 'Sign Payment Transaction'}
         </Button>
-
       </form>
     </div>
   );
