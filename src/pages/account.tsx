@@ -8,6 +8,7 @@ import SmoothingPool from "../components/account/SmoothingPool";
 import Staking from "../components/account/Staking";
 import Rewards from "../components/account/Rewards";
 import Payments from "../components/account/Payments";
+import Validators from "../components/account/Validators";
 
 // List of user's validators (and summary of info about them)
 // Summary of user's credit balance (days purchased and spent)
@@ -31,6 +32,7 @@ const Account: NextPage = () => {
                     <Tab className="tab-primary">Overview</Tab>
                     <Tab className="tab-primary">Rewards</Tab>
                     <Tab className="tab-primary">Payments</Tab>
+                    <Tab className="tab-primary">Validators</Tab>
                     <Tab className="tab-primary">RPL</Tab>
                   </TabList>
                   <TabPanels>
@@ -42,6 +44,9 @@ const Account: NextPage = () => {
                     </TabPanel>
                     <TabPanel className="w-full max-w-md">
                       <Payments />
+                    </TabPanel>
+                    <TabPanel className="w-full max-w-md">
+                      <Validators />
                     </TabPanel>
                     <TabPanel className="w-full max-w-md">
                       <Staking />
