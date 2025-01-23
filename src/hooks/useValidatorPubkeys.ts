@@ -21,7 +21,7 @@ export function useValidatorPubkeys() {
     }))
   });
   return {
-    data: results.map(r => r.data),
+    data: results.map((r, index) => { return {index: ids[index], pubkey: r.data}}),
     error: nextIndexError || results.find(r => r.error),
   };
 };
