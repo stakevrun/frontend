@@ -169,6 +169,8 @@ export const AddValidatorForm: FC<{
         <p>Validating connected wallet [{address}] ETH balance...</p>
       ) : balanceError ? (
         <p>Could not validate your balance: {balanceError}</p>
+      ) : feeRecipientError || feeRecipient.status !== 200 ? (
+        <p>Could not contact fee service, please try again later!</p>
       ) : balance && parseInt(balance.formatted) >= bondAmount ? (
       <>
         <p>You have sufficient funds to create {maxValidators} validator{maxValidators > 1 ? 's' : ''}!</p>

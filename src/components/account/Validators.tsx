@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AddValidatorForm } from "../layout/AddValidatorForm";
+import { CreateValidatorOverview } from "../layout/CreateValidatorOverview";
 
 const Validators = () => {
   const [hasError, setHasError] = useState(false);
@@ -10,6 +11,11 @@ const Validators = () => {
     setError(error);
     setHasError(hasError);
     setMessage(result);
+  };
+
+  const setOverviewError = (error: String) => {
+    setError(error);
+    setHasError(true);
   };
 
   return (
@@ -27,6 +33,14 @@ const Validators = () => {
       <AddValidatorForm
         onSubmit={addValidator}
       />
+      <div className="panel flex-col">
+        <div className="flex flex-row mb-3 content-center">
+          <h2 className="text-lg self-center">Non-staking validators overview</h2>
+        </div>
+        <CreateValidatorOverview
+          onError={setOverviewError}
+        />
+      </div>
     </section>
   );
 };
