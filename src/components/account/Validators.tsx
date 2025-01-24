@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { AddValidatorForm } from "../layout/AddValidatorForm";
-import { CreateValidatorOverview } from "../layout/CreateValidatorOverview";
+import { ValidatorOverview } from "../layout/ValidatorOverview";
 
 const Validators = () => {
-  const [hasError, setHasError] = useState(false);
-  const [error,    setError]    = useState("");
-  const [message,  setMessage]  = useState("");
+  const [hasError, setHasError] = useState<Boolean>(false);
+  const [error,    setError   ] = useState<String>("");
+  const [message,  setMessage ] = useState<String>("");
 
-  const addValidator = (result: String, error: String, hasError: bool) => {
+  const addValidator = (result: String, error: String, hasError: Boolean) => {
     setError(error);
     setHasError(hasError);
     setMessage(result);
@@ -37,9 +37,7 @@ const Validators = () => {
         <div className="flex flex-row mb-3 content-center">
           <h2 className="text-lg self-center">Non-staking validators overview</h2>
         </div>
-        <CreateValidatorOverview
-          onError={setOverviewError}
-        />
+        <ValidatorOverview onError={setOverviewError} showCols={["status", "statusTime", "address", "pubkeyShort", "action"]}  />
       </div>
     </section>
   );

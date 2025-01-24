@@ -1,31 +1,30 @@
 import { FaExclamationTriangle } from "react-icons/fa";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useValidatorData } from "../../hooks/useValidatorData";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../layout/table";
+import { CallStake } from "../layout/CallStake";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "../layout/table";
 
 export const ValidatorOverview: FC<{
   onError: (error: String) => void;
-}> = ({ onError }) => {
-  const {
-    validatorData,
-    hasPrelaunchPools,
-    hasPoolsToActivate,
-    loading: validatorDataLoading,
-    error: validatorDataError,
-  } = useValidatorData();
+  showCols: String[];
+}> = ({ onError, showCols }) => {
+  const [hasError, setHasError] = useState<Boolean>(false);
+  const [error, setError      ] = useState<String>("");
+  const [message, setMessage  ] = useState<String>("");
+
+  const {validatorData, hasPrelaunchPools, hasPoolsToActivate, loading: validatorDataLoading, error: validatorDataError} = useValidatorData();
 
   useEffect(() => {
     if (validatorDataError) {
       onError(validatorDataError);
     }
   }, [validatorDataError]);
+
+  const activateValidator = (result: String, error: String, hasError: Boolean) => {
+    setError(error);
+    setHasError(hasError);
+    setMessage(result);
+  };
 
   return (
     <div>
@@ -56,28 +55,54 @@ export const ValidatorOverview: FC<{
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeader>Public Key</TableHeader>
-                <TableHeader>Address</TableHeader>
-                <TableHeader>Validator Index</TableHeader>
-                <TableHeader>Vrün Index</TableHeader>
-                <TableHeader>Status</TableHeader>
+                {(showCols.includes("pubkey") || showCols.includes("pubkeyShort")) && (<TableHeader>Public Key</TableHeader>)}
+                {showCols.includes("address") && (<TableHeader>Address</TableHeader>)}
+                {showCols.includes("index") && (<TableHeader>Validator Index</TableHeader>)}
+                {showCols.includes("vrunIndex") && (<TableHeader>Vrün Index</TableHeader>)}
+                {showCols.includes("status") && (<TableHeader>Status</TableHeader>)}
+                {showCols.includes("statusTime") && (<TableHeader>Status Time</TableHeader>)}
+                {showCols.includes("action") && (<TableHeader>Action</TableHeader>)}
               </TableRow>
             </TableHead>
             <TableBody>
               {validatorData.map((validator) => (
-                <TableRow
-                  key={validator.index}
-                  href={`/validators/${validator.pubkey}`}
-                >
-                  <TableCell>{validator.pubkey}</TableCell>
-                  <TableCell>
+                <TableRow key={validator.index}>
+                  {showCols.includes("pubkey") && (<TableCell>
+                      <a href={`/validators/${validator.pubkey}`}>
+                        {validator.pubkey}
+                      </a>
+                    </TableCell>
+                  )}
+                  {(!showCols.includes("pubkey") && showCols.includes("pubkeyShort")) && (<TableCell>
+                    <a href={`/validators/${validator.pubkey}`}>
+                      <abbr title={validator.pubkey}>
+                        {validator.pubkey.substring(0, 7)}
+                      </abbr>
+                    </a>
+                  </TableCell>)}
+                  {showCols.includes("address") && (<TableCell>
                     <abbr title={validator.address}>
                       {validator.address.substring(0, 7)}
                     </abbr>
-                  </TableCell>
-                  <TableCell>{validator.index}</TableCell>
-                  <TableCell>{validator.index}</TableCell>
-                  <TableCell>{validator.status}</TableCell>
+                  </TableCell>)}
+                  {showCols.includes("index") && (<TableCell>{validator.index}</TableCell>)}
+                  {showCols.includes("vrunIndex") && (<TableCell>{validator.index}</TableCell>)}
+                  {showCols.includes("status") && (<TableCell>{validator.status}</TableCell>)}
+                  {showCols.includes("statusTime") && (<TableCell>{validator.statusTime}</TableCell>)}
+                  {showCols.includes("action") && (<TableCell>
+                    {validator.canStake && validator.status === "Prelaunch" ? (
+                      <CallStake
+                        onSubmit={activateValidator}
+                        pubkey={validator.pubkey}
+                        validatorAddress={validator.address}
+                        index={validator.index}
+                      />
+                    ) : validator.status === "Staking" ? (
+                      <button>Exit</button>
+                    ) : (
+                      ""
+                    )}
+                  </TableCell>)}
                 </TableRow>
               ))}
             </TableBody>
