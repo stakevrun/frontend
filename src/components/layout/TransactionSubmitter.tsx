@@ -1,9 +1,10 @@
+import type { Abi } from "abitype";
+import type { FC } from "react";
+import type { ContractFunctionArgs, TransactionReceipt } from "viem";
+import { Button } from "@headlessui/react";
+import { useEffect } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
-import { type Abi } from "abitype";
-import { type FC, useEffect } from "react";
-import { Button } from "@headlessui/react";
-import { type ContractFunctionArgs, type TransactionReceipt } from "viem";
 
 export const TransactionSubmitter: FC<{
   address: `0x${string}`;
@@ -27,35 +28,38 @@ export const TransactionSubmitter: FC<{
   const {
     data: receipt,
     error: errorOnWait,
-    isLoading,
     isSuccess: isConfirmed,
   } = useWaitForTransactionReceipt({ hash, query: { enabled: isWritten } });
 
   const handler = () => {
-    if(!validate || validate()) {
+    if (!validate || validate()) {
       writeContractAsync({ address, abi, functionName, args }).then((hash) =>
-        addRecentTransaction({ hash, description: functionName })
+        addRecentTransaction({ hash, description: functionName }),
       );
     }
   };
 
   const hasError = () => {
-    if ((receipt && isConfirmed && receipt.status != "success") || errorOnWrite || errorOnWait) {
-      return true
+    if (
+      (receipt && isConfirmed && receipt.status != "success") ||
+      errorOnWrite ||
+      errorOnWait
+    ) {
+      return true;
     }
 
-    return false
+    return false;
   };
 
   const errorMessage = () => {
     if (receipt && isConfirmed && receipt.status != "success") {
-      return `${hash} ${receipt.status}`
+      return `${hash} ${receipt.status}`;
     }
-    if(errorOnWrite) {
-      return `Error sending transaction: ${errorOnWrite.message}`
+    if (errorOnWrite) {
+      return `Error sending transaction: ${errorOnWrite.message}`;
     }
-    if(errorOnWait) {
-      return `Error waiting for transaction confirmation: ${errorOnWait.message}`
+    if (errorOnWait) {
+      return `Error waiting for transaction confirmation: ${errorOnWait.message}`;
     }
   };
 
@@ -75,10 +79,20 @@ export const TransactionSubmitter: FC<{
       >
         {buttonText}
       </Button>
-      <div className={'whitespace-pre-wrap break-words mt-4 border border-red-500 rounded p-4 ' + (hasError() ? 'visible' : 'invisible' )}>
+      <div
+        className={
+          "whitespace-pre-wrap break-words mt-4 border border-red-500 rounded p-4 " +
+          (hasError() ? "visible" : "invisible")
+        }
+      >
         {errorMessage()}
       </div>
-      <div className={'whitespace-pre-wrap break-words mt-4 border border-green-500 rounded p-4 ' + ((hash || receipt) && !hasError() ? 'visible' : 'invisible' )}>
+      <div
+        className={
+          "whitespace-pre-wrap break-words mt-4 border border-green-500 rounded p-4 " +
+          ((hash || receipt) && !hasError() ? "visible" : "invisible")
+        }
+      >
         {hash && !receipt && <p>Submitted transaction with hash {hash}</p>}
         {receipt && receipt.status == "success" && <p>{hash} confirmed</p>}
       </div>

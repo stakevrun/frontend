@@ -1,19 +1,29 @@
+import type { AbiFunction } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 import { useState, useEffect, useMemo } from "react";
 import { useRocketAddress } from "./useRocketAddress";
 import { useValidatorPubkeys } from "./useValidatorPubkeys";
 import { abi } from "../abi/miniManagerABI";
+import isEqual from "lodash.isequal";
 
 // TODO:
 // - Use DAONodeTrustedSettingsValidator contract to find the scrub period and calculate the estimated time to wait for validator activation
 // - Get beaconchain status values for validators
 
 export function useValidatorData() {
-  const [validatorData, setValidatorData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasPrelaunchPools, setHasPrelauncPools] = useState(false);
-  const [hasPoolsToActivate, setHasPoolsToActivate] = useState(false);
+  interface ValidatorData {
+    nodeAddress: `0x${string}` | undefined;
+    address: `0x${string}`;
+    status: string;
+    statusTime: string;
+    canStake: boolean;
+    pubkey: `0x${string}`;
+    index: number;
+  }
+
+  const [validatorData,      setValidatorData     ] = useState<ValidatorData[]>([]);
+  const [hasPrelaunchPools,  setHasPrelaunchPools  ] = useState<boolean>(false);
+  const [hasPoolsToActivate, setHasPoolsToActivate] = useState<boolean>(false);
 
   const { address } = useAccount();
   const {
@@ -26,31 +36,6 @@ export function useValidatorData() {
     error: validatorManagerError,
     isLoading: managerLoading,
   } = useRocketAddress("rocketMinipoolManager");
-
-  // https://etherscan.io/address/0x03d30466d199ef540823fe2a22cae2e3b9343bb0#readContract
-  const validatorAddressABI = [
-    {
-      name: "canStake",
-      stateMutability: "nonpayable",
-      type: "function",
-      inputs: [],
-      outputs: [{ internalType: "bool", name: "", type: "bool" }],
-    },
-    {
-      name: "getStatus",
-      stateMutability: "nonpayable",
-      type: "function",
-      inputs: [],
-      outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
-    },
-    {
-      name: "getStatusTime",
-      stateMutability: "nonpayable",
-      type: "function",
-      inputs: [],
-      outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    },
-  ];
 
   const validatorCalls = useMemo(() => {
     if (!pubkeys || !validatorManagerAddress || pubkeysLoading) return [];
@@ -69,8 +54,9 @@ export function useValidatorData() {
     refetch: validatorAddressesRefetch,
   } = useReadContracts({
     contracts: validatorCalls,
-    enabled: !!validatorCalls.length,
+    query: { enabled: !!validatorCalls.length },
   });
+
   useEffect(() => {
     if (
       validatorCalls.length &&
@@ -78,33 +64,63 @@ export function useValidatorData() {
       !validatorAddressesLoading &&
       !validatorAddressesError
     ) {
-      console.log("validatorCalls:", validatorCalls);
       validatorAddressesRefetch();
     }
-  }, [validatorCalls, validatorAddressesLoading]);
+  }, [
+    validatorCalls.length,
+    validatorAddressesLoading,
+    validatorAddresses,
+    validatorAddressesError,
+    validatorAddressesRefetch,
+  ]);
 
   const statusCalls = useMemo(() => {
     if (!validatorAddresses || validatorAddressesLoading) return [];
-    console.log("validatorAddresses:", validatorAddresses);
+
+    // https://etherscan.io/address/0x03d30466d199ef540823fe2a22cae2e3b9343bb0#readContract
+    const validatorAddressABI: AbiFunction[] = [
+      {
+        name: "canStake",
+        stateMutability: "nonpayable",
+        type: "function",
+        inputs: [],
+        outputs: [{ internalType: "bool", name: "", type: "bool" }],
+      },
+      {
+        name: "getStatus",
+        stateMutability: "nonpayable",
+        type: "function",
+        inputs: [],
+        outputs: [{ internalType: "uint8", name: "", type: "uint8" }],
+      },
+      {
+        name: "getStatusTime",
+        stateMutability: "nonpayable",
+        type: "function",
+        inputs: [],
+        outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+      },
+    ];
+
     return validatorAddresses
       .filter((addr) => {
         return (
-          addr && addr.result != "0x0000000000000000000000000000000000000000"
+          addr && String(addr.result) != "0x0000000000000000000000000000000000000000"
         );
       }) // Exclude undefined addresses
       .map((address) => [
         {
-          address: address.result,
+          address: String(address.result) as `0x${string}`,
           abi: validatorAddressABI,
           functionName: "getStatus",
         },
         {
-          address: address.result,
+          address: String(address.result) as `0x${string}`,
           abi: validatorAddressABI,
           functionName: "getStatusTime",
         },
         {
-          address: address.result,
+          address: String(address.result) as `0x${string}`,
           abi: validatorAddressABI,
           functionName: "canStake",
         },
@@ -118,27 +134,27 @@ export function useValidatorData() {
     refetch: statusDataRefetch,
   } = useReadContracts({
     contracts: statusCalls,
-    enabled: !!statusCalls.length,
+    query: { enabled: !!statusCalls.length },
   });
   useEffect(() => {
     if (statusCalls.length && !statusData && !statusLoading) {
       statusDataRefetch();
     }
-  }, [statusCalls, statusLoading]);
+  }, [statusCalls, statusLoading, statusData, statusDataRefetch]);
 
   useEffect(() => {
-    console.log("statusCalls:", statusCalls);
-    console.log("pubkeys:", pubkeys);
-    console.log("statusData:", statusData);
     if (!pubkeys || !statusData || !validatorAddresses) return;
 
     let filteredIndex = 0;
+    let newHasPrelaunchPools = false;
+    let newHasPoolsToActivate = false;
+
     const formattedData = pubkeys
       .map((pubkey, index) => {
-        const validatorAddress = validatorAddresses[index].result;
+        const validatorAddress: string = String(validatorAddresses[index]?.result);
         if (
-          validatorAddress === "0x0000000000000000000000000000000000000000" ||
-          validatorAddress === undefined
+          validatorAddress === undefined ||
+          validatorAddress === "0x0000000000000000000000000000000000000000"
         ) {
           // a 0x000... address can be produced when a key is already generated for an vrun index,
           // but the contract call hasn't been initiated or has failed.
@@ -146,12 +162,10 @@ export function useValidatorData() {
           return;
         }
 
-        console.log(validatorAddress);
-        console.log(filteredIndex);
-
-        const statusResult = statusData[filteredIndex * 3].result;
-        const statusTimeResult = statusData[filteredIndex * 3 + 1].result;
-        const canStake = statusData[filteredIndex * 3 + 2].result;
+        const statusResult = statusData?.[filteredIndex * 3]?.result as string | undefined;
+        const statusTimeResult = statusData?.[filteredIndex * 3 + 1]
+          ?.result as string | undefined;
+        const canStake = statusData?.[filteredIndex * 3 + 2]?.result as boolean | undefined;
 
         filteredIndex++;
 
@@ -159,16 +173,17 @@ export function useValidatorData() {
           ? Number(statusTimeResult) * 1000
           : "";
         const statusDateTime = new Date(statusTime);
+        const statusIndex = statusResult !== undefined ? Number(statusResult) : -1;
         const currentStatus =
           ["Initialised", "Prelaunch", "Staking", "Withdrawable", "Dissolved"][
-            statusResult
+            statusIndex
           ] || "";
 
-        setHasPrelauncPools(hasPrelaunchPools || currentStatus === "Prelaunch");
-        setHasPoolsToActivate(hasPoolsToActivate || canStake);
+        newHasPrelaunchPools = newHasPrelaunchPools || currentStatus === "Prelaunch";
+        newHasPoolsToActivate = newHasPoolsToActivate || (canStake ?? false);
 
         return {
-          nodeAddress: address || "",
+          nodeAddress: address,
           address: validatorAddress.toLowerCase(),
           status: currentStatus,
           statusTime: statusDateTime.toLocaleString(),
@@ -177,37 +192,29 @@ export function useValidatorData() {
           index: pubkey.index,
         };
       })
-      .filter((pool) => pool);
+      .filter((pool): pool is ValidatorData => !!pool);
 
-    console.log("formattedData:", formattedData);
-    setValidatorData(formattedData);
-  }, [statusData, validatorAddresses, address]);
-
-  useEffect(() => {
-    setLoading(
-      pubkeysLoading ||
-        managerLoading ||
-        validatorAddressesLoading ||
-        statusLoading,
-    );
-    setError(
-      pubkeysError ||
-        validatorManagerError ||
-        validatorAddressesError ||
-        statusError,
-    );
-
-    console.log(error);
+    // prevents update loop
+    if (!isEqual(formattedData, validatorData)) {
+      setHasPrelaunchPools(newHasPrelaunchPools);
+      setHasPoolsToActivate(newHasPoolsToActivate);
+      setValidatorData(formattedData);
+    }
   }, [
-    pubkeysLoading,
-    managerLoading,
-    validatorAddressesLoading,
-    statusLoading,
-    pubkeysError,
-    validatorManagerError,
-    validatorAddressesError,
-    statusError,
+    statusData,
+    validatorAddresses,
+    address,
+    pubkeys,
+    validatorData
   ]);
+
+  const error = useMemo(() => {
+    return pubkeysError || validatorManagerError || validatorAddressesError || statusError || undefined;
+  }, [validatorAddressesError, validatorManagerError, statusError, pubkeysError]);
+
+  const loading = useMemo(() => {
+    return pubkeysLoading || managerLoading || validatorAddressesLoading || statusLoading || false;
+  }, [pubkeysLoading, managerLoading, validatorAddressesLoading, statusLoading]);
 
   return {
     validatorData,

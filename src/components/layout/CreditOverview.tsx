@@ -1,54 +1,53 @@
-import { type FC, useEffect, useState } from "react";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 import { useReadFee } from "../../hooks/useReadFee";
-import { useVrunPrices } from "../../hooks/useVrunPrices";
 
 export const CreditOverview: FC<{
-  onError: (error: String) => void;
+  onError: (error: string) => void;
 }> = ({ onError }) => {
-  const [creditError,    setCreditError   ] = useState<String>();
-  const [currentBalance, setCurrentBalance] = useState<Number>();
-  const [hasError,       setHasError      ] = useState<Boolean>(false);
+  const [creditError, setCreditError] = useState<string | undefined>();
+  const [currentBalance, setCurrentBalance] = useState<number | undefined>();
+  const [hasError, setHasError] = useState<boolean>(false);
 
-  const {prices, isLoading: pricesIsLoading, error: pricesError}               = useVrunPrices();
-  const {data: creditData, isLoading: creditIsLoading, refetch: creditRefetch} = useReadFee({ path: "credits" });
+  const { data: creditData, isLoading: creditIsLoading } = useReadFee({ path: "credits" });
 
   useEffect(() => {
-    if (creditError || pricesError) {
+    if (creditError) {
       setHasError(true);
-      onError(
-        `${pricesError ? pricesError + "\n" : ""}${creditError ? creditError + "\n" : ""}`,
-      );
-    }
-
-    if (!creditError && !pricesError) {
+      onError(`${creditError}\n`);
+    } else {
       setHasError(false);
     }
-  }, [creditError, pricesError]);
+  }, [creditError, onError]);
 
   useEffect(() => {
     if (creditData) {
-      setCreditError("");
       if (creditData.status !== 200) {
+        let errorMessage = "Something went wrong requesting your credit balance.";
         if (creditData.status === 404) {
-          setCreditError("You have not yet purchased any credits.");
-        } else {
-          setCreditError(
-            "Something went wrong requesting your credit balance.",
-          );
+          errorMessage = "You have not yet purchased any credits.";
         }
+        if (creditError !== errorMessage) {
+          setCreditError(errorMessage);
+        }
+        setCurrentBalance(undefined); // Reset balance if error occurs
+      } else {
+        setCreditError(undefined);
+        setCurrentBalance(creditData.value || 0);
       }
-      setCurrentBalance(creditData.value || 0);
     }
-  }, [creditData]);
+  }, [creditData, creditError]);
 
   return (
     <>
       {creditIsLoading ? (
         <div className="italic">Loading balance data...</div>
-      ) : creditError ? (
+      ) : hasError ? (
         <div className="italic">Could not get your current balance</div>
-      ) : currentBalance && (
+      ) : currentBalance !== undefined ? (
         <div>{currentBalance.toString()} Days</div>
+      ) : (
+        <div>No credit balance available</div>
       )}
     </>
   );

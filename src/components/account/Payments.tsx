@@ -7,18 +7,19 @@ import { useSignPaymentTransaction } from "../../hooks/useSignPaymentTransaction
 import { useVrunPrices } from "../../hooks/useVrunPrices";
 
 const Payments = () => {
-  const [creditError,       setCreditError      ] = useState<String>();
-  const [payHash,           setPayHash          ] = useState<String>();
-  const [paySuccess,        setPaySuccess       ] = useState<String>();
-  const [creditOverviewKey, setCreditOverviewKey] = useState<Number>(1);
-  const [hasError,          setHasError         ] = useState<Boolean>(false);
-  const [error,             setError            ] = useState<String>("");
+  const [paymentsRefreshKey, setPaymentsRefreshKey] = useState<number>(1);
+  const [creditError,        setCreditError       ] = useState<string>();
+  const [payHash,            setPayHash           ] = useState<`0x${string}` | undefined>();
+  const [paySuccess,         setPaySuccess        ] = useState<string>();
+  const [hasError,           setHasError          ] = useState<boolean>(false);
+  const [error,              setError             ] = useState<string>("");
 
   const {prices, isLoading: pricesIsLoading, error: pricesError} = useVrunPrices();
   const {data: signData, error: signError}                       = useSignPaymentTransaction(payHash, prices);
 
   useEffect(() => {
     if (creditError || pricesError || signError) {
+      setPayHash(undefined);
       setHasError(true);
       setError(
         `${pricesError ? pricesError + "\n" : ""}${creditError ? creditError + "\n" : ""}${signError ? signError + "\n" : ""}`,
@@ -27,22 +28,19 @@ const Payments = () => {
 
     if (!creditError && !pricesError && !signError) {
       setHasError(false);
+      setError("");
     }
   }, [creditError, pricesError, signError]);
 
   useEffect(() => {
-    if (signError) {
-      setPayHash("");
-    } else {
-      if (signData) {
-        setPaySuccess(
-          `Successfully added ${signData.numDays} days to your balance`,
-        );
-        setPayHash("");
-        setCreditOverviewKey(creditOverviewKey + 1); // Force re-render of credit overview to display our new balance
-      }
+    if (payHash && signData) {
+      setPaySuccess(
+        `Successfully added ${signData.numDays} days to your balance`,
+      );
+      setPayHash(undefined);
+      setPaymentsRefreshKey(paymentsRefreshKey + 1); // Force re-render of credit overview to display our new balance
     }
-  }, [signError, signData]);
+  }, [signData, paymentsRefreshKey, payHash]);
 
   return (
     <section className="grid gap-4 my-10 py-5">
@@ -61,17 +59,18 @@ const Payments = () => {
           <div className="inline-flex flex-shrink-0 items-center justify-center h-12 w-12 text-yellow-600 bg-yellow-100 rounded-full mr-6">
             <FaCoins className="text-yellow-500 text-xl" />
           </div>
-          <h2 className="text-lg self-center">Vrün Balance</h2>
+          <h2 className="text-lg self-center">Vr&uuml;n Balance</h2>
         </div>
-        <CreditOverview key={creditOverviewKey} onError={setCreditError} />
+        <CreditOverview key={paymentsRefreshKey} onError={setCreditError} />
       </div>
       <PayForm
+        key={paymentsRefreshKey}
         onSuccess={setPayHash}
         pricesError={pricesError}
         prices={prices}
         pricesIsLoading={pricesIsLoading}
       />
-      <SignPaymentForm setPayHash={setPayHash} payHash={payHash} />
+      <SignPaymentForm key={payHash} setPayHash={setPayHash} payHash={payHash} />
     </section>
   );
 };

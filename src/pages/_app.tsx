@@ -1,13 +1,13 @@
+import type { AppProps } from "next/app";
 import "../styles/globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
-import type { AppProps } from "next/app";
 // import type { AppPropsWithLayout } from '../types'; // need this if we wind up using nested layouts
 
 import Layout from "../components/layout/layout";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
-import { holesky, mainnet } from "wagmi/chains";
+import { holesky } from "wagmi/chains";
 import {
   lightTheme,
   darkTheme,
@@ -16,10 +16,9 @@ import {
 } from "@rainbow-me/rainbowkit";
 
 import { config } from "../wagmi";
+import { Figtree } from "next/font/google";
 
 const client = new QueryClient();
-
-import { Figtree } from "next/font/google";
 const figtree = Figtree({
   subsets: ["latin"],
 });
@@ -32,20 +31,10 @@ const customRainbowKitLightTheme = {
     body: figtree.style.fontFamily,
   },
   // colors: {
-    // ...lightTheme().colors,
-    // connectButtonBackground: "rgba(0, 0, 0, 0.5)",
-    // connectButtonText: "white",
+  // ...lightTheme().colors,
+  // connectButtonBackground: "rgba(0, 0, 0, 0.5)",
+  // connectButtonText: "white",
   // },
-};
-const customRainbowKitDarkTheme = {
-  ...darkTheme(),
-  fonts: {
-    body: figtree.style.fontFamily,
-  },
-  // colors: {
-  //   ...darkTheme().colors,
-  //   connectButtonBackground: "linear-gradient(to right, #0284c7, #38bdf8)",
-  // }
 };
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -63,7 +52,6 @@ function MyApp({ Component, pageProps }: AppProps) {
               holesky /*By default, initialChain is the first chain supplied to Wagmi (see wagmi.ts)*/
             }
             showRecentTransactions={true}
-            // theme={{ lightMode: customRainbowKitLightTheme, darkMode: customRainbowKitDarkTheme }} // depends on prefers-color-scheme; doesn't work with Tailwind's selector approach
             theme={customRainbowKitLightTheme}
           >
             {/* recommended by RainbowKit docs, but doesn't work */}

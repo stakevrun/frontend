@@ -1,4 +1,4 @@
-import type { ReactNode, FC } from "react";
+import type { ReactNode } from "react";
 
 type CardProps = {
   children: ReactNode;

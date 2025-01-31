@@ -1,27 +1,41 @@
+import { API_URL } from "../constants";
 import { useAccount } from "wagmi";
 import { useQuery } from "@tanstack/react-query";
-import { API_URL } from '../constants';
 
 export function useReadDb({
   path,
   searchParams,
-} : {
-  path: string,
-  searchParams?: Record<string, string>,
+}: {
+  path: string;
+  searchParams?: Record<string, string>;
 }) {
-  const {address, chainId} = useAccount();
-  const qs = searchParams && (new URLSearchParams(searchParams)).toString();
-  const queryString = qs ? `?${qs}` : '';
-  const queryKey = ['vrün', chainId, address, path, queryString];
+  const { address, chainId } = useAccount();
+  const qs = searchParams && new URLSearchParams(searchParams).toString();
+  const queryString = qs ? `?${qs}` : "";
+  const queryKey = ["vrün", chainId, address, path, queryString];
   const url = `${API_URL}/${chainId}/${address}/${path}${queryString}`;
   const queryFn = () =>
-    fetch(url)
-      .then(
-        r => r.status === 200 ? r.json().then(value => ({status: 200, value})) :
-          r.status === 404 ? {status: 404, value: undefined} :
-          r.text().then(msg => { throw new Error(`${r.status} error fetching ${url}: ${msg}`) }));
+    fetch(url).then((r) => {
+      if (r.status === 200) {
+        return r.json().then((value) => {
+          return { status: 200, value };
+        });
+      }
+      if (r.status === 404) {
+        return r.text().then((msg) => {
+          console.log(msg);
+          return msg === "Unknown route"
+            ? { status: 500, value: msg }
+            : { status: 404, value: undefined };
+        });
+      } else {
+        return r.text().then((msg) => {
+          throw new Error(`${r.status} error fetching ${url}: ${msg}`);
+        });
+      }
+    });
   return useQuery({
     queryKey,
     queryFn,
   });
-};
+}

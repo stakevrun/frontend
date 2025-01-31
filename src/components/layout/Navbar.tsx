@@ -1,22 +1,18 @@
+import { type SVGProps } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import ModeToggle from "../ModeToggle";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { mock } from "wagmi/connectors";
 import Link from "next/link";
 import Image from "next/image";
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
 } from "@headlessui/react";
 import { FaStop } from "react-icons/fa";
-import { type SVGProps, useState } from "react";
 import { Button } from "@headlessui/react";
-import { usePathname } from "next/navigation";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { mock } from "wagmi/connectors";
+import { useState } from "react";
 
 function Bars3Icon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -57,11 +53,12 @@ function XMarkIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 export function Navbar() {
-  const { isConnected } = useAccount({});
-  const { connect } = useConnect();
-  const { disconnect } = useDisconnect();
-  const pathname = usePathname();
   const [mockInput, setMockInput] = useState<`0x${string}`>("0x");
+
+  const { isConnected } = useAccount({});
+  const { connect }     = useConnect();
+  const { disconnect }  = useDisconnect();
+
   const handleMockInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target?.value && e.target.value.startsWith("0x"))
       setMockInput(e.target.value as `0x${string}`);
@@ -152,10 +149,16 @@ export function Navbar() {
                     />
                   </label>
                 )}
-                <Button className="btn-primary hidden md:visible" onClick={handleMockButton}>
+                <Button
+                  className="btn-primary hidden md:visible"
+                  onClick={handleMockButton}
+                >
                   {isConnected ? "Stop Viewing" : "View Account"}
                 </Button>
-                <Button className="btn-primary md:hidden" onClick={handleMockButton}>
+                <Button
+                  className="btn-primary md:hidden"
+                  onClick={handleMockButton}
+                >
                   <FaStop className="text-violet-50" />
                 </Button>
               </span>

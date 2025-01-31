@@ -50,7 +50,9 @@ const MarkdownToDisclosure: React.FC<{ children: ReactNode }> = ({
             </DisclosureButton>
           </dt>
           <DisclosurePanel as="dd" className="mt-2 pr-12">
-            <p className="text-base font-thin tracking-wide leading-7 text-zinc-600 dark:text-zinc-300">{answer}</p>
+            <p className="text-base font-thin tracking-wide leading-7 text-zinc-600 dark:text-zinc-300">
+              {answer}
+            </p>
           </DisclosurePanel>
         </Disclosure>
       ))}

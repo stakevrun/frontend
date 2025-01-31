@@ -1,4 +1,4 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import {
   injectedWallet,
   walletConnectWallet,
@@ -18,8 +18,8 @@ import {
   coinbaseWallet,
   krakenWallet,
   okxWallet,
-} from '@rainbow-me/rainbowkit/wallets';
-import { http, createConfig } from 'wagmi';
+} from "@rainbow-me/rainbowkit/wallets";
+import { http, createConfig } from "wagmi";
 import {
   arbitrum,
   // base,
@@ -28,28 +28,28 @@ import {
   // optimism,
   // polygon,
   sepolia,
-} from 'wagmi/chains';
-import { NEXT_PUBLIC_PROJECT_ID, HOLESKY_RPC } from './constants';
+} from "wagmi/chains";
+import { NEXT_PUBLIC_PROJECT_ID, HOLESKY_RPC } from "./constants";
 
 // Recommended for wagmi + TS (https://wagmi.sh/react/typescript#requirements)
-declare module 'wagmi' {
+declare module "wagmi" {
   interface Register {
-    config: typeof config
+    config: typeof config;
   }
 }
 
 const projectInfo = {
-  appName: 'Vrün',
-  projectId: NEXT_PUBLIC_PROJECT_ID
+  appName: "Vrün",
+  projectId: NEXT_PUBLIC_PROJECT_ID,
 };
 
 const walletGroups = [
   {
-    groupName: 'General',
-    wallets: [ injectedWallet, walletConnectWallet, safeWallet ],
+    groupName: "General",
+    wallets: [injectedWallet, walletConnectWallet, safeWallet],
   },
   {
-    groupName: 'Specific',
+    groupName: "Specific",
     wallets: [
       frameWallet,
       metaMaskWallet,
@@ -64,15 +64,18 @@ const walletGroups = [
     ],
   },
   {
-    groupName: 'Exchange',
-    wallets: [ coinbaseWallet, krakenWallet, binanceWallet, okxWallet, bybitWallet ],
-  }
+    groupName: "Exchange",
+    wallets: [
+      coinbaseWallet,
+      krakenWallet,
+      binanceWallet,
+      okxWallet,
+      bybitWallet,
+    ],
+  },
 ];
 
-const connectors = connectorsForWallets(
-  walletGroups,
-  projectInfo
-);
+const connectors = connectorsForWallets(walletGroups, projectInfo);
 
 export const config = createConfig({
   chains: [

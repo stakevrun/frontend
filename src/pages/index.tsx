@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-
 import Hero from "../components/home/Hero";
 import Resources from "../components/home/Resources";
 import Values from "../components/home/Values";
@@ -18,7 +17,9 @@ const Home: NextPage = () => {
             </h2>
 
             <p className="mt-4 text-md leading-loose text-slate-600 dark:text-slate-400">
-              Vrün is a premium validator management service built by experts in cryptography who are invested in the health of the Ethereum and Rocket Pool ecosystems.
+              Vrün is a premium validator management service built by experts in
+              cryptography who are invested in the health of the Ethereum and
+              Rocket Pool ecosystems.
             </p>
           </div>
 

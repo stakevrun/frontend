@@ -28,3 +28,4 @@ export type beaconLog = {
   withdrawals: bigint;
   withdrawals_amount: bigint;
 };
+
