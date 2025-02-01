@@ -16,7 +16,7 @@ function SunIcon(props: SVGProps<SVGSVGElement>) {
         fill="none"
       />
     </svg>
-  )
+  );
 }
 
 function MoonIcon(props: SVGProps<SVGSVGElement>) {
@@ -29,9 +29,8 @@ function MoonIcon(props: SVGProps<SVGSVGElement>) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
-
 
 function ModeToggle() {
   function disableTransitionsTemporarily() {
@@ -44,11 +43,14 @@ function ModeToggle() {
   function toggleColorMode() {
     disableTransitionsTemporarily();
 
-    let darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    let isSystemDarkMode = darkModeMediaQuery.matches;
-    let isDarkMode = document.documentElement.classList.toggle("dark");
+    const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const isSystemDarkMode = darkModeMediaQuery.matches;
+    const isDarkMode = document.documentElement.classList.toggle("dark");
 
-    document.documentElement.setAttribute('data-force-color-scheme', isDarkMode ? 'dark' : 'light');
+    document.documentElement.setAttribute(
+      "data-force-color-scheme",
+      isDarkMode ? "dark" : "light",
+    );
 
     if (isDarkMode === isSystemDarkMode) {
       delete window.localStorage.isDarkMode;

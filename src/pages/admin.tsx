@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
 import type { NextPage } from "next";
-// import { ethers, JsonRpcSigner } from "ethers";
-import { useAccount, useChainId } from "wagmi";
-import { useAdminCheck } from "../hooks/useAdminCheck";
+import React, { useState } from "react";
 import IfConnected from "../components/layout/IfConnected";
+// import { ethers, JsonRpcSigner } from "ethers";
+import { useAccount } from "wagmi";
+import { useAdminCheck } from "../hooks/useAdminCheck";
 
 const Admin: NextPage = () => {
-  const currentChain = useChainId();
+  // const currentChain = useChainId();
   // const signerRef = useRef<JsonRpcSigner>();
 
   const datetimeFromSeconds = (s: number) =>
@@ -15,18 +15,18 @@ const Admin: NextPage = () => {
   const secondsNow = () => Math.round(Date.now() / 1000);
 
   // const [isAdmin, setIsAdmin] = useState(false);
+  const [nodeAddressInput, setNodeAddressInput] = useState<string>("");
+  const [creditDaysInput,  setCreditDaysInput ] = useState<number>(0);
+  const [reasonInput,      setReasonInput     ] = useState<string>("");
+  const [txHashInput,      setTxHashInput     ] = useState<string>("");
+  const [tokenChainId,     setTokenChainId    ] = useState<number>(1);
+  const [tokenAddress,     setTokenAddress    ] = useState<string>("");
+  const [timestampInput,   setTimestampInput  ] = useState<number>(secondsNow());
+  const [errorMessage,     setErrorMessage    ] = useState<string>("");
+  const [successMessage,   setSuccessMessage  ] = useState<string>("");
+
   const { address } = useAccount();
   const isAdmin = useAdminCheck(address);
-  const [nodeAddressInput, setNodeAddressInput] = useState("");
-  const [creditDaysInput, setCreditDaysInput] = useState(0);
-  const [reasonInput, setReasonInput] = useState("");
-  const [txHashInput, setTxHashInput] = useState("");
-  const [tokenChainId, setTokenChainId] = useState(1);
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [timestampInput, setTimestampInput] = useState(secondsNow());
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
   // useEffect(() => {
   //   async () => {
   //     if (address !== undefined) {
@@ -67,10 +67,9 @@ const Admin: NextPage = () => {
   //   }
   // };
 
-
   const handleCreditAccount = () => {
     console.log("just kidding");
-  }
+  };
   /*
   const handleCreditAccount = async () => {
     // signer.signTypedData(domain: TypedDataDomain, types: Record< string, Array< TypedDataField > >, value: Record< string, any >)⇒ Promise< string >
@@ -157,93 +156,93 @@ const Admin: NextPage = () => {
 */
   return (
     <div className="flex w-full h-auto flex-col">
-    <IfConnected>
-          {isAdmin ? (
-            <div className="flex flex-col py-12 max-w-md gap-2 place-self-center">
+      <IfConnected>
+        {isAdmin ? (
+          <div className="flex flex-col py-12 max-w-md gap-2 place-self-center">
+            <input
+              value={nodeAddressInput}
+              className="mt-4 mb-2 border border-black-200"
+              placeholder="address of account to credit"
+              type="text"
+              onChange={(e) => setNodeAddressInput(e.target.value)}
+            />
+            <label>
+              <span className="mr-2">days to credit</span>
               <input
-                value={nodeAddressInput}
-                className="mt-4 mb-2 border border-black-200"
-                placeholder="address of account to credit"
-                type="text"
-                onChange={(e) => setNodeAddressInput(e.target.value)}
+                value={creditDaysInput}
+                className="border max-w-fit text-right"
+                type="number"
+                onChange={(e) => setCreditDaysInput(Number(e.target.value))}
               />
-              <label>
-                <span className="mr-2">days to credit</span>
-                <input
-                  value={creditDaysInput}
-                  className="border max-w-fit text-right"
-                  type="number"
-                  onChange={(e) => setCreditDaysInput(Number(e.target.value))}
-                />
-              </label>
+            </label>
+            <input
+              value={reasonInput}
+              type="text"
+              className="mt-4 mb-2 border border-black-200"
+              placeholder="reason for crediting account"
+              onChange={(e) => setReasonInput(e.target.value)}
+            />
+            <div>
+              <span className="px-5">
+                {datetimeFromSeconds(timestampInput)}
+              </span>
               <input
-                value={reasonInput}
-                type="text"
-                className="mt-4 mb-2 border border-black-200"
-                placeholder="reason for crediting account"
-                onChange={(e) => setReasonInput(e.target.value)}
-              />
-              <div>
-                <span className="px-5">
-                  {datetimeFromSeconds(timestampInput)}
-                </span>
-                <input
-                  value={timestampInput}
-                  type="number"
-                  onChange={(e) => {
-                    const newTimestamp = Number(e.target.value);
-                    setTimestampInput(newTimestamp);
-                  }}
-                />
-                <button
-                  type="button"
-                  className="border"
-                  onClick={() => setTimestampInput(secondsNow())}
-                >
-                  reset to now
-                </button>
-              </div>
-              <label>
-                <span className="mr-2">optional token chain id</span>
-                <input
-                  value={tokenChainId}
-                  type="number"
-                  className="mt-4 mb-2 border border-black-200"
-                  onChange={(e) => setTokenChainId(Number(e.target.value))}
-                />
-              </label>
-              <input
-                value={tokenAddress}
-                type="text"
-                className="mt-4 mb-2 border border-black-200"
-                placeholder="optional token address"
-                onChange={(e) => setTokenAddress(e.target.value)}
-              />
-              <input
-                value={txHashInput}
-                type="text"
-                className="mt-4 mb-2 border border-black-200"
-                placeholder="optional transaction hash"
-                onChange={(e) => setTxHashInput(e.target.value)}
+                value={timestampInput}
+                type="number"
+                onChange={(e) => {
+                  const newTimestamp = Number(e.target.value);
+                  setTimestampInput(newTimestamp);
+                }}
               />
               <button
                 type="button"
-                className="rounded-full border border-blue-500"
-                onClick={handleCreditAccount}
+                className="border"
+                onClick={() => setTimestampInput(secondsNow())}
               >
-                Credit Account
+                reset to now
               </button>
-              {errorMessage && <div>Error: {errorMessage}</div>}
-              {successMessage && <div>{successMessage}</div>}
             </div>
-          ) : (
-            <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
-              <h2 className="text-2xl font-bold  sm:text-2xl">NOT ADMIN</h2>
-              <p className="mt-4 text-gray-500 sm:text-l">
-                You are not connected with a Vrün administrator account.
-              </p>
-            </div>
-          )}
+            <label>
+              <span className="mr-2">optional token chain id</span>
+              <input
+                value={tokenChainId}
+                type="number"
+                className="mt-4 mb-2 border border-black-200"
+                onChange={(e) => setTokenChainId(Number(e.target.value))}
+              />
+            </label>
+            <input
+              value={tokenAddress}
+              type="text"
+              className="mt-4 mb-2 border border-black-200"
+              placeholder="optional token address"
+              onChange={(e) => setTokenAddress(e.target.value)}
+            />
+            <input
+              value={txHashInput}
+              type="text"
+              className="mt-4 mb-2 border border-black-200"
+              placeholder="optional transaction hash"
+              onChange={(e) => setTxHashInput(e.target.value)}
+            />
+            <button
+              type="button"
+              className="rounded-full border border-blue-500"
+              onClick={handleCreditAccount}
+            >
+              Credit Account
+            </button>
+            {errorMessage && <div>Error: {errorMessage}</div>}
+            {successMessage && <div>{successMessage}</div>}
+          </div>
+        ) : (
+          <div className="flex flex-col w-auto gap-2 rounded-lg border  px-4 py-4 text-center items-center justify-center shadow-xl">
+            <h2 className="text-2xl font-bold  sm:text-2xl">NOT ADMIN</h2>
+            <p className="mt-4 text-gray-500 sm:text-l">
+              You are not connected with a Vrün administrator account.
+            </p>
+          </div>
+        )}
       </IfConnected>
     </div>
   );

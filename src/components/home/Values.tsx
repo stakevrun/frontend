@@ -1,6 +1,5 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
-
+import Image from "next/image";
 import { VscActivateBreakpoints } from "react-icons/vsc";
 import { ImPower } from "react-icons/im";
 import { FaCoins, FaEthereum } from "react-icons/fa";

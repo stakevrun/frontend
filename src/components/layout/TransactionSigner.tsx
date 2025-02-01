@@ -1,38 +1,66 @@
-import { type FC, type ReactNode, useEffect, useState } from "react";
-import { type Hash } from "viem";
-import { type SignTypedDataReturnType, useAccount, useSignTypedData } from "wagmi";
-import { FaInfoCircle } from "react-icons/fa";
-import { Button, Input, Popover } from "@headlessui/react";
-import { useReadDb } from "../../hooks/useReadDb";
+import type { FC } from "react";
+import { Button } from "@headlessui/react";
+import { useState, useEffect } from "react";
+import { useSignTypedData, } from "wagmi";
 import { useWriteDb } from "../../hooks/useWriteDb";
 import { useApiTypes } from "../../hooks/useApiTypes";
-import type { UseQueryResult } from "@tanstack/react-query";
 
 export const TransactionSigner: FC<{
-  getMessage: () => { Object, String? };
-  onError: (hash: String) => void;
-  onSuccess: (hash: String) => void;
+  getMessage: () => Record<string, unknown>;
+  onError: (message: string | undefined) => void;
+  onSuccess: (hash: string) => void;
   buttonText: string;
-  path: string;
+  path?: number | "batch" | "credit";
   primaryType: string;
   disabled: boolean;
-}> = ({getMessage, onError, onSuccess, buttonText, path, primaryType, disabled}) => {
-
+}> = ({ getMessage, onError, onSuccess, buttonText, path, primaryType, disabled }) => {
   const [isPending, setIsPending] = useState<boolean>(false);
 
-  const {address, chainId}                        = useAccount();
   const {data: typesData, error: typesError}      = useApiTypes();
   const {signTypedDataAsync, error: signingError} = useSignTypedData();
 
-  const {mutateAsync} = useWriteDb({method: 'POST', path, type: primaryType });
+  const { mutateAsync } = useWriteDb({
+    method: "POST",
+    path,
+    type: primaryType,
+  });
 
-  const signTransaction = async (message) => {
+  useEffect(() => {
+    if (typesError) {
+      let message: string = "An error occurred.";
+      if (typeof typesError === "string") {
+        message = typesError;
+      } else if (typesError instanceof Error) {
+        message = typesError.message;
+      }
+      onError(message);
+    }
+  }, [typesError, onError]);
+
+  const signTransaction = async (message: Record<string, unknown>) => {
     try {
       // Add comment indicating the action has been triggerd by the user through the frontend
-      const data = { comment: "Action produced by user through Vrün front end", ...message };
-      const {types, domain} = typesData;
-      const signature = await signTypedDataAsync({ types, domain, primaryType, message: data });
-      if (signingError) return;
+      const data = {
+        comment: "Action produced by user through Vrün front end",
+        ...message,
+      };
+      const { types, domain } = typesData;
+      const signature = await signTypedDataAsync({
+        types,
+        domain,
+        primaryType,
+        message: data,
+      });
+      if (signingError) {
+        let message: string = "An error occurred during the signing process.";
+        if (typeof signingError === "string") {
+          message = signingError;
+        } else if (signingError instanceof Error) {
+          message = signingError.message;
+        }
+        onError(message);
+        return;
+      }
 
       const mutation = await mutateAsync({ signature, data });
       console.log(mutation);
@@ -42,18 +70,22 @@ export const TransactionSigner: FC<{
         onSuccess(await mutation.text());
       }
     } catch (e) {
-      onError(e.message);
-      console.warn("Error signing transaction:", e);
+      let message: string = "An error occurred during the signing process.";
+      if (typeof e === "string") {
+        message = e;
+      } else if (e instanceof Error) {
+        message = e.message;
+      }
+      onError(message);
+      console.warn("Error signing transaction:", message);
     }
   };
 
   const handler = () => {
     onError(undefined);
-    const message = getMessage();
-    if(message) {
+    const message: Record<string, unknown> = getMessage();
+    if (message) {
       setIsPending(true);
-      console.log("Message");
-      console.log(message);
       signTransaction(message).then(() => setIsPending(false));
     }
   };
@@ -64,7 +96,7 @@ export const TransactionSigner: FC<{
       disabled={disabled || isPending}
       onClick={handler}
     >
-      {isPending ? 'Signing...' : buttonText}
+      {isPending ? "Signing..." : buttonText}
     </Button>
   );
 };

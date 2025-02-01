@@ -6,4 +6,4 @@ export const MAINNET_ROCKET_STORAGE: `0x${string}` = "0x1d8f8f00cfa6758d7bE78336
 export const HOLESKY_ROCKET_STORAGE: `0x${string}` = "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1";
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const FEE_URL = process.env.NEXT_PUBLIC_FEE_URL;
-export const ETH_TOKEN_ADDRESS: `0x${string}` = '0x'.padEnd(42, '0');
+export const ETH_TOKEN_ADDRESS = "0x".padEnd(42, "0") as `0x${string}`;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Input, Field, Label, Button } from "@headlessui/react";
+import { Input, Label, Button } from "@headlessui/react";
 import { Radio, RadioGroup } from "../layout/radio";
 
 const Staking = () => {

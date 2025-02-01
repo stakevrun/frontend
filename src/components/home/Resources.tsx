@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@headlessui/react";
-import { FaMoneyBillWave, FaGithub, FaEthereum, FaLongArrowAltRight} from "react-icons/fa";
+import { FaMoneyBillWave, FaGithub, FaEthereum, FaLongArrowAltRight } from "react-icons/fa";
 import { Card, CardIcon, CardContent } from "../layout/Card";
 
 const Resources = () => {
@@ -24,7 +23,7 @@ const Resources = () => {
                   description="We provide an onsite service for staking your RPL."
                 ></CardContent>
                 <span className="text-sky-600 font-semibold">Stake RPL</span>
-                <FaLongArrowAltRight className="inline ml-2 text-sky-600"/>
+                <FaLongArrowAltRight className="inline ml-2 text-sky-600" />
               </Card>
             </Link>
 
@@ -38,7 +37,7 @@ const Resources = () => {
                   description="Learn how Vrün interacts with Ethereum and the beacon chain."
                 ></CardContent>
                 <span className="text-sky-600 font-semibold">Learn More</span>
-                <FaLongArrowAltRight className="inline ml-2 text-sky-600"/>
+                <FaLongArrowAltRight className="inline ml-2 text-sky-600" />
               </Card>
             </Link>
 
@@ -60,14 +59,11 @@ const Resources = () => {
                   description="Learn about the under the hood functions that help to power Vrün."
                 ></CardContent>
                 <span className="text-sky-600 font-semibold">Go to Docs</span>
-                <FaLongArrowAltRight className="inline ml-2 text-sky-600"/>
+                <FaLongArrowAltRight className="inline ml-2 text-sky-600" />
               </Card>
             </a>
 
-            <a
-              href="https://github.com/stakevrun/db"
-              target="_blank"
-            >
+            <a href="https://github.com/stakevrun/db" target="_blank">
               <Card>
                 <CardIcon>
                   <FaGithub className="text-yellow-500 text-4xl" />
@@ -77,7 +73,7 @@ const Resources = () => {
                   description="Find in-depth information and routes for our API."
                 ></CardContent>
                 <span className="text-sky-600 font-semibold">Go to GitHub</span>
-                <FaLongArrowAltRight className="inline ml-2 text-sky-600"/>
+                <FaLongArrowAltRight className="inline ml-2 text-sky-600" />
               </Card>
             </a>
           </div>
