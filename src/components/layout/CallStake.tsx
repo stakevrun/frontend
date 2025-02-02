@@ -104,7 +104,7 @@ export const CallStake: FC<{
     if (signError) {
       onSubmit(
         undefined,
-        `An error occured while trying to sign the validator request: ${signError}`,
+        `An error occured: ${signError}`,
         true,
       );
     } else if (signData) {

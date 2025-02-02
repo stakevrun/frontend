@@ -8,19 +8,18 @@ import isEqual from "lodash.isequal";
 
 // TODO:
 // - Use DAONodeTrustedSettingsValidator contract to find the scrub period and calculate the estimated time to wait for validator activation
-// - Get beaconchain status values for validators
+
+export interface ValidatorData {
+  nodeAddress: `0x${string}` | undefined;
+  address: `0x${string}`;
+  status: string;
+  statusTime: string;
+  canStake: boolean;
+  pubkey: `0x${string}`;
+  index: number;
+}
 
 export function useValidatorData() {
-  interface ValidatorData {
-    nodeAddress: `0x${string}` | undefined;
-    address: `0x${string}`;
-    status: string;
-    statusTime: string;
-    canStake: boolean;
-    pubkey: `0x${string}`;
-    index: number;
-  }
-
   const [validatorData,      setValidatorData     ] = useState<ValidatorData[]>([]);
   const [hasPrelaunchPools,  setHasPrelaunchPools  ] = useState<boolean>(false);
   const [hasPoolsToActivate, setHasPoolsToActivate] = useState<boolean>(false);
