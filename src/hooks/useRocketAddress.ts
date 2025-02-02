@@ -1,16 +1,11 @@
-import { MAINNET_ROCKET_STORAGE, HOLESKY_ROCKET_STORAGE } from "../constants";
+import { VRUN_CHAIN_CONFIG } from "../constants";
 import { useChainId, useReadContract } from "wagmi";
 import { keccak256, stringToBytes } from "viem";
-import { mainnet } from "wagmi/chains";
 import { abi } from "../abi/rocketStorageABI";
 
 export const useRocketStorage = () => {
   const chainId = useChainId();
-  const chainName = chainId === mainnet.id ? 'mainnet' : 'holesky';
-  const address = {
-    'mainnet': MAINNET_ROCKET_STORAGE,
-    'holesky': HOLESKY_ROCKET_STORAGE,
-  }[chainName];
+  const address = VRUN_CHAIN_CONFIG[chainId as keyof typeof VRUN_CHAIN_CONFIG].rocket_storage;
   return {address, abi};
 };
 

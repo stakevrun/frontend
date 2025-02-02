@@ -2,7 +2,9 @@ This is a [RainbowKit](https://rainbowkit.com) + [wagmi](https://wagmi.sh) + [Ne
 
 ## Getting Started
 
-First, run the development server:
+Copy `.env.development.example` to `.env.development` and fill out the working values for your development environment.
+
+Run the development server:
 
 ```bash
 npm run dev
