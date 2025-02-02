@@ -1,6 +1,4 @@
 import type { FC, ReactNode } from "react";
-import { useEffect } from "react";
-
 import Head from "next/head";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
@@ -11,10 +9,6 @@ const figtree = Figtree({
 });
 
 const Layout: FC<{ children: ReactNode }> = ({ children }) => {
-  useEffect(() => {
-    console.log(process.env.HOLESKY_RPC);
-  }, []);
-
   return (
     <div
       className={`${figtree.className} flex flex-col min-h-screen bg-vrun-neutral-1 dark:bg-vrun-9 dark:text-indigo-50`}
