@@ -7,10 +7,12 @@ export const VRUN_CHAIN_CONFIG = {
     rpc: process.env.NEXT_PUBLIC_MAINNET_RPC,
     beacon_node_rpc: process.env.NEXT_PUBLIC_BEACON_NODE_MAINNET_RPC,
     rocket_storage: "0x1d8f8f00cfa6758d7bE78336684788Fb0ee0Fa46" as `0x${string}`,
+    explorer_uri: "https://beaconcha.in/validator/",
   },
   17000: {
     rpc: process.env.NEXT_PUBLIC_HOLESKY_RPC,
     beacon_node_rpc: process.env.NEXT_PUBLIC_BEACON_NODE_HOLESKY_RPC,
     rocket_storage: "0x594Fb75D3dc2DFa0150Ad03F99F97817747dd4E1" as `0x${string}`,
+    explorer_uri: "https://holesky.beaconcha.in/validator/",
   }
 } as const;
