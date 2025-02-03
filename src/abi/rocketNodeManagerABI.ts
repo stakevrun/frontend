@@ -1,619 +1,619 @@
 export const abi = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "contract RocketStorageInterface",
-        "name": "_rocketStorageAddress",
-        "type": "address"
-      }
+        internalType: "contract RocketStorageInterface",
+        name: "_rocketStorageAddress",
+        type: "address",
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "node",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "node",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: "uint256",
+        name: "time",
+        type: "uint256",
+      },
     ],
-    "name": "NodeRegistered",
-    "type": "event"
+    name: "NodeRegistered",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "node",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "node",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "network",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: "uint256",
+        name: "network",
+        type: "uint256",
+      },
     ],
-    "name": "NodeRewardNetworkChanged",
-    "type": "event"
+    name: "NodeRewardNetworkChanged",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "node",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "node",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "state",
-        "type": "bool"
-      }
+        indexed: false,
+        internalType: "bool",
+        name: "state",
+        type: "bool",
+      },
     ],
-    "name": "NodeSmoothingPoolStateChanged",
-    "type": "event"
+    name: "NodeSmoothingPoolStateChanged",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "node",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "node",
+        type: "address",
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "time",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: "uint256",
+        name: "time",
+        type: "uint256",
+      },
     ],
-    "name": "NodeTimezoneLocationSet",
-    "type": "event"
+    name: "NodeTimezoneLocationSet",
+    type: "event",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getAverageNodeFee",
-    "outputs": [
+    name: "getAverageNodeFee",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getFeeDistributorInitialised",
-    "outputs": [
+    name: "getFeeDistributorInitialised",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_offset",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "_offset",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "_limit",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_limit",
+        type: "uint256",
+      },
     ],
-    "name": "getNodeAddresses",
-    "outputs": [
+    name: "getNodeAddresses",
+    outputs: [
       {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_index",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_index",
+        type: "uint256",
+      },
     ],
-    "name": "getNodeAt",
-    "outputs": [
+    name: "getNodeAt",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "getNodeCount",
-    "outputs": [
+    inputs: [],
+    name: "getNodeCount",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_offset",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "_offset",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "_limit",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_limit",
+        type: "uint256",
+      },
     ],
-    "name": "getNodeCountPerTimezone",
-    "outputs": [
+    name: "getNodeCountPerTimezone",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "string",
-            "name": "timezone",
-            "type": "string"
+            internalType: "string",
+            name: "timezone",
+            type: "string",
           },
           {
-            "internalType": "uint256",
-            "name": "count",
-            "type": "uint256"
-          }
+            internalType: "uint256",
+            name: "count",
+            type: "uint256",
+          },
         ],
-        "internalType": "struct RocketNodeManagerInterface.TimezoneCount[]",
-        "name": "",
-        "type": "tuple[]"
-      }
+        internalType: "struct RocketNodeManagerInterface.TimezoneCount[]",
+        name: "",
+        type: "tuple[]",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodeDetails",
-    "outputs": [
+    name: "getNodeDetails",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "bool",
-            "name": "exists",
-            "type": "bool"
+            internalType: "bool",
+            name: "exists",
+            type: "bool",
           },
           {
-            "internalType": "uint256",
-            "name": "registrationTime",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "registrationTime",
+            type: "uint256",
           },
           {
-            "internalType": "string",
-            "name": "timezoneLocation",
-            "type": "string"
+            internalType: "string",
+            name: "timezoneLocation",
+            type: "string",
           },
           {
-            "internalType": "bool",
-            "name": "feeDistributorInitialised",
-            "type": "bool"
+            internalType: "bool",
+            name: "feeDistributorInitialised",
+            type: "bool",
           },
           {
-            "internalType": "address",
-            "name": "feeDistributorAddress",
-            "type": "address"
+            internalType: "address",
+            name: "feeDistributorAddress",
+            type: "address",
           },
           {
-            "internalType": "uint256",
-            "name": "rewardNetwork",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "rewardNetwork",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "rplStake",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "rplStake",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "effectiveRPLStake",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "effectiveRPLStake",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "minimumRPLStake",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "minimumRPLStake",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "maximumRPLStake",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "maximumRPLStake",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "ethMatched",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "ethMatched",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "ethMatchedLimit",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "ethMatchedLimit",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "minipoolCount",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "minipoolCount",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "balanceETH",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "balanceETH",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "balanceRETH",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "balanceRETH",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "balanceRPL",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "balanceRPL",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "balanceOldRPL",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "balanceOldRPL",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "depositCreditBalance",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "depositCreditBalance",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "distributorBalanceUserETH",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "distributorBalanceUserETH",
+            type: "uint256",
           },
           {
-            "internalType": "uint256",
-            "name": "distributorBalanceNodeETH",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "distributorBalanceNodeETH",
+            type: "uint256",
           },
           {
-            "internalType": "address",
-            "name": "withdrawalAddress",
-            "type": "address"
+            internalType: "address",
+            name: "withdrawalAddress",
+            type: "address",
           },
           {
-            "internalType": "address",
-            "name": "pendingWithdrawalAddress",
-            "type": "address"
+            internalType: "address",
+            name: "pendingWithdrawalAddress",
+            type: "address",
           },
           {
-            "internalType": "bool",
-            "name": "smoothingPoolRegistrationState",
-            "type": "bool"
+            internalType: "bool",
+            name: "smoothingPoolRegistrationState",
+            type: "bool",
           },
           {
-            "internalType": "uint256",
-            "name": "smoothingPoolRegistrationChanged",
-            "type": "uint256"
+            internalType: "uint256",
+            name: "smoothingPoolRegistrationChanged",
+            type: "uint256",
           },
           {
-            "internalType": "address",
-            "name": "nodeAddress",
-            "type": "address"
-          }
+            internalType: "address",
+            name: "nodeAddress",
+            type: "address",
+          },
         ],
-        "internalType": "struct NodeDetails",
-        "name": "nodeDetails",
-        "type": "tuple"
-      }
+        internalType: "struct NodeDetails",
+        name: "nodeDetails",
+        type: "tuple",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodeExists",
-    "outputs": [
+    name: "getNodeExists",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodePendingWithdrawalAddress",
-    "outputs": [
+    name: "getNodePendingWithdrawalAddress",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodeRegistrationTime",
-    "outputs": [
+    name: "getNodeRegistrationTime",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodeTimezoneLocation",
-    "outputs": [
+    name: "getNodeTimezoneLocation",
+    outputs: [
       {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getNodeWithdrawalAddress",
-    "outputs": [
+    name: "getNodeWithdrawalAddress",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getRewardNetwork",
-    "outputs": [
+    name: "getRewardNetwork",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_offset",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "_offset",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "_limit",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_limit",
+        type: "uint256",
+      },
     ],
-    "name": "getSmoothingPoolRegisteredNodeCount",
-    "outputs": [
+    name: "getSmoothingPoolRegisteredNodeCount",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getSmoothingPoolRegistrationChanged",
-    "outputs": [
+    name: "getSmoothingPoolRegistrationChanged",
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
+      },
     ],
-    "name": "getSmoothingPoolRegistrationState",
-    "outputs": [
+    name: "getSmoothingPoolRegistrationState",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "initialiseFeeDistributor",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "initialiseFeeDistributor",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "_timezoneLocation",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "_timezoneLocation",
+        type: "string",
+      },
     ],
-    "name": "registerNode",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "registerNode",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_nodeAddress",
-        "type": "address"
+        internalType: "address",
+        name: "_nodeAddress",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "_network",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "_network",
+        type: "uint256",
+      },
     ],
-    "name": "setRewardNetwork",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "setRewardNetwork",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bool",
-        "name": "_state",
-        "type": "bool"
-      }
+        internalType: "bool",
+        name: "_state",
+        type: "bool",
+      },
     ],
-    "name": "setSmoothingPoolRegistrationState",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "setSmoothingPoolRegistrationState",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "_timezoneLocation",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "_timezoneLocation",
+        type: "string",
+      },
     ],
-    "name": "setTimezoneLocation",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "setTimezoneLocation",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "version",
-    "outputs": [
+    inputs: [],
+    name: "version",
+    outputs: [
       {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
+        internalType: "uint8",
+        name: "",
+        type: "uint8",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 export default abi;
