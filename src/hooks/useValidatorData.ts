@@ -15,6 +15,7 @@ export interface ValidatorData {
   status: string;
   statusTime: string;
   canStake: boolean;
+  isFinalised: boolean;
   pubkey: `0x${string}`;
   index: number;
 }
@@ -99,6 +100,13 @@ export function useValidatorData() {
         inputs: [],
         outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
       },
+      {
+        name: "getFinalised",
+        stateMutability: "nonpayable",
+        type: "function",
+        inputs: [],
+        outputs: [{ internalType: "bool", name: "", type: "bool" }],
+      },
     ];
 
     return validatorAddresses
@@ -122,6 +130,11 @@ export function useValidatorData() {
           address: String(address.result) as `0x${string}`,
           abi: validatorAddressABI,
           functionName: "canStake",
+        },
+        {
+          address: String(address.result) as `0x${string}`,
+          abi: validatorAddressABI,
+          functionName: "getFinalised",
         },
       ])
       .flat();
@@ -161,10 +174,11 @@ export function useValidatorData() {
           return;
         }
 
-        const statusResult = statusData?.[filteredIndex * 3]?.result as string | undefined;
-        const statusTimeResult = statusData?.[filteredIndex * 3 + 1]
+        const statusResult = statusData?.[filteredIndex * 4]?.result as string | undefined;
+        const statusTimeResult = statusData?.[filteredIndex * 4 + 1]
           ?.result as string | undefined;
-        const canStake = statusData?.[filteredIndex * 3 + 2]?.result as boolean | undefined;
+        const canStake = statusData?.[filteredIndex * 4 + 2]?.result as boolean | undefined;
+        const isFinalised = statusData?.[filteredIndex * 4 + 3]?.result as boolean | undefined;
 
         filteredIndex++;
 
@@ -187,6 +201,7 @@ export function useValidatorData() {
           status: currentStatus,
           statusTime: statusDateTime.toLocaleString(),
           canStake: canStake,
+          isFinalised: isFinalised,
           pubkey: pubkey.pubkey.toLowerCase(),
           index: pubkey.index,
         };

@@ -1,11 +1,15 @@
 import type { FC } from "react";
 import type { ValidatorData } from "../../hooks/useValidatorData";
+import { VRUN_CHAIN_CONFIG } from '../../constants';
 import { FaExclamationTriangle, FaCheckCircle, FaFunnelDollar } from "react-icons/fa";
 import { FaTornado, FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { ImExit, ImCross } from "react-icons/im";
+import { TbZzz } from "react-icons/tb";
 import { CallStake } from "../layout/CallStake";
+import { CallClose } from "../layout/CallClose";
 import { CallExit } from "../layout/CallExit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../layout/table";
+import { useAccount } from "wagmi";
 import { useEffect, useState } from "react";
 import { useValidatorData } from "../../hooks/useValidatorData";
 import { useReadBeaconNode } from "../../hooks/useReadBeaconNode";
@@ -151,6 +155,7 @@ const ValidatorInfo: FC<{
   const [validatorData,  setValidatorData ] = useState<BeaconValidatorDataType>();
   const [validatorIndex, setValidatorIndex] = useState<number>();
 
+  const { chainId } = useAccount();
   const {
     data: validatorBeaconInfo,
     error: readBeaconNodeError,
@@ -159,21 +164,9 @@ const ValidatorInfo: FC<{
   } = useReadBeaconNode({path: `eth/v1/beacon/states/head/validators/${validator.pubkey}`});
   const { data: currentEpoch, error: currentEpochError } = useCurrentEpoch();
 
-  const activateValidator = (
-    result: string | undefined,
-    error: string | undefined,
-    hasError: boolean,
-  ) => {
-    if(error) {
-      onError(error);
-    }
-    onHasError(hasError);
-    if(result) {
-      onMessage(result);
-    }
-  };
+  const explorer_uri = VRUN_CHAIN_CONFIG[chainId as keyof typeof VRUN_CHAIN_CONFIG].explorer_uri;
 
-  const exitValidator = (
+  const processActionResult = (
     result: string | undefined,
     error: string | undefined,
     hasError: boolean,
@@ -189,7 +182,7 @@ const ValidatorInfo: FC<{
   };
 
   useEffect(() => {
-    if(validatorBeaconInfo && !readBeaconNodeLoading) {
+    if(validatorBeaconInfo && validatorBeaconInfo.value && !readBeaconNodeLoading) {
       setStatus(validatorBeaconInfo.value.data.status);
       setValidatorData(validatorBeaconInfo.value.data.validator);
       setValidatorIndex(parseInt(validatorBeaconInfo.value.data.index));
@@ -249,7 +242,7 @@ const ValidatorInfo: FC<{
       {showCols.includes("index") && (
         <TableCell>
           {validatorBeaconInfo && (
-          <a href={`https://holesky.beaconcha.in/validator/${validatorIndex}`}>
+          <a href={`${explorer_uri}${validatorIndex}`}>
             {validatorIndex}
           </a>
           )}
@@ -265,7 +258,7 @@ const ValidatorInfo: FC<{
             <ImExit className="text-orange-500 me-1" />
             Exiting
           </div>
-        ) : status === "exited_unslashed" ? (
+        ) : validator.status === "Staking" && status === "exited_unslashed" ? (
           <div>
             <div className="flex flex-row items-center">
               <ImCross className="text-red-500 me-1" />
@@ -279,6 +272,34 @@ const ValidatorInfo: FC<{
               />
             }
           </div>
+        ) : validator.status === "Staking" && status === "withdrawal_possible" ? (
+          <div>
+            <div className="flex flex-row items-center">
+              <FaFunnelDollar className="text-orange-500 me-1" />
+              Can withdraw since
+            </div>
+            { validatorData &&
+              <EpochDate
+                onError={onError}
+                onHasError={onHasError}
+                epoch={validatorData.withdrawable_epoch}
+              />
+            }
+          </div>
+        ) : validator.isFinalised && status === "withdrawal_done" ? (
+          <div>
+            <div className="flex flex-row items-center">
+              <ImCross className="text-green-500 me-1" />
+              Closed
+            </div>
+          </div>
+        ) : validator.status === "Staking" && status === "withdrawal_done" ? (
+          <div>
+            <div className="flex flex-row items-center">
+              <FaFunnelDollar className="text-green-500 me-1" />
+              Withdrawal done
+            </div>
+          </div>
         ) : validator.status === "Staking" ? (
           <div>
             <div className="flex flex-row items-center">
@@ -288,8 +309,8 @@ const ValidatorInfo: FC<{
             {validator.statusTime || ""}
           </div>
         ) : validator.status === "Dissolved" ? (
-          <div>
-            <div className="flex flex-row items-center">
+          <div className="relative">
+            <div className="flex flex-row items-center relative">
               <FaTornado className="text-red-500 me-1" />
               {validator.status} since
             </div>
@@ -308,7 +329,7 @@ const ValidatorInfo: FC<{
         {validator.canStake &&
           validator.status === "Prelaunch" ? (
           <CallStake
-            onSubmit={activateValidator}
+            onSubmit={processActionResult}
             pubkey={validator.pubkey}
             validatorAddress={validator.address}
             index={validator.index}
@@ -318,11 +339,11 @@ const ValidatorInfo: FC<{
             <FaArrowUpRightFromSquare className="text-blue-500 me-1"/>
             How-to Rescue
           </a>
-        ) : status === "active_exiting" ? (
+        ) : validator.status === "Staking" && status === "active_exiting" ? (
           <div className="flex flex-row items-center">
             <ImExit className="text-orange-500 me-1" /> Exiting
           </div>
-        ) : status === "exited_unslashed" ? (
+        ) : validator.status === "Staking" && status === "exited_unslashed" ? (
           <div>
             <div className="flex flex-row items-center">
               <FaFunnelDollar className="text-orange-500 me-1" /> Withdrawable at
@@ -335,9 +356,27 @@ const ValidatorInfo: FC<{
               />
             }
           </div>
+        ) : validator.status === "Staking" && status === "withdrawal_possible" ? (
+            <>
+            <div className="flex flex-row items-center">
+              Waiting for withdrawal
+              <TbZzz className="text-orange-500 ms-1" />
+            </div>
+            <a className="flex flex-row items-center" href={`${explorer_uri}${validatorIndex}#withdrawals`}>
+              <FaArrowUpRightFromSquare className="text-blue-500 me-1"/>
+              Show withdrawals
+            </a>
+            </>
+        ) : validator.isFinalised ? (
+          <div>No actions</div>
+        ) : validator.status === "Staking" && status === "withdrawal_done" ? (
+          <CallClose
+            onSubmit={processActionResult}
+            validatorAddress={validator.address}
+            />
         ) : validator.status === "Staking" && currentEpoch ? (
           <CallExit
-            onSubmit={exitValidator}
+            onSubmit={processActionResult}
             pubkey={validator.pubkey}
             validatorIndex={validatorIndex}
             index={validator.index}
