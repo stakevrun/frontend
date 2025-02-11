@@ -29,7 +29,7 @@ import {
   // polygon,
   sepolia,
 } from "wagmi/chains";
-import { NEXT_PUBLIC_PROJECT_ID, HOLESKY_RPC } from "./constants";
+import { NEXT_PUBLIC_PROJECT_ID, VRUN_CHAIN_CONFIG } from "./constants";
 
 // Recommended for wagmi + TS (https://wagmi.sh/react/typescript#requirements)
 declare module "wagmi" {
@@ -89,8 +89,8 @@ export const config = createConfig({
   ],
   connectors,
   transports: {
-    [mainnet.id]: http(),
-    [holesky.id]: http(HOLESKY_RPC),
+    [mainnet.id]: http(VRUN_CHAIN_CONFIG["1"].rpc),
+    [holesky.id]: http(VRUN_CHAIN_CONFIG["17000"].rpc),
     [arbitrum.id]: http(),
     [sepolia.id]: http(),
   },
