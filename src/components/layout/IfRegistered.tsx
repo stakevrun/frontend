@@ -1,43 +1,58 @@
-import type { FC, ReactNode, ChangeEvent } from "react";
+import type { FC, ReactNode } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { ReadContractReturnType, ReadContractErrorType } from "viem";
 import { TransactionSubmitter } from "./TransactionSubmitter";
+import { Input } from "@headlessui/react";
 import { useAccount, useReadContract } from "wagmi";
 import { abi } from "../../abi/rocketNodeManagerABI";
 import { useRocketAddress } from "../../hooks/useRocketAddress";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export const RegistrationForm: FC<{
-  isRegistered: boolean;
   rocketNodeManager: `0x${string}`;
   refetch: (options: {
     cancelRefetch?: boolean | undefined;
     throwOnError?: boolean | undefined;
   }) => Promise<UseQueryResult<ReadContractReturnType, ReadContractErrorType>>;
-}> = ({ isRegistered, rocketNodeManager, refetch }) => {
-  const [selectedTimezone, setSelectedTimezone] = useState<string>("");
-  const [error,            setError           ] = useState<boolean>(false);
+}> = ({rocketNodeManager, refetch }) => {
+  const [selectedTimezone,   setSelectedTimezone  ] = useState<string>("");
+  const [hasValidationError, setHasValidationError] = useState<boolean>(false);
+  const [hasError,           setHasError          ] = useState<boolean>(false);
+  const [error,              setError             ] = useState<string>();
 
-  const handleSelectTimezone = (e: ChangeEvent) => {
-    const element = e.currentTarget as HTMLInputElement;
-    setSelectedTimezone(element.value || "");
-  };
+  useEffect(() => {
+    if(error && error.length) {
+      setHasError(true);
+    } else {
+      setHasError(false);
+    }
+  }, [error]);
 
-  const validate = () => {
-    if (!selectedTimezone.trim()) {
-      setError(true);
+  const validate = useCallback(() => {
+    setError("");
+    if (!selectedTimezone || selectedTimezone.length === 0) {
+      setHasValidationError(true);
       return false;
     } else {
-      setError(false);
       return true;
     }
-  };
+  }, [selectedTimezone]);
+
+  useEffect(() => {
+    if(selectedTimezone.length) {
+      setHasValidationError(false);
+    }
+  }, [selectedTimezone]);
 
   return (
     <div className="w-full max-w-md">
-      <p className="my-4 text-center">
-        Placeholder: Rocket Pool logo, Register form heading
-      </p>
+        <div
+          id="errmsg"
+          className={
+            "md:flex md:justify-end text-red-500" +
+            (hasError ? " visible" : " invisible")
+          }
+        > {error} </div>
       <div className="md:flex md:items-center mt-6">
         <div className="md:w-1/3">
           <label
@@ -48,16 +63,16 @@ export const RegistrationForm: FC<{
           </label>
         </div>
         <div className="md:w-2/3">
-          <input
+          <Input
             className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
             id="timezone"
             type="text"
             list="timezones"
             placeholder="Region/City"
-            onChange={handleSelectTimezone}
+            onChange={(e) => setSelectedTimezone(e.target.value.trim())}
             value={selectedTimezone}
             aria-required="true"
-            aria-invalid={error}
+            aria-invalid={hasValidationError}
             aria-describedby="errmsg"
           />
         </div>
@@ -71,7 +86,7 @@ export const RegistrationForm: FC<{
         id="errmsg"
         className={
           "md:flex md:justify-end text-red-500 text-xs italic" +
-          (error ? " visible" : " invisible")
+          (hasValidationError ? " visible" : " invisible")
         }
       >
         Please select a valid region.
@@ -85,6 +100,7 @@ export const RegistrationForm: FC<{
           functionName="registerNode"
           args={[selectedTimezone]}
           onSuccess={() => refetch({})}
+          onError={setError}
         />
       </div>
     </div>
@@ -95,7 +111,6 @@ export const IfRegistered: FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const { address: accountAddress } = useAccount();
-
   const { data: address, error: addressError } =
     useRocketAddress("rocketNodeManager");
 
@@ -112,19 +127,19 @@ export const IfRegistered: FC<{
   });
 
   if (!accountAddress) return <p>Error: no connected account</p>;
+
   return addressError ? (
-    <p>Error fetching rocketNodeManager address: {addressError.message}</p>
-  ) : isPending ? (
-    <p>Fetching node registration status...</p>
-  ) : error ? (
-    <p>Error reading getNodeExists: {error.message}</p>
-  ) : isRegistered ? (
-    children
-  ) : (
-    <RegistrationForm
-      rocketNodeManager={address as `0x${string}`}
-      isRegistered={isRegistered}
-      refetch={refetch}
-    />
-  );
+      <p>Error fetching rocketNodeManager address: {addressError.message}</p>
+    ) : isPending ? (
+      <p>Fetching node registration status...</p>
+    ) : error ? (
+      <p>Error reading getNodeExists: {error.message}</p>
+    ) : isRegistered ? (
+      children
+    ) : (
+      <RegistrationForm
+        rocketNodeManager={address as `0x${string}`}
+        refetch={refetch}
+      />
+    );
 };
