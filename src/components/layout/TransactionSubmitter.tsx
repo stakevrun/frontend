@@ -2,7 +2,7 @@ import type { Abi } from "abitype";
 import type { FC } from "react";
 import type { ContractFunctionArgs, TransactionReceipt } from "viem";
 import { Button } from "@headlessui/react";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
@@ -10,11 +10,12 @@ export const TransactionSubmitter: FC<{
   address: `0x${string}`;
   abi: Abi;
   functionName: string;
-  args: ContractFunctionArgs; // I think this is right?
+  args: ContractFunctionArgs;
   buttonText: string;
   onSuccess?: (receipt: TransactionReceipt) => void;
+  onError?: (message: string | undefined) => void;
   validate?: () => boolean;
-}> = ({ address, abi, functionName, args, buttonText, onSuccess, validate }) => {
+}> = ({ address, abi, functionName, args, buttonText, onError, onSuccess, validate }) => {
   const {
     writeContractAsync,
     data: hash,
@@ -31,45 +32,39 @@ export const TransactionSubmitter: FC<{
     isSuccess: isConfirmed,
   } = useWaitForTransactionReceipt({ hash, query: { enabled: isWritten } });
 
-  const handler = () => {
+  const handler = useCallback(async () => {
     if (!validate || validate()) {
-      writeContractAsync({ address, abi, functionName, args }).then((hash) =>
-        addRecentTransaction({ hash, description: functionName }),
-      );
+      try {
+        const hash = await writeContractAsync({ address, abi, functionName, args });
+        addRecentTransaction({ hash, description: functionName });
+      } catch (e) {
+        let message: string = "";
+        if (typeof e === "string") {
+          message = e;
+        } else if (e instanceof Error) {
+          message = e.message;
+        }
+        if(onError) onError(message.split("\n", 2).join("\n")); // Only get the first line, don't need the full stacktrace
+      }
     }
-  };
+  }, [onError, writeContractAsync, addRecentTransaction, validate, address, abi, functionName, args]);
 
-  const hasError = () => {
-    if (
-      (receipt && isConfirmed && receipt.status != "success") ||
-      errorOnWrite ||
-      errorOnWait
-    ) {
-      return true;
+  useEffect(() => {
+    if (errorOnWrite && onError) {
+      onError(`Error sending transaction: ${errorOnWrite.message.split("\n", 2).join("\n")}`);
     }
-
-    return false;
-  };
-
-  const errorMessage = () => {
-    if (receipt && isConfirmed && receipt.status != "success") {
-      return `${hash} ${receipt.status}`;
+    if (errorOnWait && onError) {
+      onError(`Error waiting for transaction confirmation: ${errorOnWait.message.split("\n", 2).join("\n")}`);
     }
-    if (errorOnWrite) {
-      return `Error sending transaction: ${errorOnWrite.message}`;
+    if (receipt && isConfirmed && receipt.status != "success" && onError) {
+      onError(`${hash} ${receipt.status}`);
     }
-    if (errorOnWait) {
-      return `Error waiting for transaction confirmation: ${errorOnWait.message}`;
-    }
-  };
+  }, [onError, errorOnWrite, errorOnWait, receipt, isConfirmed, hash]);
 
   useEffect(() => {
     if (isConfirmed && onSuccess) onSuccess(receipt);
-  }, [isConfirmed, onSuccess, receipt, errorOnWait, errorOnWrite]); // TODO: move to handler?
+  }, [isConfirmed, onSuccess, receipt]);
 
-  // TODO: also log errors in console somehow
-  // TODO: should this be a modal instead of div?
-  // TODO: allow customisation on when it should be disabled (e.g. allow duplicate or not)
   return (
     <div className="flex flex-col max-w-md">
       <Button
@@ -79,23 +74,6 @@ export const TransactionSubmitter: FC<{
       >
         {buttonText}
       </Button>
-      <div
-        className={
-          "whitespace-pre-wrap break-words mt-4 border border-red-500 rounded p-4 " +
-          (hasError() ? "visible" : "invisible")
-        }
-      >
-        {errorMessage()}
-      </div>
-      <div
-        className={
-          "whitespace-pre-wrap break-words mt-4 border border-green-500 rounded p-4 " +
-          ((hash || receipt) && !hasError() ? "visible" : "invisible")
-        }
-      >
-        {hash && !receipt && <p>Submitted transaction with hash {hash}</p>}
-        {receipt && receipt.status == "success" && <p>{hash} confirmed</p>}
-      </div>
     </div>
   );
 };
