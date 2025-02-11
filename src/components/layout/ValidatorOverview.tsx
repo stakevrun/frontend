@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import type { ValidatorData } from "../../hooks/useValidatorData";
 import { VRUN_CHAIN_CONFIG } from '../../constants';
-import { FaExclamationTriangle, FaCheckCircle, FaFunnelDollar } from "react-icons/fa";
+import { FaExclamationTriangle, FaCheckCircle, FaFunnelDollar, FaHourglassHalf } from "react-icons/fa";
 import { FaTornado, FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { ImExit, ImCross } from "react-icons/im";
 import { TbZzz } from "react-icons/tb";
@@ -316,9 +316,19 @@ const ValidatorInfo: FC<{
             </div>
             {validator.statusTime || ""}
           </div>
+        ) : validator.status === "Prelaunch" ? (
+          <div>
+            <div className="flex flex-row items-center">
+              <FaHourglassHalf className="text-orange-500 me-1" />
+              {validator.status}
+            </div>
+            {validator.statusTime || ""}
+          </div>
         ) : (
           <div>
-            {validator.status || ""}
+            <div className="flex flex-row items-center">
+              {validator.status}
+            </div>
             {validator.statusTime || ""}
           </div>
         )}
@@ -382,6 +392,12 @@ const ValidatorInfo: FC<{
             index={validator.index}
             epoch={currentEpoch}
             />
+        ) : validator.status === "Prelaunch" ? (
+          <div>
+            <div className="flex flex-row items-center">
+              Waiting for scrub
+            </div>
+          </div>
         ) : (
           ""
         )}

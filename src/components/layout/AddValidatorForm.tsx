@@ -172,9 +172,10 @@ export const AddValidatorForm: FC<{
       console.log(result);
 
       Object.keys(result).forEach((minipoolAddress: string) => {
+        console.log(minipoolAddress);
+        console.log(minipoolAddresses);
         if (minipoolAddress in minipoolAddresses) {
-          const { pubkey, signature, depositDataRoot } =
-            result[minipoolAddress];
+          const minipool = result[minipoolAddress];
 
           const contractData = {
             abi: depositABI,
@@ -183,11 +184,11 @@ export const AddValidatorForm: FC<{
             args: [
               parseEther(bondAmount.toString()), // _bondAmount
               parseEther("0.05"), // _minimumNodeFee
-              pubkey, // _validatorPubkey
-              signature, // _validatorSignature
-              depositDataRoot, // _depositDataRoot
+              minipool.pubkey, // _validatorPubkey
+              minipool.signature, // _validatorSignature
+              minipool.depositDataRoot, // _depositDataRoot
               minipoolAddresses[minipoolAddress as `0x${string}`], // _salt
-              minipoolAddresses, // _expectedMinipoolAddress
+              minipoolAddress, // _expectedMinipoolAddress
             ],
             value: parseEther(bondAmount.toString()),
           };
@@ -266,11 +267,7 @@ export const AddValidatorForm: FC<{
               </li>
               <li>Fee Recipient Address: {feeRecipient?.value}</li>
               <li>
-                Withdrawal Address
-                {minipoolAddresses &&
-                  Object.keys(minipoolAddresses).length > 1 &&
-                  "es"}
-                :
+                Withdrawal Address{minipoolAddresses && Object.keys(minipoolAddresses).length > 1 && "es"}:
                 {minipoolAddresses && Object.keys(minipoolAddresses).length
                   ? Object.keys(minipoolAddresses).map((address) => (
                       <>
